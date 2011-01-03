@@ -1,0 +1,3 @@
+windres main.rc -O coff main.res
+gcc -c main.c
+gcc -o ndsr.exe main.o main.res

@@ -63,7 +63,7 @@ public class Tray {
 	public void run() throws InterruptedException, FileNotFoundException, IOException {
 		Configuration configuration = new Configuration();
 
-		os = System.getProperty("os.name");
+		os = System.getProperty("os.name").toLowerCase();
 
 		initTrayIcon();
 		initIdleTime();

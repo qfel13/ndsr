@@ -135,15 +135,18 @@ public class Tray {
 			SystemTray tray = SystemTray.getSystemTray();
 			String separator = System.getProperty("file.separator");
 			System.out.println("separator = " + separator);
-			String devIconPath = "icon" + separator + "no2.png"; // for development only
-			System.out.println("devIconPath = " + devIconPath);
-			String iconPath = "icon" + separator + "no.png";
+
+			String iconPath = "icon" + separator;
+			if (os.equals("linux")) {
+				iconPath += "no_linux.png";
+			} else {
+				iconPath += "no.png";
+			}
 			System.out.println("iconPath = " + iconPath);
-			File devIconFile = new File(devIconPath);
+
 			File iconFile = new File(iconPath);
-			if (devIconFile.exists()) {
-				image = Toolkit.getDefaultToolkit().getImage(devIconPath);
-			} else if (iconFile.exists()) {
+
+			if (iconFile.exists()) {
 				image = Toolkit.getDefaultToolkit().getImage(iconPath);
 			} else {
 				throw new RuntimeException("Tray Icon not found");

@@ -24,6 +24,7 @@ import javax.swing.JOptionPane;
 //import org.apache.log4j.Logger;
 import ndsr.idle.IdleTime;
 import ndsr.idle.LinuxIdleTime;
+import ndsr.idle.WindowsIdleTime;
 import org.apache.log4j.PropertyConfigurator;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.ChartFrame;
@@ -42,6 +43,8 @@ import org.slf4j.LoggerFactory;
 public class Tray {
 
 	private static final Logger log = LoggerFactory.getLogger(Tray.class);
+	private static final String FILE_SEPARATOR = System.getProperty("file.separator");
+	
 	private TrayIcon trayIcon = null;
 	private PopupMenu popup = null;
 	private MenuItem detailsItem = null;
@@ -132,11 +135,9 @@ public class Tray {
 
 	private void initTrayIcon() throws RuntimeException {
 		if (SystemTray.isSupported()) {
+			log.info("System Tray is supported");
 			SystemTray tray = SystemTray.getSystemTray();
-			String separator = System.getProperty("file.separator");
-			System.out.println("separator = " + separator);
-
-			String iconPath = "icon" + separator;
+			String iconPath = "icon" + FILE_SEPARATOR;
 			if (os.equals("linux")) {
 				iconPath += "no_linux.png";
 			} else {
@@ -145,13 +146,19 @@ public class Tray {
 			System.out.println("iconPath = " + iconPath);
 
 			File iconFile = new File(iconPath);
-
+			log.debug("Checking tray icon file ...");
 			if (iconFile.exists()) {
+				log.debug("Tray icon file found");
 				image = Toolkit.getDefaultToolkit().getImage(iconPath);
 			} else {
-				throw new RuntimeException("Tray Icon not found");
+				log.error("Tray icon file NOT found. Try to work without tray.");
+				log.info("Trying to work without tray.");
+				return;
 			}
+			log.debug("Creating popup manu");
 			popup = new PopupMenu();
+
+			log.debug("Creating details menu item");
 			// DETAILS
 			ActionListener detailsListener = new ActionListener() {
 
@@ -162,7 +169,11 @@ public class Tray {
 			};
 			detailsItem = new MenuItem("Show details");
 			detailsItem.addActionListener(detailsListener);
+			
+			log.debug("Adding details menu item");
 			popup.add(detailsItem);
+
+			log.debug("Creating settings menu item");
 			ActionListener settingsListener = new ActionListener() {
 
 				@Override
@@ -172,8 +183,10 @@ public class Tray {
 			};
 			settingsItem = new MenuItem("Settings");
 			settingsItem.addActionListener(settingsListener);
+			log.debug("Adding settings menu item");
 			popup.add(settingsItem);
-			// CARITAS
+
+			log.debug("Creating caritas menu item");
 			ActionListener caritasListener = new ActionListener() {
 
 				@Override
@@ -183,8 +196,10 @@ public class Tray {
 			};
 			caritasItem = new MenuItem("Caritas");
 			caritasItem.addActionListener(caritasListener);
+			log.debug("Adding caritas menu item");
 			popup.add(caritasItem);
-			// EXIT
+
+			log.debug("Creating exit menu item");
 			ActionListener exitListener = new ActionListener() {
 
 				@Override
@@ -195,25 +210,31 @@ public class Tray {
 			};
 			exitItem = new MenuItem("Exit");
 			exitItem.addActionListener(exitListener);
+			log.debug("Adding exit menu item");
 			popup.add(exitItem);
+
+			log.debug("Creating Tray icon");
 			trayIcon = new TrayIcon(image, "Initializing ...", popup);
 			trayIcon.setImageAutoSize(true);
 			try {
+				log.debug("Adding Tray icon to Tray");
 				tray.add(trayIcon);
 			} catch (AWTException e) {
-				String s = "TrayIcon could not be added. " + e.getMessage();
-				System.err.println(s);
-				throw new RuntimeException(s);
+				log.error("TrayIcon could not be added. " + e.getMessage());
+				log.info("Trying to work without tray.");
+				return;
 			}
 		} else {
-			throw new RuntimeException("Tray Icon is not supported");
+			log.error("System Tray is NOT supported");
+			log.info("Trying to work without tray.");
+            return;
 		}
 	}
 
 	private void showCaritasDialog() {
 		JOptionPane.showMessageDialog(null, "Nie bądź kurwa Caritasem!",
 				"Nie bądź kurwa Caritasem!", JOptionPane.INFORMATION_MESSAGE,
-				new ImageIcon(Toolkit.getDefaultToolkit().getImage("icon\\caritas.png")));
+				new ImageIcon(Toolkit.getDefaultToolkit().getImage("icon" + FILE_SEPARATOR + "caritas.png")));
 	}
 
 	private void showDetails() {
@@ -273,8 +294,11 @@ public class Tray {
 	private void initIdleTime() {
 		if (os.equals("linux")) {
 			idleTime = new LinuxIdleTime();
+		} else if (os.startsWith("windows")) {
+			idleTime = new WindowsIdleTime();
 		} else {
-			throw new RuntimeException("Unsupported operating system: " + os);
+			log.error("Unsupported operating system: {}", os);
+			System.exit(1);
 		}
 	}
 }

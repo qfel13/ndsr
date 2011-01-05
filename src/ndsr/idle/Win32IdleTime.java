@@ -1,4 +1,4 @@
-package ndsr;
+package ndsr.idle;
 
 import com.sun.jna.Native;
 import com.sun.jna.Structure;

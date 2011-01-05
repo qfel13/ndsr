@@ -76,7 +76,7 @@
 			<fileset dir="icon" includes="**/*" />
 		</copy>
 		<copy todir="dist">
-			<fileset dir="run" includes="**/*.exe" />
+			<fileset dir="win_runner" includes="**/*.exe" />
 		</copy>
 		<copy todir="dist">
 			<fileset dir="conf" includes="**/*.properties" />

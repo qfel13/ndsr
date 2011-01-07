@@ -40,9 +40,9 @@ import org.slf4j.LoggerFactory;
  *
  * @author lkufel
  */
-public class Tray {
+public class Main {
 
-	private static final Logger log = LoggerFactory.getLogger(Tray.class);
+	private static final Logger log = LoggerFactory.getLogger(Main.class);
 	private static final String FILE_SEPARATOR = System.getProperty("file.separator");
 	
 	private TrayIcon trayIcon = null;
@@ -60,7 +60,7 @@ public class Tray {
 
 	public static void main(String args[]) throws InterruptedException, FileNotFoundException, IOException {
 		PropertyConfigurator.configure("log4j.properties");
-		new Tray().run();
+		new Main().run();
 	}
 
 	public void run() throws InterruptedException, FileNotFoundException, IOException {
@@ -138,12 +138,13 @@ public class Tray {
 			log.info("System Tray is supported");
 			SystemTray tray = SystemTray.getSystemTray();
 			String iconPath = "icon" + FILE_SEPARATOR;
+			// TODO: add configuration, allow user to choose appropriate file
 			if (os.equals("linux")) {
 				iconPath += "no_linux.png";
 			} else {
 				iconPath += "no.png";
 			}
-			System.out.println("iconPath = " + iconPath);
+			log.debug("iconPath = {}", iconPath);
 
 			File iconFile = new File(iconPath);
 			log.debug("Checking tray icon file ...");

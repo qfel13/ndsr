@@ -9,7 +9,7 @@
  * Created on Jul 24, 2010, 9:00:07 PM
  */
 
-package ndsr;
+package ndsr.trash;
 
 import java.awt.Desktop;
 import java.io.IOException;

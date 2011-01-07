@@ -56,7 +56,7 @@ public class Tray {
 	private SettingsFrame settingsFrame;
 	private CalendarHandler calendarHandler;
 	private IdleTime idleTime;
-	private String os = "";
+	private static String os = "";
 
 	public static void main(String args[]) throws InterruptedException, FileNotFoundException, IOException {
 		PropertyConfigurator.configure("log4j.properties");
@@ -300,5 +300,9 @@ public class Tray {
 			log.error("Unsupported operating system: {}", os);
 			System.exit(1);
 		}
+	}
+
+	public static String getOs() {
+		return os;
 	}
 }

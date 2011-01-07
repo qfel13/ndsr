@@ -105,14 +105,22 @@ public class Stats {
     @Override
     public String toString() {
         StringBuilder s = new StringBuilder();
-        s.append("Today\n");
-        s.append(getTwoDigits(todayHours)).append(":").append(getTwoDigits(todayMinutes)).append(" - worked\n");
-        s.append(getTwoDigits(remainingTodayHours)).append(":").append(getTwoDigits(remainingTodayMinutes)).append(" - remaining\n");
-        s.append(getTwoDigits(overtimeTodayHours)).append(":").append(getTwoDigits(overtimeTodayMinutes)).append(" - overtime\n");
-        s.append("Week\n");
-        s.append(getTwoDigits(weekHours)).append(":").append(getTwoDigits(weekMinutes)).append(" - worked\n");
-        s.append(getTwoDigits(remainingWeekHours)).append(":").append(getTwoDigits(remainingWeekMinutes)).append(" - remaining\n");
-        s.append(getTwoDigits(overtimeWeekHours)).append(":").append(getTwoDigits(overtimeWeekMinutes)).append(" - overtime");
+		if (Tray.getOs().equals("linux")) {
+			s.append("Today[");
+			s.append(getTwoDigits(todayHours)).append(":").append(getTwoDigits(todayMinutes)).append(" <> ");
+			s.append(getTwoDigits(remainingTodayHours)).append(":").append(getTwoDigits(remainingTodayMinutes)).append("] Week[");
+			s.append(getTwoDigits(weekHours)).append(":").append(getTwoDigits(weekMinutes)).append(" <> ");
+			s.append(getTwoDigits(remainingWeekHours)).append(":").append(getTwoDigits(remainingWeekMinutes)).append("]");
+		} else {
+			s.append("Today\n");
+			s.append(getTwoDigits(todayHours)).append(":").append(getTwoDigits(todayMinutes)).append(" - worked\n");
+			s.append(getTwoDigits(remainingTodayHours)).append(":").append(getTwoDigits(remainingTodayMinutes)).append(" - remaining\n");
+			s.append(getTwoDigits(overtimeTodayHours)).append(":").append(getTwoDigits(overtimeTodayMinutes)).append(" - overtime\n");
+			s.append("Week\n");
+			s.append(getTwoDigits(weekHours)).append(":").append(getTwoDigits(weekMinutes)).append(" - worked\n");
+			s.append(getTwoDigits(remainingWeekHours)).append(":").append(getTwoDigits(remainingWeekMinutes)).append(" - remaining\n");
+			s.append(getTwoDigits(overtimeWeekHours)).append(":").append(getTwoDigits(overtimeWeekMinutes)).append(" - overtime");
+		}
         return s.toString();
     }
 

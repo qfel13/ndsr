@@ -105,7 +105,7 @@ public class Stats {
     @Override
     public String toString() {
         StringBuilder s = new StringBuilder();
-		if (Tray.getOs().equals("linux")) {
+		if (Main.getOs().equals("linux")) {
 			s.append("Today[");
 			s.append(getTwoDigits(todayHours)).append(":").append(getTwoDigits(todayMinutes)).append(" <> ");
 			s.append(getTwoDigits(remainingTodayHours)).append(":").append(getTwoDigits(remainingTodayMinutes)).append("] Week[");

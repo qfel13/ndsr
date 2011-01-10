@@ -95,7 +95,7 @@ public class Main {
 			int idleTimeInSec = configuration.getIdleTimeInSec();
 			int idleSec = idleTime.getIdleTime();
 			if (idleSec < idleTimeInSec) {
-				log.debug("NOT IDLE");
+				log.debug("NOT IDLE. idleSec = {}, idleTimeInSec = {}", idleSec, idleTimeInSec);
 
 				String workIpRegExp = configuration.getWorkIpRegExp();
 

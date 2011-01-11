@@ -29,7 +29,7 @@ public class SettingsFrame extends javax.swing.JFrame {
         initComponents();
     }
 
-    public SettingsFrame(Configuration configuration, CalendarHandler calendarHandler) {
+    public SettingsFrame(Configuration configuration) {
         this.configuration = configuration;
         initComponents();
         usernameText.setText(configuration.getUser());

@@ -22,6 +22,8 @@ import java.util.List;
 import javax.swing.ImageIcon;
 import javax.swing.JOptionPane;
 //import org.apache.log4j.Logger;
+import javax.swing.UIManager;
+import ndsr.gui.TabbedSettingsFrame;
 import ndsr.idle.IdleTime;
 import ndsr.idle.LinuxIdleTime;
 import ndsr.idle.WindowsIdleTime;
@@ -53,13 +55,20 @@ public class Main {
 	private MenuItem exitItem = null;
 	private Image image;
 	private Stats stats;
-	private SettingsFrame settingsFrame;
+	private TabbedSettingsFrame settingsFrame;
 	private CalendarHandler calendarHandler;
 	private IdleTime idleTime;
 	private static String os = "";
 
 	public static void main(String args[]) throws InterruptedException, FileNotFoundException, IOException {
 		PropertyConfigurator.configure("log4j.properties");
+
+		try {
+			UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+		} catch (Exception e) {
+			log.error("Error setting native LAF: ", e);
+		}
+
 		new Main().run();
 	}
 
@@ -85,7 +94,7 @@ public class Main {
 		}
 
 		calendarHandler = new CalendarHandler(configuration);
-		settingsFrame = new SettingsFrame(configuration, calendarHandler);
+		settingsFrame = new TabbedSettingsFrame(configuration);
 
 		String statsStr;
 		Boolean running = true;

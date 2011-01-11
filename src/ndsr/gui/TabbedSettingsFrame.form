@@ -1,0 +1,382 @@
+<?xml version="1.1" encoding="UTF-8" ?>
+
+<Form version="1.3" maxVersion="1.7" type="org.netbeans.modules.form.forminfo.JFrameFormInfo">
+  <Properties>
+    <Property name="title" type="java.lang.String" value="Settings"/>
+    <Property name="resizable" type="boolean" value="false"/>
+  </Properties>
+  <SyntheticProperties>
+    <SyntheticProperty name="formSizePolicy" type="int" value="1"/>
+  </SyntheticProperties>
+  <AuxValues>
+    <AuxValue name="FormSettings_autoResourcing" type="java.lang.Integer" value="0"/>
+    <AuxValue name="FormSettings_autoSetComponentName" type="java.lang.Boolean" value="false"/>
+    <AuxValue name="FormSettings_generateFQN" type="java.lang.Boolean" value="true"/>
+    <AuxValue name="FormSettings_generateMnemonicsCode" type="java.lang.Boolean" value="false"/>
+    <AuxValue name="FormSettings_i18nAutoMode" type="java.lang.Boolean" value="false"/>
+    <AuxValue name="FormSettings_layoutCodeTarget" type="java.lang.Integer" value="1"/>
+    <AuxValue name="FormSettings_listenerGenerationStyle" type="java.lang.Integer" value="0"/>
+    <AuxValue name="FormSettings_variablesLocal" type="java.lang.Boolean" value="false"/>
+    <AuxValue name="FormSettings_variablesModifier" type="java.lang.Integer" value="2"/>
+  </AuxValues>
+
+  <Layout>
+    <DimensionLayout dim="0">
+      <Group type="103" groupAlignment="0" attributes="0">
+          <Group type="102" alignment="1" attributes="0">
+              <EmptySpace max="-2" attributes="0"/>
+              <Group type="103" groupAlignment="1" attributes="0">
+                  <Component id="jTabbedPane1" alignment="0" max="32767" attributes="0"/>
+                  <Group type="102" alignment="1" attributes="0">
+                      <Component id="cancelButton" min="-2" max="-2" attributes="0"/>
+                      <EmptySpace max="-2" attributes="0"/>
+                      <Component id="okButton" min="-2" max="-2" attributes="0"/>
+                  </Group>
+              </Group>
+              <EmptySpace max="-2" attributes="0"/>
+          </Group>
+      </Group>
+    </DimensionLayout>
+    <DimensionLayout dim="1">
+      <Group type="103" groupAlignment="0" attributes="0">
+          <Group type="102" alignment="0" attributes="0">
+              <EmptySpace min="-2" max="-2" attributes="0"/>
+              <Component id="jTabbedPane1" pref="164" max="32767" attributes="0"/>
+              <EmptySpace min="-2" max="-2" attributes="0"/>
+              <Group type="103" groupAlignment="3" attributes="0">
+                  <Component id="okButton" alignment="3" max="32767" attributes="0"/>
+                  <Component id="cancelButton" alignment="3" max="32767" attributes="0"/>
+              </Group>
+              <EmptySpace min="-2" max="-2" attributes="0"/>
+          </Group>
+      </Group>
+    </DimensionLayout>
+  </Layout>
+  <SubComponents>
+    <Container class="javax.swing.JTabbedPane" name="jTabbedPane1">
+      <AccessibilityProperties>
+        <Property name="AccessibleContext.accessibleName" type="java.lang.String" value="General"/>
+      </AccessibilityProperties>
+
+      <Layout class="org.netbeans.modules.form.compat2.layouts.support.JTabbedPaneSupportLayout"/>
+      <SubComponents>
+        <Container class="javax.swing.JPanel" name="googleAccountPanel">
+          <Constraints>
+            <Constraint layoutClass="org.netbeans.modules.form.compat2.layouts.support.JTabbedPaneSupportLayout" value="org.netbeans.modules.form.compat2.layouts.support.JTabbedPaneSupportLayout$JTabbedPaneConstraintsDescription">
+              <JTabbedPaneConstraints tabName="General">
+                <Property name="tabTitle" type="java.lang.String" value="General"/>
+              </JTabbedPaneConstraints>
+            </Constraint>
+          </Constraints>
+
+          <Layout>
+            <DimensionLayout dim="0">
+              <Group type="103" groupAlignment="0" attributes="0">
+                  <Group type="102" alignment="0" attributes="0">
+                      <EmptySpace max="-2" attributes="0"/>
+                      <Group type="103" groupAlignment="1" attributes="0">
+                          <Component id="usernameLabel" alignment="0" pref="62" max="32767" attributes="0"/>
+                          <Component id="passwordLabel" alignment="0" pref="62" max="32767" attributes="0"/>
+                          <Component id="urlLabel" alignment="1" pref="62" max="32767" attributes="0"/>
+                      </Group>
+                      <EmptySpace type="unrelated" min="-2" max="-2" attributes="0"/>
+                      <Group type="103" groupAlignment="0" attributes="0">
+                          <Component id="urlText" alignment="0" pref="196" max="32767" attributes="2"/>
+                          <Component id="passwordText" alignment="0" pref="196" max="32767" attributes="0"/>
+                          <Component id="usernameText" alignment="1" pref="196" max="32767" attributes="0"/>
+                      </Group>
+                      <EmptySpace max="-2" attributes="0"/>
+                  </Group>
+              </Group>
+            </DimensionLayout>
+            <DimensionLayout dim="1">
+              <Group type="103" groupAlignment="0" attributes="0">
+                  <Group type="102" alignment="0" attributes="0">
+                      <EmptySpace min="-2" max="-2" attributes="0"/>
+                      <Group type="103" groupAlignment="3" attributes="0">
+                          <Component id="usernameLabel" alignment="3" min="-2" max="-2" attributes="0"/>
+                          <Component id="usernameText" alignment="3" max="32767" attributes="0"/>
+                      </Group>
+                      <EmptySpace min="-2" max="-2" attributes="0"/>
+                      <Group type="103" groupAlignment="3" attributes="0">
+                          <Component id="passwordLabel" alignment="3" min="-2" max="-2" attributes="0"/>
+                          <Component id="passwordText" alignment="3" min="-2" max="-2" attributes="0"/>
+                      </Group>
+                      <EmptySpace min="-2" max="-2" attributes="0"/>
+                      <Group type="103" groupAlignment="3" attributes="0">
+                          <Component id="urlLabel" alignment="3" min="-2" max="-2" attributes="0"/>
+                          <Component id="urlText" alignment="3" min="-2" max="-2" attributes="0"/>
+                      </Group>
+                      <EmptySpace min="-2" pref="53" max="-2" attributes="0"/>
+                  </Group>
+              </Group>
+            </DimensionLayout>
+          </Layout>
+          <SubComponents>
+            <Component class="javax.swing.JTextField" name="urlText">
+            </Component>
+            <Component class="javax.swing.JLabel" name="passwordLabel">
+              <Properties>
+                <Property name="text" type="java.lang.String" value="password"/>
+              </Properties>
+            </Component>
+            <Component class="javax.swing.JLabel" name="usernameLabel">
+              <Properties>
+                <Property name="text" type="java.lang.String" value="username"/>
+              </Properties>
+            </Component>
+            <Component class="javax.swing.JTextField" name="usernameText">
+            </Component>
+            <Component class="javax.swing.JPasswordField" name="passwordText">
+            </Component>
+            <Component class="javax.swing.JLabel" name="urlLabel">
+              <Properties>
+                <Property name="text" type="java.lang.String" value="calendar url"/>
+              </Properties>
+            </Component>
+          </SubComponents>
+        </Container>
+        <Container class="javax.swing.JPanel" name="eventsPanel">
+          <Constraints>
+            <Constraint layoutClass="org.netbeans.modules.form.compat2.layouts.support.JTabbedPaneSupportLayout" value="org.netbeans.modules.form.compat2.layouts.support.JTabbedPaneSupportLayout$JTabbedPaneConstraintsDescription">
+              <JTabbedPaneConstraints tabName="Events">
+                <Property name="tabTitle" type="java.lang.String" value="Events"/>
+              </JTabbedPaneConstraints>
+            </Constraint>
+          </Constraints>
+
+          <Layout>
+            <DimensionLayout dim="0">
+              <Group type="103" groupAlignment="0" attributes="0">
+                  <Group type="102" alignment="0" attributes="0">
+                      <EmptySpace max="-2" attributes="0"/>
+                      <Group type="103" groupAlignment="1" attributes="0">
+                          <Component id="sleepTimeLabel" alignment="0" pref="162" max="32767" attributes="0"/>
+                          <Component id="idleTimeLabel" alignment="0" pref="162" max="32767" attributes="0"/>
+                          <Component id="lastIdleTimeThresholdLabel" alignment="0" pref="162" max="32767" attributes="0"/>
+                          <Component id="eventNameLabel" pref="162" max="32767" attributes="0"/>
+                      </Group>
+                      <EmptySpace type="unrelated" max="-2" attributes="0"/>
+                      <Group type="103" groupAlignment="0" attributes="0">
+                          <Component id="sleepTimeText" alignment="0" pref="96" max="32767" attributes="0"/>
+                          <Component id="idleTimeText" alignment="1" pref="96" max="32767" attributes="0"/>
+                          <Component id="lastIdleTimeThresholdText" alignment="0" pref="96" max="32767" attributes="0"/>
+                          <Component id="eventNameText" pref="96" max="32767" attributes="0"/>
+                      </Group>
+                      <EmptySpace max="-2" attributes="0"/>
+                  </Group>
+              </Group>
+            </DimensionLayout>
+            <DimensionLayout dim="1">
+              <Group type="103" groupAlignment="0" attributes="0">
+                  <Group type="102" alignment="0" max="-2" attributes="0">
+                      <EmptySpace min="-2" max="-2" attributes="0"/>
+                      <Group type="103" groupAlignment="3" max="-2" attributes="0">
+                          <Component id="sleepTimeLabel" alignment="3" min="-2" max="-2" attributes="0"/>
+                          <Component id="sleepTimeText" alignment="3" min="-2" max="-2" attributes="0"/>
+                      </Group>
+                      <EmptySpace min="-2" max="-2" attributes="0"/>
+                      <Group type="103" groupAlignment="3" attributes="0">
+                          <Component id="idleTimeText" alignment="3" min="-2" max="-2" attributes="0"/>
+                          <Component id="idleTimeLabel" alignment="3" min="-2" max="-2" attributes="0"/>
+                      </Group>
+                      <EmptySpace min="-2" max="-2" attributes="0"/>
+                      <Group type="103" groupAlignment="1" max="-2" attributes="0">
+                          <Component id="eventNameLabel" alignment="1" min="-2" max="-2" attributes="0"/>
+                          <Component id="eventNameText" min="-2" max="-2" attributes="0"/>
+                      </Group>
+                      <EmptySpace min="-2" max="-2" attributes="0"/>
+                      <Group type="103" groupAlignment="3" attributes="0">
+                          <Component id="lastIdleTimeThresholdText" alignment="3" min="-2" max="-2" attributes="0"/>
+                          <Component id="lastIdleTimeThresholdLabel" alignment="3" min="-2" max="-2" attributes="0"/>
+                      </Group>
+                      <EmptySpace min="-2" pref="27" max="-2" attributes="0"/>
+                  </Group>
+              </Group>
+            </DimensionLayout>
+          </Layout>
+          <SubComponents>
+            <Component class="javax.swing.JTextField" name="lastIdleTimeThresholdText">
+            </Component>
+            <Component class="javax.swing.JLabel" name="lastIdleTimeThresholdLabel">
+              <Properties>
+                <Property name="text" type="java.lang.String" value="new event after idle (in minutes)"/>
+              </Properties>
+            </Component>
+            <Component class="javax.swing.JTextField" name="eventNameText">
+            </Component>
+            <Component class="javax.swing.JLabel" name="eventNameLabel">
+              <Properties>
+                <Property name="text" type="java.lang.String" value="event name"/>
+              </Properties>
+            </Component>
+            <Component class="javax.swing.JLabel" name="idleTimeLabel">
+              <Properties>
+                <Property name="text" type="java.lang.String" value="idleTime (in minutes)"/>
+              </Properties>
+            </Component>
+            <Component class="javax.swing.JTextField" name="idleTimeText">
+            </Component>
+            <Component class="javax.swing.JLabel" name="sleepTimeLabel">
+              <Properties>
+                <Property name="text" type="java.lang.String" value="sleepTime (in minutes)"/>
+              </Properties>
+            </Component>
+            <Component class="javax.swing.JTextField" name="sleepTimeText">
+            </Component>
+          </SubComponents>
+        </Container>
+        <Container class="javax.swing.JPanel" name="connectionPanel">
+          <Constraints>
+            <Constraint layoutClass="org.netbeans.modules.form.compat2.layouts.support.JTabbedPaneSupportLayout" value="org.netbeans.modules.form.compat2.layouts.support.JTabbedPaneSupportLayout$JTabbedPaneConstraintsDescription">
+              <JTabbedPaneConstraints tabName="Connection">
+                <Property name="tabTitle" type="java.lang.String" value="Connection"/>
+              </JTabbedPaneConstraints>
+            </Constraint>
+          </Constraints>
+
+          <Layout>
+            <DimensionLayout dim="0">
+              <Group type="103" groupAlignment="0" attributes="0">
+                  <Group type="102" alignment="0" attributes="0">
+                      <EmptySpace max="-2" attributes="0"/>
+                      <Group type="103" groupAlignment="0" attributes="0">
+                          <Component id="httpsProxyPortLabel" alignment="0" pref="89" max="32767" attributes="0"/>
+                          <Component id="httpsProxyHostLabel" alignment="0" pref="89" max="32767" attributes="0"/>
+                          <Component id="httpProxyPortLabel" alignment="0" pref="89" max="32767" attributes="0"/>
+                          <Component id="httpProxyHostLabel" alignment="0" pref="89" max="32767" attributes="0"/>
+                      </Group>
+                      <EmptySpace type="unrelated" max="-2" attributes="0"/>
+                      <Group type="103" groupAlignment="0" attributes="0">
+                          <Component id="httpsProxyHostText" alignment="0" pref="169" max="32767" attributes="2"/>
+                          <Component id="httpProxyPortText" alignment="0" pref="169" max="32767" attributes="2"/>
+                          <Component id="httpsProxyPortText" alignment="0" pref="169" max="32767" attributes="0"/>
+                          <Component id="httpProxyHostText" alignment="1" pref="169" max="32767" attributes="2"/>
+                      </Group>
+                      <EmptySpace max="-2" attributes="0"/>
+                  </Group>
+              </Group>
+            </DimensionLayout>
+            <DimensionLayout dim="1">
+              <Group type="103" groupAlignment="0" attributes="0">
+                  <Group type="102" alignment="0" attributes="0">
+                      <EmptySpace max="-2" attributes="0"/>
+                      <Group type="103" groupAlignment="3" attributes="0">
+                          <Component id="httpProxyHostLabel" alignment="3" min="-2" max="-2" attributes="0"/>
+                          <Component id="httpProxyHostText" alignment="3" min="-2" max="-2" attributes="0"/>
+                      </Group>
+                      <EmptySpace max="-2" attributes="0"/>
+                      <Group type="103" groupAlignment="3" attributes="0">
+                          <Component id="httpProxyPortLabel" alignment="3" min="-2" max="-2" attributes="0"/>
+                          <Component id="httpProxyPortText" alignment="3" min="-2" max="-2" attributes="0"/>
+                      </Group>
+                      <EmptySpace max="-2" attributes="0"/>
+                      <Group type="103" groupAlignment="3" attributes="0">
+                          <Component id="httpsProxyHostLabel" alignment="3" min="-2" max="-2" attributes="0"/>
+                          <Component id="httpsProxyHostText" alignment="3" min="-2" max="-2" attributes="0"/>
+                      </Group>
+                      <EmptySpace max="-2" attributes="0"/>
+                      <Group type="103" groupAlignment="3" attributes="0">
+                          <Component id="httpsProxyPortLabel" alignment="3" min="-2" max="-2" attributes="0"/>
+                          <Component id="httpsProxyPortText" alignment="3" min="-2" max="-2" attributes="0"/>
+                      </Group>
+                      <EmptySpace pref="27" max="32767" attributes="0"/>
+                  </Group>
+              </Group>
+            </DimensionLayout>
+          </Layout>
+          <SubComponents>
+            <Component class="javax.swing.JTextField" name="httpProxyPortText">
+            </Component>
+            <Component class="javax.swing.JTextField" name="httpProxyHostText">
+            </Component>
+            <Component class="javax.swing.JTextField" name="httpsProxyHostText">
+            </Component>
+            <Component class="javax.swing.JLabel" name="httpsProxyPortLabel">
+              <Properties>
+                <Property name="text" type="java.lang.String" value="https proxy port"/>
+              </Properties>
+            </Component>
+            <Component class="javax.swing.JTextField" name="httpsProxyPortText">
+            </Component>
+            <Component class="javax.swing.JLabel" name="httpProxyHostLabel">
+              <Properties>
+                <Property name="text" type="java.lang.String" value="http proxy host"/>
+              </Properties>
+            </Component>
+            <Component class="javax.swing.JLabel" name="httpProxyPortLabel">
+              <Properties>
+                <Property name="text" type="java.lang.String" value="http proxy port"/>
+              </Properties>
+            </Component>
+            <Component class="javax.swing.JLabel" name="httpsProxyHostLabel">
+              <Properties>
+                <Property name="text" type="java.lang.String" value="https proxy host"/>
+              </Properties>
+            </Component>
+          </SubComponents>
+        </Container>
+        <Container class="javax.swing.JPanel" name="otherPanel">
+          <Constraints>
+            <Constraint layoutClass="org.netbeans.modules.form.compat2.layouts.support.JTabbedPaneSupportLayout" value="org.netbeans.modules.form.compat2.layouts.support.JTabbedPaneSupportLayout$JTabbedPaneConstraintsDescription">
+              <JTabbedPaneConstraints tabName="Other">
+                <Property name="tabTitle" type="java.lang.String" value="Other"/>
+              </JTabbedPaneConstraints>
+            </Constraint>
+          </Constraints>
+
+          <Layout>
+            <DimensionLayout dim="0">
+              <Group type="103" groupAlignment="0" attributes="0">
+                  <Group type="102" alignment="1" attributes="0">
+                      <EmptySpace max="-2" attributes="0"/>
+                      <Component id="workIpRegExpLabel" max="32767" attributes="0"/>
+                      <EmptySpace type="unrelated" max="-2" attributes="0"/>
+                      <Component id="workIpRegExpText" min="-2" pref="130" max="-2" attributes="0"/>
+                      <EmptySpace max="-2" attributes="0"/>
+                  </Group>
+              </Group>
+            </DimensionLayout>
+            <DimensionLayout dim="1">
+              <Group type="103" groupAlignment="0" attributes="0">
+                  <Group type="102" alignment="0" attributes="0">
+                      <EmptySpace max="-2" attributes="0"/>
+                      <Group type="103" groupAlignment="3" attributes="0">
+                          <Component id="workIpRegExpLabel" alignment="3" min="-2" max="-2" attributes="0"/>
+                          <Component id="workIpRegExpText" alignment="3" min="-2" max="-2" attributes="0"/>
+                      </Group>
+                      <EmptySpace pref="105" max="32767" attributes="0"/>
+                  </Group>
+              </Group>
+            </DimensionLayout>
+          </Layout>
+          <SubComponents>
+            <Component class="javax.swing.JLabel" name="workIpRegExpLabel">
+              <Properties>
+                <Property name="text" type="java.lang.String" value="work IP regular expression"/>
+              </Properties>
+            </Component>
+            <Component class="javax.swing.JTextField" name="workIpRegExpText">
+            </Component>
+          </SubComponents>
+        </Container>
+      </SubComponents>
+    </Container>
+    <Component class="javax.swing.JButton" name="cancelButton">
+      <Properties>
+        <Property name="text" type="java.lang.String" value="Cancel"/>
+      </Properties>
+      <Events>
+        <EventHandler event="mouseClicked" listener="java.awt.event.MouseListener" parameters="java.awt.event.MouseEvent" handler="cancelButtonMouseClicked"/>
+      </Events>
+    </Component>
+    <Component class="javax.swing.JButton" name="okButton">
+      <Properties>
+        <Property name="text" type="java.lang.String" value="OK"/>
+      </Properties>
+      <Events>
+        <EventHandler event="mouseClicked" listener="java.awt.event.MouseListener" parameters="java.awt.event.MouseEvent" handler="okButtonMouseClicked"/>
+      </Events>
+    </Component>
+  </SubComponents>
+</Form>

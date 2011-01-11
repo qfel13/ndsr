@@ -1,3 +1,5 @@
 nbproject/*
 build/*
 dist/*
+
+/icon/Thumbs.db

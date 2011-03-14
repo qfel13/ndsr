@@ -123,9 +123,14 @@ public class Main {
 						stats = calendarHandler.getStats();
 						statsStr = stats.toString();
 					} catch (IOException ex) {
-						statsStr = "io exception" + ex.getMessage();
+						statsStr = "io exception";
+						log.error(statsStr, ex);
 					} catch (ServiceException ex) {
-						statsStr = "service exception" + ex.getMessage();
+						statsStr = "service exception";
+						log.error(statsStr, ex);
+					} catch (Exception ex ) {
+						statsStr = "exception";
+						log.error(statsStr, ex);
 					}
 					trayIcon.setToolTip(statsStr);
 				} else {

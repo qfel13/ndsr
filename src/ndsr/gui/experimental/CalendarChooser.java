@@ -9,7 +9,7 @@
  * Created on Oct 15, 2010, 1:29:15 PM
  */
 
-package ndsr.gui;
+package ndsr.gui.experimental;
 
 import com.google.gdata.data.calendar.CalendarEntry;
 import com.google.gdata.util.ServiceException;
@@ -65,8 +65,6 @@ public class CalendarChooser extends javax.swing.JFrame {
         jLabel2 = new javax.swing.JLabel();
         jLabel3 = new javax.swing.JLabel();
         jButton1 = new javax.swing.JButton();
-
-        setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
         useGroup.add(jRadioButton1);
         jRadioButton1.setSelected(true);
@@ -138,20 +136,7 @@ public class CalendarChooser extends javax.swing.JFrame {
                 .addComponent(jButton1)
                 .addContainerGap())
         );
-
-        pack();
     }// </editor-fold>//GEN-END:initComponents
-
-    /**
-    * @param args the command line arguments
-    */
-    public static void main(String args[]) {
-        java.awt.EventQueue.invokeLater(new Runnable() {
-            public void run() {
-                new CalendarChooser().setVisible(true);
-            }
-        });
-    }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JComboBox calendarsCombobox;

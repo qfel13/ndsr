@@ -9,12 +9,13 @@
  * Created on Jul 31, 2010, 11:53:23 PM
  */
 
-package ndsr;
+package ndsr.trash;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import ndsr.Configuration;
 
 /**
  *

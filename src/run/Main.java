@@ -11,7 +11,7 @@ import java.net.InetAddress;
 import java.util.List;
 import ndsr.CalendarHandler;
 import ndsr.Configuration;
-import ndsr.gui.CalendarChooser;
+import ndsr.gui.experimental.CalendarChooser;
 
 /**
  *

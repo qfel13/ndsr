@@ -1,7 +1,4 @@
-nbproject/*
-build/*
-dist/*
-
+/build
 /icon/Thumbs.db
 /bin
 /.settings

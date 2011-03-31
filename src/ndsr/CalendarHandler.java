@@ -14,7 +14,6 @@ import com.google.gdata.util.AuthenticationException;
 import com.google.gdata.util.ServiceException;
 import java.io.IOException;
 import java.net.URL;
-import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
 import java.util.TimeZone;
@@ -85,6 +84,7 @@ public class CalendarHandler {
                 
 				// UPDATE END
 				URL editUrl = new URL(entryForUpdate.getEditLink().getHref());
+				log.debug("editUrl =  {}", editUrl);
 
 				Calendar cal = Calendar.getInstance(TimeZone.getTimeZone("Europe/Warsaw"));
 				cal.add(Calendar.MINUTE, 5);
@@ -95,7 +95,9 @@ public class CalendarHandler {
 					times.get(0).setEndTime(endTime);
 				} else {
 					// ERROR
-					return "stop(): error: more then one When object in calendar event";
+					String errorMsg = "stop(): error: more then one When object in calendar event";
+					log.error(errorMsg);
+					return errorMsg;
 				}
 
 				// REMINDER
@@ -108,7 +110,8 @@ public class CalendarHandler {
 
 //                    entryForUpdate.getReminder().add(reminder);
 
-				CalendarEventEntry updatedEntry = (CalendarEventEntry) myService.update(editUrl, entryForUpdate);
+				CalendarEventEntry updatedEntry = entryForUpdate.update();
+//				CalendarEventEntry updatedEntry = (CalendarEventEntry) myService.update(editUrl, entryForUpdate);
 				String result = "Updated " + updatedEntry.getTitle().getPlainText();
 				log.debug(result);
 				return result;
@@ -116,10 +119,10 @@ public class CalendarHandler {
                 return createEvent(10);
             }
         } catch (IOException ex) {
-            log.error("IOException: " + ex.getMessage());
+            log.error("IOException: ", ex);
             return "start(): IOException: " + ex.getMessage();
         } catch (ServiceException ex) {
-            log.error("ServiceException: " + ex.getMessage());
+            log.error("ServiceException: ", ex);
             return "start(): ServiceException: " + ex.getMessage();
         }
     }
@@ -271,6 +274,7 @@ public class CalendarHandler {
     }
 
     private CalendarEventFeed getFeedByStartDate(Calendar minimum, Calendar maximum) throws IOException, ServiceException {
+    	log.debug("feedUrl = {}", feedUrl);
         CalendarQuery myQuery = new CalendarQuery(feedUrl);
         myQuery.setMinimumStartTime(new DateTime(minimum.getTime(), TimeZone.getTimeZone("Europe/Warsaw")));
         myQuery.setMaximumStartTime(new DateTime(maximum.getTime(), TimeZone.getTimeZone("Europe/Warsaw")));

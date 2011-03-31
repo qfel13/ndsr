@@ -6,7 +6,7 @@
 	<property name="build.dir" value="build" />
 	<property name="classes.dir" value="${build.dir}/classes" />
 	<property name="jar.dir" value="${build.dir}/jar" />
-	<property name="lib.dir" value="libs" />
+	<property name="lib.dir" value="lib" />
 
 	<path id="classpath">
 		<fileset dir="${lib.dir}" includes="**/*.jar" />
@@ -60,11 +60,10 @@
 	<target name="run" depends="jar">
 		<java fork="true" classname="${main-class}" dir="${jar.dir}">
 			<classpath>
-				<!--<path refid="classpath" /> classpath is included into jar --> 
 				<path location="${jar.dir}/${ant.project.name}.jar" />
 			</classpath>
 		</java>
 	</target>
 
-	<target name="main" depends="run" />
+	<target name="main" depends="jar" />
 </project>

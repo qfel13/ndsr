@@ -54,6 +54,8 @@ public class Main {
 	private MenuItem caritasItem = null;
 	private MenuItem exitItem = null;
 	private Image image;
+	private Image grayImage;
+	private boolean grayIcon = false;
 	private Stats stats;
 	private TabbedSettingsFrame settingsFrame;
 	private CalendarHandler calendarHandler;
@@ -96,54 +98,70 @@ public class Main {
 		calendarHandler = new CalendarHandler(configuration);
 		settingsFrame = new TabbedSettingsFrame(configuration);
 
-		String statsStr;
+		String statsStr = null;
 		Boolean running = true;
 		int lastIdleSec = 0;
 
 		do {
-			int idleTimeInSec = configuration.getIdleTimeInSec();
-			int idleSec = idleTime.getIdleTime();
-			if (idleSec < idleTimeInSec) {
-				log.debug("NOT IDLE. idleSec = {}, idleTimeInSec = {}", idleSec, idleTimeInSec);
-
-				String workIpRegExp = configuration.getWorkIpRegExp();
-
-				if (workIpRegExp == null || isIpFromWork(workIpRegExp)) {
-					log.debug("At Work");
-
-					int lastIdleTimeThreshold = configuration.getLastIdleTimeThresholdInSec();
-					log.debug("lastIdleSec = {} lastIdleTimeThreshold = {}", lastIdleSec, lastIdleTimeThreshold);
-					if (lastIdleSec > lastIdleTimeThreshold) {
-						log.debug("CREATE NEW EVENT: {}", calendarHandler.createNewEvent());
+			try {
+				int idleTimeInSec = configuration.getIdleTimeInSec();
+				int idleSec = idleTime.getIdleTime();
+				if (idleSec < idleTimeInSec) {
+					log.debug("NOT IDLE. idleSec = {}, idleTimeInSec = {}", idleSec, idleTimeInSec);
+	
+					String workIpRegExp = configuration.getWorkIpRegExp();
+	
+					if (workIpRegExp == null || isIpFromWork(workIpRegExp)) {
+						log.debug("At Work");
+						try {
+							int lastIdleTimeThreshold = configuration.getLastIdleTimeThresholdInSec();
+							log.debug("lastIdleSec = {} lastIdleTimeThreshold = {}", lastIdleSec, lastIdleTimeThreshold);
+							if (lastIdleSec > lastIdleTimeThreshold) {
+								log.debug("CREATE NEW EVENT: {}", calendarHandler.createNewEvent());
+							} else {
+								log.debug("CREATE OR UPDATE: {}", calendarHandler.createOrUpdate());
+							}
+							
+							stats = calendarHandler.getStats();
+							statsStr = stats.toString();
+						} catch (IOException ex) {
+							statsStr = "io exception";
+							log.error(statsStr, ex);
+						} catch (ServiceException ex) {
+							statsStr = "service exception";
+							log.error(statsStr, ex);
+						} catch (Exception ex ) {
+							statsStr = "exception";
+							log.error(statsStr, ex);
+						}
+						
+						if (statsStr != null) {
+							trayIcon.setToolTip(statsStr);
+						}
+						if (grayIcon) {
+							trayIcon.setImage(image);
+							grayIcon = false;
+						}
 					} else {
-						log.debug("CREATE OR UPDATE: {}", calendarHandler.createOrUpdate());
+						log.debug("Not at work");
+						if (!grayIcon) {
+							if (statsStr == null) {
+								trayIcon.setToolTip("Not at work");
+							}
+							trayIcon.setImage(grayImage);
+							grayIcon = true;
+						}
 					}
-
-					try {
-						stats = calendarHandler.getStats();
-						statsStr = stats.toString();
-					} catch (IOException ex) {
-						statsStr = "io exception";
-						log.error(statsStr, ex);
-					} catch (ServiceException ex) {
-						statsStr = "service exception";
-						log.error(statsStr, ex);
-					} catch (Exception ex ) {
-						statsStr = "exception";
-						log.error(statsStr, ex);
-					}
-					trayIcon.setToolTip(statsStr);
 				} else {
-					log.debug("Not at work");
-					trayIcon.setToolTip("Not at work");
+					log.debug("IDLE: System is idle for more then {} min", idleTimeInSec / 60);
 				}
-			} else {
-				log.debug("IDLE: System is idle for more then {} min", idleTimeInSec / 60);
+				lastIdleSec = idleSec;
+				long sleepTime = configuration.getSleepTimeInMili();
+				log.debug("Sleep for {} min == {} millis", configuration.getSleepTime(), sleepTime);
+				Thread.sleep(sleepTime);
+			} catch (Exception e) {
+				log.error("big exception", e);
 			}
-			lastIdleSec = idleSec;
-			long sleepTime = configuration.getSleepTimeInMili();
-			log.debug("Sleep for {} min == {} millis", configuration.getSleepTime(), sleepTime);
-			Thread.sleep(sleepTime);
 		} while (running);
 	}
 
@@ -152,19 +170,24 @@ public class Main {
 			log.info("System Tray is supported");
 			SystemTray tray = SystemTray.getSystemTray();
 			String iconPath = "icon" + FILE_SEPARATOR;
+			String grayIconPath = "icon" + FILE_SEPARATOR;
 			// TODO: add configuration, allow user to choose appropriate file
 			if (os.equals("linux")) {
 				iconPath += "no_linux.png";
+				grayIconPath += "no_gray_linux.png";
 			} else {
 				iconPath += "no.png";
+				grayIconPath += "no_gray.png";
 			}
 			log.debug("iconPath = {}", iconPath);
 
 			File iconFile = new File(iconPath);
+			File grayIconFile = new File(grayIconPath);
 			log.debug("Checking tray icon file ...");
-			if (iconFile.exists()) {
+			if (iconFile.exists() && grayIconFile.exists()) {
 				log.debug("Tray icon file found");
 				image = Toolkit.getDefaultToolkit().getImage(iconPath);
+				grayImage = Toolkit.getDefaultToolkit().getImage(grayIconPath);
 			} else {
 				log.error("Tray icon file NOT found. Try to work without tray.");
 				log.info("Trying to work without tray.");
@@ -213,7 +236,7 @@ public class Main {
 			caritasItem.addActionListener(caritasListener);
 			log.debug("Adding caritas menu item");
 			popup.add(caritasItem);
-
+			
 			log.debug("Creating exit menu item");
 			ActionListener exitListener = new ActionListener() {
 

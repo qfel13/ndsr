@@ -1,5 +1,14 @@
 package ndsr;
 
+import java.io.IOException;
+import java.net.URL;
+import java.util.Calendar;
+import java.util.List;
+import java.util.TimeZone;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.google.gdata.client.calendar.CalendarQuery;
 import com.google.gdata.client.calendar.CalendarService;
 import com.google.gdata.data.DateTime;
@@ -12,13 +21,6 @@ import com.google.gdata.data.calendar.HiddenProperty;
 import com.google.gdata.data.extensions.When;
 import com.google.gdata.util.AuthenticationException;
 import com.google.gdata.util.ServiceException;
-import java.io.IOException;
-import java.net.URL;
-import java.util.Calendar;
-import java.util.List;
-import java.util.TimeZone;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class CalendarHandler {
 
@@ -39,6 +41,10 @@ public class CalendarHandler {
 			log.error("io exception", ex);
 		}
 
+		authenticate(config);
+	}
+
+	public void authenticate(Configuration config) {
 		String user = config.getUser();
 		String passwd = config.getPasswd();
 		try {
@@ -47,7 +53,7 @@ public class CalendarHandler {
 			log.error("authentication", ex);
 		}
 	}
-
+	
 	public List<CalendarEntry> getCalendars() throws IOException, ServiceException {
 		CalendarFeed resultFeed = myService.getFeed(ownCalendarsFeedUrl, CalendarFeed.class);
 

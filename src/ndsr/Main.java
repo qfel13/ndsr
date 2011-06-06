@@ -1,5 +1,6 @@
 package ndsr;
 
+import com.google.gdata.util.AuthenticationException;
 import com.google.gdata.util.ServiceException;
 import java.awt.AWTException;
 import java.awt.Color;
@@ -127,6 +128,10 @@ public class Main {
 						} catch (IOException ex) {
 							statsStr = "io exception";
 							log.error(statsStr, ex);
+						} catch (AuthenticationException ex) {
+							statsStr = "Authentication Exception";
+							log.error(statsStr, ex);
+							calendarHandler.authenticate(configuration);
 						} catch (ServiceException ex) {
 							statsStr = "service exception";
 							log.error(statsStr, ex);

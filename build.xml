@@ -65,5 +65,5 @@
 		</java>
 	</target>
 
-	<target name="main" depends="jar" />
+	<target name="main" depends="run" />
 </project>

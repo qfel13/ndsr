@@ -1,7 +1,3 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
 package ndsr.idle;
 
 import com.sun.jna.Native;
@@ -9,7 +5,6 @@ import com.sun.jna.Structure;
 import com.sun.jna.win32.StdCallLibrary;
 
 /**
- *
  * @author lkufel
  */
 public class WindowsIdleTime implements IdleTime {

@@ -6,6 +6,8 @@ import java.util.Calendar;
 import java.util.List;
 import java.util.TimeZone;
 
+import ndsr.beans.Stats;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -53,7 +55,7 @@ public class CalendarHandler {
 			log.error("authentication", ex);
 		}
 	}
-	
+
 	public List<CalendarEntry> getCalendars() throws IOException, ServiceException {
 		CalendarFeed resultFeed = myService.getFeed(ownCalendarsFeedUrl, CalendarFeed.class);
 
@@ -140,10 +142,10 @@ public class CalendarHandler {
 		try {
 			return createEvent(0);
 		} catch (IOException ex) {
-			log.error("IOException: " + ex.getMessage());
+			log.error("IOException: ", ex);
 			return "start(): IOException: " + ex.getMessage();
 		} catch (ServiceException ex) {
-			log.error("ServiceException: " + ex.getMessage());
+			log.error("ServiceException: ", ex);
 			return "start(): ServiceException: " + ex.getMessage();
 		}
 	}

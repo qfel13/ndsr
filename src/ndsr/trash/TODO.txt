@@ -1,4 +1,0 @@
-wygaszacz ekranu/ screen lock
-reminder
-statystyki: wykresy, ile pozostalo do konca tygodnia,
-suspend button

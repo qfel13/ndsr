@@ -1,7 +1,5 @@
 package ndsr;
 
-import com.google.gdata.util.AuthenticationException;
-import com.google.gdata.util.ServiceException;
 import java.awt.AWTException;
 import java.awt.Color;
 import java.awt.Image;
@@ -20,39 +18,44 @@ import java.net.NetworkInterface;
 import java.net.SocketException;
 import java.util.Enumeration;
 import java.util.List;
-import javax.swing.ImageIcon;
-import javax.swing.JOptionPane;
-//import org.apache.log4j.Logger;
+
+//import javax.swing.ImageIcon;
+//import javax.swing.JOptionPane;
 import javax.swing.UIManager;
+
+import ndsr.beans.Stats;
+import ndsr.chart.StatisticsFrame;
 import ndsr.gui.TabbedSettingsFrame;
 import ndsr.idle.IdleTime;
 import ndsr.idle.LinuxIdleTime;
 import ndsr.idle.WindowsIdleTime;
+
 import org.apache.log4j.PropertyConfigurator;
 import org.jfree.chart.ChartFactory;
-import org.jfree.chart.ChartFrame;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.plot.CategoryPlot;
 import org.jfree.chart.plot.PlotOrientation;
-import org.jfree.chart.renderer.category.StackedBarRenderer3D;
+import org.jfree.chart.renderer.category.CategoryItemRenderer;
 import org.jfree.data.category.DefaultCategoryDataset;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.gdata.util.AuthenticationException;
+import com.google.gdata.util.ServiceException;
+
 /**
- *
  * @author lkufel
  */
 public class Main {
 
 	private static final Logger log = LoggerFactory.getLogger(Main.class);
 	private static final String FILE_SEPARATOR = System.getProperty("file.separator");
-	
+
 	private TrayIcon trayIcon = null;
 	private PopupMenu popup = null;
-	private MenuItem detailsItem = null;
+	private MenuItem statisticsItem = null;
 	private MenuItem settingsItem = null;
-	private MenuItem caritasItem = null;
+//	private MenuItem caritasItem = null;
 	private MenuItem exitItem = null;
 	private Image image;
 	private Image grayImage;
@@ -109,9 +112,9 @@ public class Main {
 				int idleSec = idleTime.getIdleTime();
 				if (idleSec < idleTimeInSec) {
 					log.debug("NOT IDLE. idleSec = {}, idleTimeInSec = {}", idleSec, idleTimeInSec);
-	
+
 					String workIpRegExp = configuration.getWorkIpRegExp();
-	
+
 					if (workIpRegExp == null || isIpFromWork(workIpRegExp)) {
 						log.debug("At Work");
 						try {
@@ -122,7 +125,7 @@ public class Main {
 							} else {
 								log.debug("CREATE OR UPDATE: {}", calendarHandler.createOrUpdate());
 							}
-							
+
 							stats = calendarHandler.getStats();
 							statsStr = stats.toString();
 						} catch (IOException ex) {
@@ -135,11 +138,11 @@ public class Main {
 						} catch (ServiceException ex) {
 							statsStr = "service exception";
 							log.error(statsStr, ex);
-						} catch (Exception ex ) {
+						} catch (Exception ex) {
 							statsStr = "exception";
 							log.error(statsStr, ex);
 						}
-						
+
 						if (statsStr != null) {
 							trayIcon.setToolTip(statsStr);
 						}
@@ -164,8 +167,8 @@ public class Main {
 				long sleepTime = configuration.getSleepTimeInMili();
 				log.debug("Sleep for {} min == {} millis", configuration.getSleepTime(), sleepTime);
 				Thread.sleep(sleepTime);
-			} catch (Exception e) {
-				log.error("big exception", e);
+			} catch (Throwable t) {
+				log.error("Throwable ", t);
 			}
 		} while (running);
 	}
@@ -201,20 +204,20 @@ public class Main {
 			log.debug("Creating popup manu");
 			popup = new PopupMenu();
 
-			log.debug("Creating details menu item");
+			log.debug("Creating statistics menu item");
 			// DETAILS
-			ActionListener detailsListener = new ActionListener() {
+			ActionListener statisticsListener = new ActionListener() {
 
 				@Override
 				public void actionPerformed(ActionEvent e) {
-					showDetails();
+					showStatistics();
 				}
 			};
-			detailsItem = new MenuItem("Show details");
-			detailsItem.addActionListener(detailsListener);
-			
-			log.debug("Adding details menu item");
-			popup.add(detailsItem);
+			statisticsItem = new MenuItem("Statistics");
+			statisticsItem.addActionListener(statisticsListener);
+
+			log.debug("Adding statistics menu item");
+			popup.add(statisticsItem);
 
 			log.debug("Creating settings menu item");
 			ActionListener settingsListener = new ActionListener() {
@@ -229,7 +232,7 @@ public class Main {
 			log.debug("Adding settings menu item");
 			popup.add(settingsItem);
 
-			log.debug("Creating caritas menu item");
+			/*log.debug("Creating caritas menu item");
 			ActionListener caritasListener = new ActionListener() {
 
 				@Override
@@ -240,8 +243,8 @@ public class Main {
 			caritasItem = new MenuItem("Caritas");
 			caritasItem.addActionListener(caritasListener);
 			log.debug("Adding caritas menu item");
-			popup.add(caritasItem);
-			
+			popup.add(caritasItem);*/
+
 			log.debug("Creating exit menu item");
 			ActionListener exitListener = new ActionListener() {
 
@@ -270,45 +273,54 @@ public class Main {
 		} else {
 			log.error("System Tray is NOT supported");
 			log.info("Trying to work without tray.");
-            return;
+			return;
 		}
 	}
 
-	private void showCaritasDialog() {
-		JOptionPane.showMessageDialog(null, "Nie bądź kurwa Caritasem!",
-				"Nie bądź kurwa Caritasem!", JOptionPane.INFORMATION_MESSAGE,
-				new ImageIcon(Toolkit.getDefaultToolkit().getImage("icon" + FILE_SEPARATOR + "caritas.png")));
-	}
+//	private void showCaritasDialog() {
+//		JOptionPane.showMessageDialog(null, "Nie bądź kurwa Caritasem!", "Nie bądź kurwa Caritasem!",
+//				JOptionPane.INFORMATION_MESSAGE,
+//				new ImageIcon(Toolkit.getDefaultToolkit().getImage("icon" + FILE_SEPARATOR + "caritas.png")));
+//	}
 
-	private void showDetails() {
+	private void showStatistics() {
 
 		DefaultCategoryDataset data = new DefaultCategoryDataset();
+		DefaultCategoryDataset weekData = new DefaultCategoryDataset();
 
 		if (stats != null) {
 			double todayHours = stats.getTodayHours() + stats.getTodayMinutes() / 60.0;
 			double remainingTodayHours = stats.getRemainingTodayHours() + stats.getRemainingTodayMinutes() / 60.0;
-			double weekHours = stats.getWeekHours() + stats.getWeekMinutes() / 60.0;
-			double weekTodayHours = stats.getRemainingWeekHours() + stats.getRemainingWeekMinutes() / 60.0;
-
 			data.addValue(todayHours, "Worked Hours", "Today");
 			data.addValue(remainingTodayHours, "Remaining Hours", "Today");
-			data.addValue(weekHours, "Worked Hours", "Week");
-			data.addValue(weekTodayHours, "Remaining Hours", "Week");
+
+			double weekHours = stats.getWeekHours() + stats.getWeekMinutes() / 60.0;
+			double weekTodayHours = stats.getRemainingWeekHours() + stats.getRemainingWeekMinutes() / 60.0;
+			weekData.addValue(weekHours, "Worked Hours", "Week");
+			weekData.addValue(weekTodayHours, "Remaining Hours", "Week");
 		}
 
-		JFreeChart localJFreeChart = ChartFactory.createStackedBarChart3D("Today and Week", null, "Hours", data, PlotOrientation.HORIZONTAL, true, true, false);
-		CategoryPlot localCategoryPlot = (CategoryPlot) localJFreeChart.getPlot();
+		JFreeChart dayChart = ChartFactory.createStackedBarChart3D("Today", null, "Hours", data,
+				PlotOrientation.HORIZONTAL, true, true, false);
+		JFreeChart weekChart = ChartFactory.createStackedBarChart3D("Week", null, "Hours", weekData,
+				PlotOrientation.HORIZONTAL, true, true, false);
+		
+		changePlot(dayChart);
+		changePlot(weekChart);
 
-		localCategoryPlot.setNoDataMessage("Not initialized yet.");
-		StackedBarRenderer3D renderer2 = (StackedBarRenderer3D) localCategoryPlot.getRenderer();
-		renderer2.setSeriesPaint(0, Color.green);
-		renderer2.setSeriesPaint(1, Color.yellow);
-		renderer2.setSeriesPaint(2, Color.red);
+		StatisticsFrame statisticsFrame = new StatisticsFrame(dayChart, weekChart);
+		log.debug("close Operation = {}", statisticsFrame.getDefaultCloseOperation());
+		statisticsFrame.setVisible(true);
+	}
+	
+	private void changePlot(JFreeChart chart) {
+		CategoryPlot dayCategoryPlot = (CategoryPlot) chart.getPlot();
 
-		ChartFrame frame = new ChartFrame("Hours", localJFreeChart);
-		frame.pack();
-		log.debug("close Operation = {}", frame.getDefaultCloseOperation());
-		frame.setVisible(true);
+		dayCategoryPlot.setNoDataMessage("Not initialized yet.");
+		CategoryItemRenderer renderer = dayCategoryPlot.getRenderer();
+		renderer.setSeriesPaint(0, Color.blue);
+		renderer.setSeriesPaint(1, Color.red);
+		renderer.setSeriesPaint(2, Color.yellow);
 	}
 
 	private void showSettings() {

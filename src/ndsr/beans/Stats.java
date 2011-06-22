@@ -99,6 +99,32 @@ public class Stats {
 		return overtimeWeekMinutes;
 	}
 
+	public String toWeekString() {
+		StringBuilder s = new StringBuilder();
+
+		s.append("Week\n");
+		s.append(getTwoDigits(weekHours)).append(":").append(getTwoDigits(weekMinutes)).append(" - worked\n");
+		s.append(getTwoDigits(remainingWeekHours)).append(":").append(getTwoDigits(remainingWeekMinutes))
+				.append(" - remaining\n");
+		s.append(getTwoDigits(overtimeWeekHours)).append(":").append(getTwoDigits(overtimeWeekMinutes))
+				.append(" - overtime");
+
+		return s.toString();
+	}
+
+	public String toTodayString() {
+		StringBuilder s = new StringBuilder();
+
+		s.append("Today\n");
+		s.append(getTwoDigits(todayHours)).append(":").append(getTwoDigits(todayMinutes)).append(" - worked\n");
+		s.append(getTwoDigits(remainingTodayHours)).append(":").append(getTwoDigits(remainingTodayMinutes))
+				.append(" - remaining\n");
+		s.append(getTwoDigits(overtimeTodayHours)).append(":").append(getTwoDigits(overtimeTodayMinutes))
+				.append(" - overtime\n");
+
+		return s.toString();
+	}
+
 	@Override
 	public String toString() {
 		StringBuilder s = new StringBuilder();

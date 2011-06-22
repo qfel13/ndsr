@@ -1,7 +1,6 @@
 package ndsr;
 
 import java.awt.AWTException;
-import java.awt.Color;
 import java.awt.Image;
 import java.awt.MenuItem;
 import java.awt.PopupMenu;
@@ -19,8 +18,6 @@ import java.net.SocketException;
 import java.util.Enumeration;
 import java.util.List;
 
-//import javax.swing.ImageIcon;
-//import javax.swing.JOptionPane;
 import javax.swing.UIManager;
 
 import ndsr.beans.Stats;
@@ -31,12 +28,6 @@ import ndsr.idle.LinuxIdleTime;
 import ndsr.idle.WindowsIdleTime;
 
 import org.apache.log4j.PropertyConfigurator;
-import org.jfree.chart.ChartFactory;
-import org.jfree.chart.JFreeChart;
-import org.jfree.chart.plot.CategoryPlot;
-import org.jfree.chart.plot.PlotOrientation;
-import org.jfree.chart.renderer.category.CategoryItemRenderer;
-import org.jfree.data.category.DefaultCategoryDataset;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -115,7 +106,7 @@ public class Main {
 
 					String workIpRegExp = configuration.getWorkIpRegExp();
 
-					if (workIpRegExp == null || isIpFromWork(workIpRegExp)) {
+					if (workIpRegExp == null || workIpRegExp == "" || isIpFromWork(workIpRegExp)) {
 						log.debug("At Work");
 						try {
 							int lastIdleTimeThreshold = configuration.getLastIdleTimeThresholdInSec();
@@ -284,44 +275,12 @@ public class Main {
 //	}
 
 	private void showStatistics() {
-
-		DefaultCategoryDataset data = new DefaultCategoryDataset();
-		DefaultCategoryDataset weekData = new DefaultCategoryDataset();
-
-		if (stats != null) {
-			double todayHours = stats.getTodayHours() + stats.getTodayMinutes() / 60.0;
-			double remainingTodayHours = stats.getRemainingTodayHours() + stats.getRemainingTodayMinutes() / 60.0;
-			data.addValue(todayHours, "Worked Hours", "Today");
-			data.addValue(remainingTodayHours, "Remaining Hours", "Today");
-
-			double weekHours = stats.getWeekHours() + stats.getWeekMinutes() / 60.0;
-			double weekTodayHours = stats.getRemainingWeekHours() + stats.getRemainingWeekMinutes() / 60.0;
-			weekData.addValue(weekHours, "Worked Hours", "Week");
-			weekData.addValue(weekTodayHours, "Remaining Hours", "Week");
-		}
-
-		JFreeChart dayChart = ChartFactory.createStackedBarChart3D("Today", null, "Hours", data,
-				PlotOrientation.HORIZONTAL, true, true, false);
-		JFreeChart weekChart = ChartFactory.createStackedBarChart3D("Week", null, "Hours", weekData,
-				PlotOrientation.HORIZONTAL, true, true, false);
-		
-		changePlot(dayChart);
-		changePlot(weekChart);
-
-		StatisticsFrame statisticsFrame = new StatisticsFrame(dayChart, weekChart);
+		StatisticsFrame statisticsFrame = new StatisticsFrame(stats);
 		log.debug("close Operation = {}", statisticsFrame.getDefaultCloseOperation());
 		statisticsFrame.setVisible(true);
 	}
 	
-	private void changePlot(JFreeChart chart) {
-		CategoryPlot dayCategoryPlot = (CategoryPlot) chart.getPlot();
-
-		dayCategoryPlot.setNoDataMessage("Not initialized yet.");
-		CategoryItemRenderer renderer = dayCategoryPlot.getRenderer();
-		renderer.setSeriesPaint(0, Color.blue);
-		renderer.setSeriesPaint(1, Color.red);
-		renderer.setSeriesPaint(2, Color.yellow);
-	}
+	
 
 	private void showSettings() {
 		log.debug("Settings");

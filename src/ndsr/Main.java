@@ -1,6 +1,8 @@
 package ndsr;
 
 import java.awt.AWTException;
+import java.awt.Desktop;
+import java.awt.Desktop.Action;
 import java.awt.Image;
 import java.awt.MenuItem;
 import java.awt.PopupMenu;
@@ -9,15 +11,21 @@ import java.awt.Toolkit;
 import java.awt.TrayIcon;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.net.InetAddress;
 import java.net.InterfaceAddress;
 import java.net.NetworkInterface;
 import java.net.SocketException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.Enumeration;
 import java.util.List;
 
+import javax.swing.JOptionPane;
 import javax.swing.UIManager;
 
 import ndsr.beans.Stats;
@@ -37,7 +45,7 @@ import com.google.gdata.util.ServiceException;
 /**
  * @author lkufel
  */
-public class Main {
+public class Main implements MouseListener {
 
 	private static final Logger log = LoggerFactory.getLogger(Main.class);
 	private static final String FILE_SEPARATOR = System.getProperty("file.separator");
@@ -46,6 +54,7 @@ public class Main {
 	private PopupMenu popup = null;
 	private MenuItem statisticsItem = null;
 	private MenuItem settingsItem = null;
+	private MenuItem calendarItem = null;
 //	private MenuItem caritasItem = null;
 	private MenuItem exitItem = null;
 	private Image image;
@@ -55,6 +64,7 @@ public class Main {
 	private TabbedSettingsFrame settingsFrame;
 	private CalendarHandler calendarHandler;
 	private IdleTime idleTime;
+	private MenuItem logsItem;
 	private static String os = "";
 
 	public static void main(String args[]) throws InterruptedException, FileNotFoundException, IOException {
@@ -105,8 +115,7 @@ public class Main {
 					log.debug("NOT IDLE. idleSec = {}, idleTimeInSec = {}", idleSec, idleTimeInSec);
 
 					String workIpRegExp = configuration.getWorkIpRegExp();
-
-					if (workIpRegExp == null || workIpRegExp == "" || isIpFromWork(workIpRegExp)) {
+					if (workIpRegExp == null || workIpRegExp.isEmpty() || isIpFromWork(workIpRegExp)) {
 						log.debug("At Work");
 						try {
 							int lastIdleTimeThreshold = configuration.getLastIdleTimeThresholdInSec();
@@ -196,7 +205,7 @@ public class Main {
 			popup = new PopupMenu();
 
 			log.debug("Creating statistics menu item");
-			// DETAILS
+			// STATISTICS
 			ActionListener statisticsListener = new ActionListener() {
 
 				@Override
@@ -210,6 +219,41 @@ public class Main {
 			log.debug("Adding statistics menu item");
 			popup.add(statisticsItem);
 
+			popup.addSeparator();
+			
+			log.debug("Creating calendar menu item");
+			// CALENDAR
+			ActionListener calendarListener = new ActionListener() {
+
+				@Override
+				public void actionPerformed(ActionEvent e) {
+					showCalendar();
+				}
+			};
+			calendarItem = new MenuItem("Go to Calendar");
+			calendarItem.addActionListener(calendarListener);
+
+			log.debug("Adding calendar menu item");
+			popup.add(calendarItem);
+
+			popup.addSeparator();
+			
+			log.debug("Creating logs menu item");
+			// LOGS
+			ActionListener logsListener = new ActionListener() {
+
+				@Override
+				public void actionPerformed(ActionEvent e) {
+			        showLogs();
+				}
+			};
+			logsItem = new MenuItem("Logs");
+			logsItem.addActionListener(logsListener);
+
+			log.debug("Adding logs menu item");
+			popup.add(logsItem);
+			
+			// SETTING
 			log.debug("Creating settings menu item");
 			ActionListener settingsListener = new ActionListener() {
 
@@ -223,19 +267,20 @@ public class Main {
 			log.debug("Adding settings menu item");
 			popup.add(settingsItem);
 
-			/*log.debug("Creating caritas menu item");
-			ActionListener caritasListener = new ActionListener() {
-
-				@Override
-				public void actionPerformed(ActionEvent e) {
-					showCaritasDialog();
-				}
-			};
-			caritasItem = new MenuItem("Caritas");
-			caritasItem.addActionListener(caritasListener);
-			log.debug("Adding caritas menu item");
-			popup.add(caritasItem);*/
-
+//			popup.addSeparator();
+//			
+//			Menu otherOptions = new Menu("More");
+//			
+//			MenuItem a = new MenuItem("a");
+//			MenuItem b = new MenuItem("a");
+//			
+//			otherOptions.add(a);
+//			otherOptions.add(b);
+//			
+//			popup.add(otherOptions);
+			
+			popup.addSeparator();
+			
 			log.debug("Creating exit menu item");
 			ActionListener exitListener = new ActionListener() {
 
@@ -253,6 +298,7 @@ public class Main {
 			log.debug("Creating Tray icon");
 			trayIcon = new TrayIcon(image, "Initializing ...", popup);
 			trayIcon.setImageAutoSize(true);
+			trayIcon.addMouseListener(this);
 			try {
 				log.debug("Adding Tray icon to Tray");
 				tray.add(trayIcon);
@@ -280,11 +326,49 @@ public class Main {
 		statisticsFrame.setVisible(true);
 	}
 	
-	
+	private void showLogs() {
+		String jar = Main.class.getProtectionDomain().getCodeSource().getLocation().getPath();
+		File dir = new File(jar.substring(0, jar.lastIndexOf("/")).replaceAll("%20", " ").concat("/logs"));
+		log.debug("jar = {}, dir = {}", jar, dir);
+		if (Desktop.isDesktopSupported()) {
+			Desktop d = Desktop.getDesktop();
+			if (d.isSupported(Action.OPEN)) {
+				try {
+					if (dir.exists()) {
+						d.open(dir);
+					} else {
+						JOptionPane.showMessageDialog(null, 
+								"Logs dir does not exist!\n" + dir.toString(),
+								"Logs dir does not exist!",
+								JOptionPane.ERROR_MESSAGE);
+						log.error("Logs dir does not exist");
+					}
+				} catch (IOException e1) {
+					log.error("d.open failed", e1);
+				}
+			}
+		}
+	}
 
 	private void showSettings() {
-		log.debug("Settings");
+		log.debug("showSettings");
 		settingsFrame.setVisible(true);
+	}
+	
+	private void showCalendar() {
+		log.debug("showCalendar");
+		if (Desktop.isDesktopSupported()) {
+			Desktop d = Desktop.getDesktop();
+			if (d.isSupported(Action.BROWSE)) {
+				try {
+					d.browse(new URI("https://www.google.com/calendar/render"));
+				} catch (IOException e) {
+					log.error("d.browse failed", e);
+				} catch (URISyntaxException e) {
+					log.error("URI syntax", e);
+				}
+			}
+		}
 	}
 
 	private boolean isIpFromWork(String workIpRegExp) throws SocketException {
@@ -292,13 +376,18 @@ public class Main {
 
 		while (interfaces.hasMoreElements()) {
 			NetworkInterface nif = interfaces.nextElement();
-			List<InterfaceAddress> interfaceAddresses = nif.getInterfaceAddresses();
-			for (InterfaceAddress interfaceAddress : interfaceAddresses) {
-				String ip = interfaceAddress.getAddress().getHostAddress();
-				log.debug("ip = {} workIpRegExp = {}", ip, workIpRegExp);
-				if (ip.matches(workIpRegExp)) {
-					log.debug("{} matches to {}", ip, workIpRegExp);
-					return true;
+			if (nif != null) {
+				List<InterfaceAddress> interfaceAddresses = nif.getInterfaceAddresses();
+				for (InterfaceAddress interfaceAddress : interfaceAddresses) {
+					InetAddress inetAddress = interfaceAddress.getAddress();
+					if (inetAddress != null) {
+						String ip = inetAddress.getHostAddress();
+						log.debug("ip = {} workIpRegExp = {}", ip, workIpRegExp);
+						if (ip != null && ip.matches(workIpRegExp)) {
+							log.debug("{} matches to {}", ip, workIpRegExp);
+							return true;
+						}
+					}
 				}
 			}
 		}
@@ -319,4 +408,26 @@ public class Main {
 	public static String getOs() {
 		return os;
 	}
+
+	@Override
+	public void mouseClicked(MouseEvent event) {
+		int count = event.getClickCount();
+		log.debug("mouseClick {}", count);
+		if (count == 2) {
+			showStatistics();
+		}
+	}
+
+	@Override
+	public void mouseEntered(MouseEvent arg0) {}
+
+	@Override
+	public void mouseExited(MouseEvent arg0) {}
+
+	@Override
+	public void mousePressed(MouseEvent arg0) {}
+
+	@Override
+	public void mouseReleased(MouseEvent arg0) {}
+
 }

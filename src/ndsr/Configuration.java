@@ -128,7 +128,11 @@ public class Configuration {
 	}
 
 	public String getEventName() {
-		return properties.getProperty(EVENT_NAME);
+		String eventName = properties.getProperty(EVENT_NAME);
+		if (eventName == null || eventName.isEmpty()) {
+			eventName = "Praca";
+		}
+		return eventName;
 	}
 
 	public void setEventName(String eventName) {

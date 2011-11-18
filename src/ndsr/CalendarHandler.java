@@ -205,7 +205,8 @@ public class CalendarHandler {
 		long milis = 0;
 		for (CalendarEventEntry entry : resultFeed.getEntries()) {
 			String title = entry.getTitle().getPlainText();
-			if (title.startsWith(configuration.getEventName())) {
+			String eventName = configuration.getEventName();
+			if (title != null && eventName != null && title.startsWith(eventName)) {
 				List<When> times = entry.getTimes();
 				if (times.size() == 1) {
 					DateTime startTime = times.get(0).getStartTime();
@@ -232,7 +233,8 @@ public class CalendarHandler {
 		long milis = 0;
 		for (CalendarEventEntry entry : resultFeed.getEntries()) {
 			String title = entry.getTitle().getPlainText();
-			if (title.startsWith(configuration.getEventName())) {
+			String eventName = configuration.getEventName();
+			if (title != null && eventName != null && title.startsWith(eventName)) {
 				List<When> times = entry.getTimes();
 				if (times.size() == 1) {
 					DateTime startTime = times.get(0).getStartTime();

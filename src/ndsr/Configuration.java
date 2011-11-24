@@ -6,6 +6,7 @@ import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.Properties;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -18,23 +19,36 @@ public class Configuration {
 
 	private static final Logger log = LoggerFactory.getLogger(Configuration.class);
 
+	// General 
 	private static final String USER = "user";
 	private static final String PASSWD = "passwd";
 	private static final String URL = "url";
+	// Event
 	private static final String SLEEP_TIME = "sleepTime";
 	private static final String IDLE_TIME = "idleTime";
+	private static final String EVENT_NAME = "eventName";
+	private static final String LAST_IDLE_TIME_THRESHOLD = "lastIdleTimeThreshold";
+	// Connection
 	private static final String HTTPS_PROXY_HOST = "https.proxyHost";
 	private static final String HTTPS_PROXY_PORT = "https.proxyPort";
 	private static final String HTTP_PROXY_HOST = "http.proxyHost";
 	private static final String HTTP_PROXY_PORT = "http.proxyPort";
-	private static final String EVENT_NAME = "eventName";
+	// Other
 	private static final String WORK_IP_REG_EXP = "workIpRegExp";
-	private static final String LAST_IDLE_TIME_THRESHOLD = "lastIdleTimeThreshold";
+	private static final String NORMAL_ICON_LOCATION = "normalIconLocation";
+	private static final String INACTIVE_ICON_LOCATION = "inactiveIconLocation";
 
+	// DEFAULT VALUES
 	private static final int DEFAULT_IDLE_TIME = 10;
 	private static final int DEFAULT_SLEEP_TIME = 5;
 	private static final int DEFAULT_LAST_IDLE_TIME_THRESHOLD = 60;
+	private static final String DEFAULT_NORMAL_WIN_ICON_LOCATION = "icon/no.png";
+	private static final String DEFAULT_INACTIVE_WIN_ICON_LOCATION = "icon/no_gray.png";
+	private static final String DEFAULT_NORMAL_LINUX_ICON_LOCATION = "icon/no_linux.png";
+	private static final String DEFAULT_INACTIVE_LINUX_ICON_LOCATION = "icon/no_gray_linux.png";
 
+	private final String os = System.getProperty("os.name").toLowerCase();
+	
 	public String getUser() {
 		return properties.getProperty(USER);
 	}
@@ -161,6 +175,32 @@ public class Configuration {
 				"" + parseOrDefault(lastIdleTimeThreshold, DEFAULT_LAST_IDLE_TIME_THRESHOLD));
 	}
 
+	public String getNormalIconLocation() {
+		String iconLocation = properties.getProperty(NORMAL_ICON_LOCATION);
+		if (iconLocation == null || iconLocation.isEmpty()) {
+			iconLocation = os.equals("linux") ? DEFAULT_NORMAL_LINUX_ICON_LOCATION
+					: DEFAULT_NORMAL_WIN_ICON_LOCATION;
+		}
+		return iconLocation;
+	}
+
+	public void setNormalIconLocation(String normalIconLocation) {
+		properties.setProperty(NORMAL_ICON_LOCATION, normalIconLocation);
+	}
+	
+	public String getInactiveIconLocation() {
+		String iconLocation = properties.getProperty(INACTIVE_ICON_LOCATION);
+		if (iconLocation == null || iconLocation.isEmpty()) {
+			iconLocation = os.equals("linux") ? DEFAULT_INACTIVE_LINUX_ICON_LOCATION
+					: DEFAULT_INACTIVE_WIN_ICON_LOCATION;
+		}
+		return iconLocation;
+	}
+
+	public void setInactiveIconLocation(String inactiveIconLocation) {
+		properties.setProperty(INACTIVE_ICON_LOCATION, inactiveIconLocation);
+	}
+	
 	public void readConfiguration(String filename) throws FileNotFoundException, IOException {
 		readConfiguration(new File(filename));
 	}

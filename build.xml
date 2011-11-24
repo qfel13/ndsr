@@ -22,7 +22,7 @@
 
 	<target name="compile" depends="clean">
 		<mkdir dir="${classes.dir}" />
-		<javac srcdir="${src.dir}" destdir="${classes.dir}" classpathref="classpath" />
+		<javac srcdir="${src.dir}" destdir="${classes.dir}" debug="true" classpathref="classpath" />
 	</target>
 
 	<target name="jar" depends="compile,resources">
@@ -37,7 +37,7 @@
 		<jar destfile="${jar.dir}/${ant.project.name}.jar" basedir="${classes.dir}">
 			<manifest>
 				<attribute name="Main-Class" value="${main-class}" />
-				<attribute name="Class-Path" value="${mf.classpath}" />
+				<attribute name="Class-Path" value="${mf.classpath} log4j.properties" />
 			</manifest>
 		</jar>
 	</target>

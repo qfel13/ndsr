@@ -48,14 +48,12 @@ import com.google.gdata.util.ServiceException;
 public class Main implements MouseListener {
 
 	private static final Logger log = LoggerFactory.getLogger(Main.class);
-	private static final String FILE_SEPARATOR = System.getProperty("file.separator");
 
 	private TrayIcon trayIcon = null;
 	private PopupMenu popup = null;
 	private MenuItem statisticsItem = null;
 	private MenuItem settingsItem = null;
 	private MenuItem calendarItem = null;
-//	private MenuItem caritasItem = null;
 	private MenuItem exitItem = null;
 	private Image image;
 	private Image grayImage;
@@ -84,12 +82,10 @@ public class Main implements MouseListener {
 
 		os = System.getProperty("os.name").toLowerCase();
 
-		initTrayIcon();
-		initIdleTime();
-
 		File f = new File("passwd.properties");
 		File fDevelopment = new File("C:\\Program Files\\ndsr\\passwd.properties");
 		File fDevelopment2 = new File("/home/adro/ndsr/passwd.properties");
+		boolean noConfiguration = false;
 		if (f.exists()) {
 			configuration.readConfiguration(f);
 		} else if (fDevelopment.exists()) {
@@ -97,6 +93,13 @@ public class Main implements MouseListener {
 		} else if (fDevelopment2.exists()) {
 			configuration.readConfiguration(fDevelopment2);
 		} else {
+			noConfiguration = true;
+		}
+
+		initTrayIcon(configuration);
+		initIdleTime();
+
+		if (noConfiguration) {
 			trayIcon.displayMessage("No configuration found", "No configuration found", TrayIcon.MessageType.ERROR);
 		}
 
@@ -173,21 +176,15 @@ public class Main implements MouseListener {
 		} while (running);
 	}
 
-	private void initTrayIcon() throws RuntimeException {
+	private void initTrayIcon(Configuration configuration) throws RuntimeException {
 		if (SystemTray.isSupported()) {
 			log.info("System Tray is supported");
 			SystemTray tray = SystemTray.getSystemTray();
-			String iconPath = "icon" + FILE_SEPARATOR;
-			String grayIconPath = "icon" + FILE_SEPARATOR;
-			// TODO: add configuration, allow user to choose appropriate file
-			if (os.equals("linux")) {
-				iconPath += "no_linux.png";
-				grayIconPath += "no_gray_linux.png";
-			} else {
-				iconPath += "no.png";
-				grayIconPath += "no_gray.png";
-			}
-			log.debug("iconPath = {}", iconPath);
+
+			String iconPath = configuration.getNormalIconLocation();
+			String grayIconPath = configuration.getInactiveIconLocation();
+
+			log.debug("iconPath = {}, grayIconPath = {}", iconPath, grayIconPath);
 
 			File iconFile = new File(iconPath);
 			File grayIconFile = new File(grayIconPath);
@@ -220,7 +217,7 @@ public class Main implements MouseListener {
 			popup.add(statisticsItem);
 
 			popup.addSeparator();
-			
+
 			log.debug("Creating calendar menu item");
 			// CALENDAR
 			ActionListener calendarListener = new ActionListener() {
@@ -237,14 +234,14 @@ public class Main implements MouseListener {
 			popup.add(calendarItem);
 
 			popup.addSeparator();
-			
+
 			log.debug("Creating logs menu item");
 			// LOGS
 			ActionListener logsListener = new ActionListener() {
 
 				@Override
 				public void actionPerformed(ActionEvent e) {
-			        showLogs();
+					showLogs();
 				}
 			};
 			logsItem = new MenuItem("Logs");
@@ -252,7 +249,7 @@ public class Main implements MouseListener {
 
 			log.debug("Adding logs menu item");
 			popup.add(logsItem);
-			
+
 			// SETTING
 			log.debug("Creating settings menu item");
 			ActionListener settingsListener = new ActionListener() {
@@ -267,20 +264,20 @@ public class Main implements MouseListener {
 			log.debug("Adding settings menu item");
 			popup.add(settingsItem);
 
-//			popup.addSeparator();
-//			
-//			Menu otherOptions = new Menu("More");
-//			
-//			MenuItem a = new MenuItem("a");
-//			MenuItem b = new MenuItem("a");
-//			
-//			otherOptions.add(a);
-//			otherOptions.add(b);
-//			
-//			popup.add(otherOptions);
-			
+			// popup.addSeparator();
+			//
+			// Menu otherOptions = new Menu("More");
+			//
+			// MenuItem a = new MenuItem("a");
+			// MenuItem b = new MenuItem("a");
+			//
+			// otherOptions.add(a);
+			// otherOptions.add(b);
+			//
+			// popup.add(otherOptions);
+
 			popup.addSeparator();
-			
+
 			log.debug("Creating exit menu item");
 			ActionListener exitListener = new ActionListener() {
 
@@ -314,18 +311,12 @@ public class Main implements MouseListener {
 		}
 	}
 
-//	private void showCaritasDialog() {
-//		JOptionPane.showMessageDialog(null, "Nie bądź kurwa Caritasem!", "Nie bądź kurwa Caritasem!",
-//				JOptionPane.INFORMATION_MESSAGE,
-//				new ImageIcon(Toolkit.getDefaultToolkit().getImage("icon" + FILE_SEPARATOR + "caritas.png")));
-//	}
-
 	private void showStatistics() {
 		StatisticsFrame statisticsFrame = new StatisticsFrame(stats);
 		log.debug("close Operation = {}", statisticsFrame.getDefaultCloseOperation());
 		statisticsFrame.setVisible(true);
 	}
-	
+
 	private void showLogs() {
 		String jar = Main.class.getProtectionDomain().getCodeSource().getLocation().getPath();
 		File dir = new File(jar.substring(0, jar.lastIndexOf("/")).replaceAll("%20", " ").concat("/logs"));
@@ -337,10 +328,8 @@ public class Main implements MouseListener {
 					if (dir.exists()) {
 						d.open(dir);
 					} else {
-						JOptionPane.showMessageDialog(null, 
-								"Logs dir does not exist!\n" + dir.toString(),
-								"Logs dir does not exist!",
-								JOptionPane.ERROR_MESSAGE);
+						JOptionPane.showMessageDialog(null, "Logs dir does not exist!\n" + dir.toString(),
+								"Logs dir does not exist!", JOptionPane.ERROR_MESSAGE);
 						log.error("Logs dir does not exist");
 					}
 				} catch (IOException e1) {
@@ -354,7 +343,7 @@ public class Main implements MouseListener {
 		log.debug("showSettings");
 		settingsFrame.setVisible(true);
 	}
-	
+
 	private void showCalendar() {
 		log.debug("showCalendar");
 		if (Desktop.isDesktopSupported()) {
@@ -374,19 +363,34 @@ public class Main implements MouseListener {
 	private boolean isIpFromWork(String workIpRegExp) throws SocketException {
 		Enumeration<NetworkInterface> interfaces = NetworkInterface.getNetworkInterfaces();
 
+		if (interfaces == null) {
+			return false;
+		}
+
 		while (interfaces.hasMoreElements()) {
 			NetworkInterface nif = interfaces.nextElement();
 			if (nif != null) {
 				List<InterfaceAddress> interfaceAddresses = nif.getInterfaceAddresses();
+
+				if (interfaceAddresses == null) {
+					return false;
+				}
+
 				for (InterfaceAddress interfaceAddress : interfaceAddresses) {
+					if (interfaceAddress == null) {
+						log.debug("interfaceAddress == null");
+						continue;
+					}
 					InetAddress inetAddress = interfaceAddress.getAddress();
-					if (inetAddress != null) {
-						String ip = inetAddress.getHostAddress();
-						log.debug("ip = {} workIpRegExp = {}", ip, workIpRegExp);
-						if (ip != null && ip.matches(workIpRegExp)) {
-							log.debug("{} matches to {}", ip, workIpRegExp);
-							return true;
-						}
+					if (inetAddress == null) {
+						log.debug("inetAddress == null");
+						continue;
+					}
+					String ip = inetAddress.getHostAddress();
+					log.debug("ip = {} workIpRegExp = {}", ip, workIpRegExp);
+					if (ip != null && ip.matches(workIpRegExp)) {
+						log.debug("{} matches to {}", ip, workIpRegExp);
+						return true;
 					}
 				}
 			}
@@ -419,15 +423,19 @@ public class Main implements MouseListener {
 	}
 
 	@Override
-	public void mouseEntered(MouseEvent arg0) {}
+	public void mouseEntered(MouseEvent arg0) {
+	}
 
 	@Override
-	public void mouseExited(MouseEvent arg0) {}
+	public void mouseExited(MouseEvent arg0) {
+	}
 
 	@Override
-	public void mousePressed(MouseEvent arg0) {}
+	public void mousePressed(MouseEvent arg0) {
+	}
 
 	@Override
-	public void mouseReleased(MouseEvent arg0) {}
+	public void mouseReleased(MouseEvent arg0) {
+	}
 
 }

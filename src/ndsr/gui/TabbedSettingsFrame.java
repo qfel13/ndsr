@@ -11,14 +11,16 @@
 
 package ndsr.gui;
 
+import java.awt.Dimension;
 import java.awt.event.MouseEvent;
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 import javax.swing.GroupLayout;
+import javax.swing.GroupLayout.Alignment;
 import javax.swing.JButton;
+import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -26,54 +28,101 @@ import javax.swing.JPasswordField;
 import javax.swing.JTabbedPane;
 import javax.swing.JTextField;
 import javax.swing.LayoutStyle;
+import javax.swing.LayoutStyle.ComponentPlacement;
+import javax.swing.filechooser.FileNameExtensionFilter;
 
 import ndsr.Configuration;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import java.awt.event.MouseAdapter;
+import java.awt.Color;
+import javax.swing.SwingConstants;
+
 /**
- *
  * @author lkufel
  */
 public class TabbedSettingsFrame extends JFrame {
 
+	private static final Logger log = LoggerFactory.getLogger(TabbedSettingsFrame.class);
+
 	private static final long serialVersionUID = -2075547569254525343L;
-	
+
 	private Configuration configuration;
-	
-	private JButton cancelButton;
-	private JPanel connectionPanel;
-	private JLabel eventNameLabel;
-	private JTextField eventNameText;
-	private JPanel eventsPanel;
-	private JPanel googleAccountPanel;
-	private JLabel httpProxyHostLabel;
-	private JTextField httpProxyHostText;
-	private JLabel httpProxyPortLabel;
-	private JTextField httpProxyPortText;
-	private JLabel httpsProxyHostLabel;
-	private JTextField httpsProxyHostText;
-	private JLabel httpsProxyPortLabel;
-	private JTextField httpsProxyPortText;
-	private JLabel idleTimeLabel;
-	private JTextField idleTimeText;
-	private JTabbedPane jTabbedPane1;
-	private JLabel lastIdleTimeThresholdLabel;
-	private JTextField lastIdleTimeThresholdText;
-	private JButton okButton;
-	private JPanel otherPanel;
-	private JLabel passwordLabel;
-	private JPasswordField passwordText;
-	private JLabel sleepTimeLabel;
-	private JTextField sleepTimeText;
-	private JLabel urlLabel;
-	private JTextField urlText;
-	private JLabel usernameLabel;
-	private JTextField usernameText;
-	private JLabel workIpRegExpLabel;
-	private JTextField workIpRegExpText;
+
+	// Account Panel
+	private JPanel googleAccountPanel = new JPanel(/* "Google account" */);
+
+	// Labels
+	private JLabel usernameLabel = new JLabel("Username");
+	private JLabel passwordLabel = new JLabel("Password");
+	private JLabel urlLabel = new JLabel("Calendar URL");
+	// Fields
+	private JTextField usernameText = new JTextField();
+	private JPasswordField passwordText = new JPasswordField();
+	private JTextField urlText = new JTextField();
+
+	// Event Panel
+	private JPanel eventsPanel = new JPanel(/* "Events */);
+	// Labels
+	private JLabel sleepTimeLabel = new JLabel("Sleep time (in minutes)");
+	private JLabel idleTimeLabel = new JLabel("Idle time (in minutes)");
+	private JLabel eventNameLabel = new JLabel("Calendar event name");
+	private JLabel lastIdleTimeThresholdLabel = new JLabel("New event after idle (in minutes)");
+	// Fields
+	private JTextField sleepTimeText = new JTextField();
+	private JTextField idleTimeText = new JTextField();
+	private JTextField eventNameText = new JTextField();
+	private JTextField lastIdleTimeThresholdText = new JTextField();
+
+	// Connection Panel
+	private JPanel connectionPanel = new JPanel(/* "Connection" */);
+	// Labels
+	private JLabel httpProxyHostLabel = new JLabel("Http proxy host");
+	private JLabel httpProxyPortLabel = new JLabel("Http proxy port");
+	private JLabel httpsProxyHostLabel = new JLabel("Https proxy host");
+	private JLabel httpsProxyPortLabel = new JLabel("Https proxy port");
+	// Fields
+	private JTextField httpProxyHostText = new JTextField();
+	private JTextField httpProxyPortText = new JTextField();
+	private JTextField httpsProxyHostText = new JTextField();
+	private JTextField httpsProxyPortText = new JTextField();
+
+	// Icons Panel
+	private JPanel iconsPanel = new JPanel(/* "Icons" */);
+	// Labels
+	private JLabel iconNormalLabel = new JLabel("Normal icon location");
+	private JLabel iconInactiveLabel = new JLabel("Inactive icon location");
+	// Fields
+	private JTextField iconNormalText = new JTextField();
+	private JTextField iconInactiveText = new JTextField();
+	// Buttons
+	private JButton iconNormalBrowseButton = new JButton("...");
+	private JButton iconInactiveBrowseButton = new JButton("...");
+
+	// Other Panel
+	private JPanel otherPanel = new JPanel(/* "Other" */);
+	// Labels
+	private JLabel workIpRegExpLabel = new JLabel("Work IP regular expression");
+	// Fields
+	private JTextField workIpRegExpText = new JTextField();
+
+	// Settings Buttons
+	private JButton cancelButton = new JButton();
+	private JButton okButton = new JButton();
+
+	private JTabbedPane settingsTabbedPanel = new JTabbedPane();;
 
 	/** Creates new form TabbedSettingsFrame */
 	public TabbedSettingsFrame() {
 		initComponents();
+	}
+
+	public TabbedSettingsFrame(Configuration configuration) {
+
+		this.configuration = configuration;
+		initComponents();
+		setTextsFromConfiguration();
 	}
 
 	private void setTextsFromConfiguration() {
@@ -92,212 +141,258 @@ public class TabbedSettingsFrame extends JFrame {
 		lastIdleTimeThresholdText.setText("" + configuration.getLastIdleTimeThreshold());
 
 		workIpRegExpText.setText(configuration.getWorkIpRegExp());
-	}
-
-	public TabbedSettingsFrame(Configuration configuration) {
-
-		this.configuration = configuration;
-		initComponents();
-		setTextsFromConfiguration();
+		iconNormalText.setText(configuration.getNormalIconLocation());
+		iconInactiveText.setText(configuration.getInactiveIconLocation());
 	}
 
 	private void initComponents() {
+		// JFrame settings
+		this.setTitle("Settings");
+		this.setMinimumSize(new Dimension(400, 250));
+		this.setResizable(false);
 
-		jTabbedPane1 = new JTabbedPane();
-		googleAccountPanel = new JPanel();
-		urlText = new JTextField();
-		passwordLabel = new JLabel();
-		usernameLabel = new JLabel();
-		usernameText = new JTextField();
-		passwordText = new JPasswordField();
-		urlLabel = new JLabel();
-		eventsPanel = new JPanel();
-		lastIdleTimeThresholdText = new JTextField();
-		lastIdleTimeThresholdLabel = new JLabel();
-		eventNameText = new JTextField();
-		eventNameLabel = new JLabel();
-		idleTimeLabel = new JLabel();
-		idleTimeText = new JTextField();
-		sleepTimeLabel = new JLabel();
-		sleepTimeText = new JTextField();
-		connectionPanel = new JPanel();
-		httpProxyPortText = new JTextField();
-		httpProxyHostText = new JTextField();
-		httpsProxyHostText = new JTextField();
-		httpsProxyPortLabel = new JLabel();
-		httpsProxyPortText = new JTextField();
-		httpProxyHostLabel = new JLabel();
-		httpProxyPortLabel = new JLabel();
-		httpsProxyHostLabel = new JLabel();
-		otherPanel = new JPanel();
-		workIpRegExpLabel = new JLabel();
-		workIpRegExpText = new JTextField();
-		cancelButton = new JButton();
-		okButton = new JButton();
+		// Account Layout
+		GroupLayout gl_googleAccountPanel = new GroupLayout(googleAccountPanel);
+		googleAccountPanel.setLayout(gl_googleAccountPanel);
+		gl_googleAccountPanel.setHorizontalGroup(gl_googleAccountPanel.createParallelGroup(
+				GroupLayout.Alignment.LEADING).addGroup(
+				gl_googleAccountPanel
+						.createSequentialGroup()
+						.addContainerGap()
+						.addGroup(
+								gl_googleAccountPanel
+										.createParallelGroup(GroupLayout.Alignment.TRAILING)
+										.addComponent(usernameLabel, GroupLayout.Alignment.LEADING,
+												GroupLayout.DEFAULT_SIZE, 62, Short.MAX_VALUE)
+										.addComponent(passwordLabel, GroupLayout.Alignment.LEADING,
+												GroupLayout.DEFAULT_SIZE, 62, Short.MAX_VALUE)
+										.addComponent(urlLabel, GroupLayout.DEFAULT_SIZE, 62, Short.MAX_VALUE))
+						.addPreferredGap(LayoutStyle.ComponentPlacement.UNRELATED)
+						.addGroup(
+								gl_googleAccountPanel
+										.createParallelGroup(GroupLayout.Alignment.LEADING)
+										.addComponent(urlText, GroupLayout.DEFAULT_SIZE, 196, Short.MAX_VALUE)
+										.addComponent(passwordText, GroupLayout.DEFAULT_SIZE, 196, Short.MAX_VALUE)
+										.addComponent(usernameText, GroupLayout.Alignment.TRAILING,
+												GroupLayout.DEFAULT_SIZE, 196, Short.MAX_VALUE)).addContainerGap()));
+		gl_googleAccountPanel.setVerticalGroup(gl_googleAccountPanel.createParallelGroup(GroupLayout.Alignment.LEADING)
+				.addGroup(
+						gl_googleAccountPanel
+								.createSequentialGroup()
+								.addContainerGap()
+								.addGroup(
+										gl_googleAccountPanel.createParallelGroup(GroupLayout.Alignment.BASELINE)
+												.addComponent(usernameLabel).addComponent(usernameText))
+								.addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
+								.addGroup(
+										gl_googleAccountPanel
+												.createParallelGroup(GroupLayout.Alignment.BASELINE)
+												.addComponent(passwordLabel)
+												.addComponent(passwordText, GroupLayout.PREFERRED_SIZE,
+														GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
+								.addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
+								.addGroup(
+										gl_googleAccountPanel
+												.createParallelGroup(GroupLayout.Alignment.BASELINE)
+												.addComponent(urlLabel)
+												.addComponent(urlText, GroupLayout.PREFERRED_SIZE,
+														GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
+								.addGap(53, 53, 53)));
 
-		setTitle("Settings");
-		setResizable(false);
+		// Events Layout
+		GroupLayout gl_eventsPanel = new GroupLayout(eventsPanel);
+		eventsPanel.setLayout(gl_eventsPanel);
+		gl_eventsPanel.setHorizontalGroup(gl_eventsPanel.createParallelGroup(Alignment.LEADING).addGroup(
+				gl_eventsPanel
+						.createSequentialGroup()
+						.addContainerGap()
+						.addGroup(
+								gl_eventsPanel
+										.createParallelGroup(Alignment.LEADING)
+										.addGroup(
+												gl_eventsPanel
+														.createParallelGroup(Alignment.TRAILING)
+														.addComponent(idleTimeLabel, Alignment.LEADING,
+																GroupLayout.DEFAULT_SIZE, 164, Short.MAX_VALUE)
+														.addComponent(eventNameLabel, Alignment.LEADING,
+																GroupLayout.DEFAULT_SIZE, 164, Short.MAX_VALUE)
+														.addComponent(sleepTimeLabel, Alignment.LEADING,
+																GroupLayout.DEFAULT_SIZE, 164, Short.MAX_VALUE))
+										.addComponent(lastIdleTimeThresholdLabel, GroupLayout.PREFERRED_SIZE, 164,
+												GroupLayout.PREFERRED_SIZE))
+						.addPreferredGap(ComponentPlacement.UNRELATED)
+						.addGroup(
+								gl_eventsPanel
+										.createParallelGroup(Alignment.TRAILING)
+										.addComponent(sleepTimeText, GroupLayout.DEFAULT_SIZE, 206, Short.MAX_VALUE)
+										.addComponent(idleTimeText, GroupLayout.DEFAULT_SIZE, 206, Short.MAX_VALUE)
+										.addComponent(eventNameText, GroupLayout.DEFAULT_SIZE, 206, Short.MAX_VALUE)
+										.addComponent(lastIdleTimeThresholdText, Alignment.LEADING,
+												GroupLayout.DEFAULT_SIZE, 206, Short.MAX_VALUE)).addContainerGap()));
+		gl_eventsPanel.setVerticalGroup(gl_eventsPanel.createParallelGroup(Alignment.LEADING).addGroup(
+				gl_eventsPanel
+						.createSequentialGroup()
+						.addContainerGap()
+						.addGroup(
+								gl_eventsPanel
+										.createParallelGroup(Alignment.BASELINE, false)
+										.addComponent(sleepTimeLabel)
+										.addComponent(sleepTimeText, GroupLayout.PREFERRED_SIZE,
+												GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
+						.addPreferredGap(ComponentPlacement.RELATED)
+						.addGroup(
+								gl_eventsPanel
+										.createParallelGroup(Alignment.BASELINE)
+										.addComponent(idleTimeText, GroupLayout.PREFERRED_SIZE,
+												GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+										.addComponent(idleTimeLabel))
+						.addPreferredGap(ComponentPlacement.RELATED)
+						.addGroup(
+								gl_eventsPanel
+										.createParallelGroup(Alignment.TRAILING)
+										.addComponent(eventNameLabel)
+										.addComponent(eventNameText, GroupLayout.PREFERRED_SIZE,
+												GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
+						.addPreferredGap(ComponentPlacement.RELATED)
+						.addGroup(
+								gl_eventsPanel
+										.createParallelGroup(Alignment.BASELINE)
+										.addComponent(lastIdleTimeThresholdText, GroupLayout.PREFERRED_SIZE,
+												GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+										.addComponent(lastIdleTimeThresholdLabel)).addGap(27)));
 
-		passwordLabel.setText("password");
-
-		usernameLabel.setText("username");
-
-		urlLabel.setText("calendar url");
-
-		GroupLayout googleAccountPanelLayout = new GroupLayout(googleAccountPanel);
-		googleAccountPanel.setLayout(googleAccountPanelLayout);
-		googleAccountPanelLayout.setHorizontalGroup(
-			googleAccountPanelLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
-			.addGroup(googleAccountPanelLayout.createSequentialGroup()
-				.addContainerGap()
-				.addGroup(googleAccountPanelLayout.createParallelGroup(GroupLayout.Alignment.TRAILING)
-					.addComponent(usernameLabel, GroupLayout.Alignment.LEADING, GroupLayout.DEFAULT_SIZE, 62, Short.MAX_VALUE)
-					.addComponent(passwordLabel, GroupLayout.Alignment.LEADING, GroupLayout.DEFAULT_SIZE, 62, Short.MAX_VALUE)
-					.addComponent(urlLabel, GroupLayout.DEFAULT_SIZE, 62, Short.MAX_VALUE))
-				.addPreferredGap(LayoutStyle.ComponentPlacement.UNRELATED)
-				.addGroup(googleAccountPanelLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
-					.addComponent(urlText, GroupLayout.DEFAULT_SIZE, 196, Short.MAX_VALUE)
-					.addComponent(passwordText, GroupLayout.DEFAULT_SIZE, 196, Short.MAX_VALUE)
-					.addComponent(usernameText, GroupLayout.Alignment.TRAILING, GroupLayout.DEFAULT_SIZE, 196, Short.MAX_VALUE))
-				.addContainerGap())
+		// Connection Layout
+		GroupLayout gl_connectionPanel = new GroupLayout(connectionPanel);
+		gl_connectionPanel.setHorizontalGroup(
+			gl_connectionPanel.createParallelGroup(Alignment.LEADING)
+				.addGroup(gl_connectionPanel.createSequentialGroup()
+					.addContainerGap()
+					.addGroup(gl_connectionPanel.createParallelGroup(Alignment.LEADING, false)
+						.addComponent(httpsProxyPortLabel, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+						.addComponent(httpsProxyHostLabel, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+						.addComponent(httpProxyPortLabel, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+						.addComponent(httpProxyHostLabel, GroupLayout.DEFAULT_SIZE, 101, Short.MAX_VALUE))
+					.addPreferredGap(ComponentPlacement.UNRELATED)
+					.addGroup(gl_connectionPanel.createParallelGroup(Alignment.LEADING)
+						.addComponent(httpsProxyHostText, GroupLayout.DEFAULT_SIZE, 240, Short.MAX_VALUE)
+						.addComponent(httpProxyPortText, GroupLayout.DEFAULT_SIZE, 240, Short.MAX_VALUE)
+						.addComponent(httpProxyHostText, Alignment.TRAILING, GroupLayout.DEFAULT_SIZE, 240, Short.MAX_VALUE)
+						.addComponent(httpsProxyPortText, Alignment.TRAILING, GroupLayout.DEFAULT_SIZE, 269, Short.MAX_VALUE))
+					.addContainerGap())
 		);
-		googleAccountPanelLayout.setVerticalGroup(
-			googleAccountPanelLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
-			.addGroup(googleAccountPanelLayout.createSequentialGroup()
-				.addContainerGap()
-				.addGroup(googleAccountPanelLayout.createParallelGroup(GroupLayout.Alignment.BASELINE)
-					.addComponent(usernameLabel)
-					.addComponent(usernameText))
-				.addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
-				.addGroup(googleAccountPanelLayout.createParallelGroup(GroupLayout.Alignment.BASELINE)
-					.addComponent(passwordLabel)
-					.addComponent(passwordText, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
-				.addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
-				.addGroup(googleAccountPanelLayout.createParallelGroup(GroupLayout.Alignment.BASELINE)
-					.addComponent(urlLabel)
-					.addComponent(urlText, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
-				.addGap(53, 53, 53))
+		gl_connectionPanel.setVerticalGroup(
+			gl_connectionPanel.createParallelGroup(Alignment.LEADING)
+				.addGroup(gl_connectionPanel.createSequentialGroup()
+					.addContainerGap()
+					.addGroup(gl_connectionPanel.createParallelGroup(Alignment.BASELINE)
+						.addComponent(httpProxyHostLabel)
+						.addComponent(httpProxyHostText, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
+					.addPreferredGap(ComponentPlacement.RELATED)
+					.addGroup(gl_connectionPanel.createParallelGroup(Alignment.BASELINE)
+						.addComponent(httpProxyPortLabel)
+						.addComponent(httpProxyPortText, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
+					.addPreferredGap(ComponentPlacement.RELATED)
+					.addGroup(gl_connectionPanel.createParallelGroup(Alignment.BASELINE)
+						.addComponent(httpsProxyHostLabel)
+						.addComponent(httpsProxyHostText, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
+					.addPreferredGap(ComponentPlacement.RELATED)
+					.addGroup(gl_connectionPanel.createParallelGroup(Alignment.BASELINE)
+						.addComponent(httpsProxyPortLabel)
+						.addComponent(httpsProxyPortText, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
+					.addContainerGap(43, Short.MAX_VALUE))
 		);
+		connectionPanel.setLayout(gl_connectionPanel);
+		
+		// Icons Layout
+		JLabel lblWarningChangesIn = new JLabel("Warning: changes in this tab requires restart");
+		lblWarningChangesIn.setHorizontalAlignment(SwingConstants.CENTER);
+		lblWarningChangesIn.setForeground(Color.RED);
 
-		jTabbedPane1.addTab("General", googleAccountPanel);
-		lastIdleTimeThresholdLabel.setText("new event after idle (in minutes)");
-		eventNameLabel.setText("event name");
-		idleTimeLabel.setText("idleTime (in minutes)");
-		sleepTimeLabel.setText("sleepTime (in minutes)");
-
-		GroupLayout eventsPanelLayout = new GroupLayout(eventsPanel);
-		eventsPanel.setLayout(eventsPanelLayout);
-		eventsPanelLayout.setHorizontalGroup(
-			eventsPanelLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
-			.addGroup(eventsPanelLayout.createSequentialGroup()
-				.addContainerGap()
-				.addGroup(eventsPanelLayout.createParallelGroup(GroupLayout.Alignment.TRAILING)
-					.addComponent(sleepTimeLabel, GroupLayout.Alignment.LEADING, GroupLayout.DEFAULT_SIZE, 162, Short.MAX_VALUE)
-					.addComponent(idleTimeLabel, GroupLayout.Alignment.LEADING, GroupLayout.DEFAULT_SIZE, 162, Short.MAX_VALUE)
-					.addComponent(lastIdleTimeThresholdLabel, GroupLayout.Alignment.LEADING, GroupLayout.DEFAULT_SIZE, 162, Short.MAX_VALUE)
-					.addComponent(eventNameLabel, GroupLayout.DEFAULT_SIZE, 162, Short.MAX_VALUE))
-				.addPreferredGap(LayoutStyle.ComponentPlacement.UNRELATED)
-				.addGroup(eventsPanelLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
-					.addComponent(sleepTimeText, GroupLayout.DEFAULT_SIZE, 96, Short.MAX_VALUE)
-					.addComponent(idleTimeText, GroupLayout.Alignment.TRAILING, GroupLayout.DEFAULT_SIZE, 96, Short.MAX_VALUE)
-					.addComponent(lastIdleTimeThresholdText, GroupLayout.DEFAULT_SIZE, 96, Short.MAX_VALUE)
-					.addComponent(eventNameText, GroupLayout.DEFAULT_SIZE, 96, Short.MAX_VALUE))
-				.addContainerGap())
+		GroupLayout gl_iconsPanel = new GroupLayout(iconsPanel);
+		gl_iconsPanel.setHorizontalGroup(
+			gl_iconsPanel.createParallelGroup(Alignment.LEADING)
+				.addGroup(gl_iconsPanel.createSequentialGroup()
+					.addContainerGap()
+					.addGroup(gl_iconsPanel.createParallelGroup(Alignment.LEADING)
+						.addGroup(gl_iconsPanel.createSequentialGroup()
+							.addGroup(gl_iconsPanel.createParallelGroup(Alignment.LEADING, false)
+								.addComponent(iconInactiveLabel, Alignment.TRAILING, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+								.addComponent(iconNormalLabel, Alignment.TRAILING, GroupLayout.DEFAULT_SIZE, 112, Short.MAX_VALUE))
+							.addPreferredGap(ComponentPlacement.RELATED)
+							.addGroup(gl_iconsPanel.createParallelGroup(Alignment.TRAILING)
+								.addComponent(iconNormalText, GroupLayout.DEFAULT_SIZE, 233, Short.MAX_VALUE)
+								.addComponent(iconInactiveText, GroupLayout.DEFAULT_SIZE, 233, Short.MAX_VALUE))
+							.addPreferredGap(ComponentPlacement.RELATED)
+							.addGroup(gl_iconsPanel.createParallelGroup(Alignment.LEADING)
+								.addComponent(iconInactiveBrowseButton, Alignment.TRAILING, GroupLayout.PREFERRED_SIZE, 25, GroupLayout.PREFERRED_SIZE)
+								.addComponent(iconNormalBrowseButton, Alignment.TRAILING, GroupLayout.PREFERRED_SIZE, 25, GroupLayout.PREFERRED_SIZE)))
+						.addComponent(lblWarningChangesIn, GroupLayout.DEFAULT_SIZE, 380, Short.MAX_VALUE))
+					.addContainerGap())
 		);
-		eventsPanelLayout.setVerticalGroup(
-			eventsPanelLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
-			.addGroup(eventsPanelLayout.createSequentialGroup()
-				.addContainerGap()
-				.addGroup(eventsPanelLayout.createParallelGroup(GroupLayout.Alignment.BASELINE, false)
-					.addComponent(sleepTimeLabel)
-					.addComponent(sleepTimeText, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
-				.addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
-				.addGroup(eventsPanelLayout.createParallelGroup(GroupLayout.Alignment.BASELINE)
-					.addComponent(idleTimeText, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-					.addComponent(idleTimeLabel))
-				.addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
-				.addGroup(eventsPanelLayout.createParallelGroup(GroupLayout.Alignment.TRAILING, false)
-					.addComponent(eventNameLabel)
-					.addComponent(eventNameText, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
-				.addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
-				.addGroup(eventsPanelLayout.createParallelGroup(GroupLayout.Alignment.BASELINE)
-					.addComponent(lastIdleTimeThresholdText, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-					.addComponent(lastIdleTimeThresholdLabel))
-				.addGap(27, 27, 27))
+		gl_iconsPanel.setVerticalGroup(
+			gl_iconsPanel.createParallelGroup(Alignment.LEADING)
+				.addGroup(gl_iconsPanel.createSequentialGroup()
+					.addGap(5)
+					.addComponent(lblWarningChangesIn, GroupLayout.PREFERRED_SIZE, 20, GroupLayout.PREFERRED_SIZE)
+					.addPreferredGap(ComponentPlacement.RELATED)
+					.addGroup(gl_iconsPanel.createParallelGroup(Alignment.BASELINE)
+						.addComponent(iconNormalText, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+						.addComponent(iconNormalBrowseButton)
+						.addComponent(iconNormalLabel))
+					.addGroup(gl_iconsPanel.createParallelGroup(Alignment.LEADING)
+						.addGroup(gl_iconsPanel.createSequentialGroup()
+							.addGap(9)
+							.addComponent(iconInactiveLabel))
+						.addGroup(gl_iconsPanel.createSequentialGroup()
+							.addPreferredGap(ComponentPlacement.RELATED)
+							.addGroup(gl_iconsPanel.createParallelGroup(Alignment.LEADING)
+								.addGroup(gl_iconsPanel.createSequentialGroup()
+									.addGap(1)
+									.addComponent(iconInactiveText, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
+								.addComponent(iconInactiveBrowseButton))))
+					.addContainerGap(69, Short.MAX_VALUE))
 		);
+		iconsPanel.setLayout(gl_iconsPanel);
+		
+		iconNormalBrowseButton.addMouseListener(new MouseAdapter() {
+			@Override
+			public void mouseClicked(MouseEvent event) {
+				iconNormalMouseClicked(event);
+			}
+		});
+		iconInactiveBrowseButton.addMouseListener(new MouseAdapter() {
+			@Override
+			public void mouseClicked(MouseEvent event) {
+				iconInactiveMouseClicked(event);
+			}
+		});
 
-		jTabbedPane1.addTab("Events", eventsPanel);
-		httpsProxyPortLabel.setText("https proxy port");
-		httpProxyHostLabel.setText("http proxy host");
-		httpProxyPortLabel.setText("http proxy port");
-		httpsProxyHostLabel.setText("https proxy host");
+		// Other Layout
+		GroupLayout gl_otherPanel = new GroupLayout(otherPanel);
+		otherPanel.setLayout(gl_otherPanel);
+		gl_otherPanel.setHorizontalGroup(gl_otherPanel.createParallelGroup(Alignment.TRAILING).addGroup(
+				Alignment.LEADING,
+				gl_otherPanel.createSequentialGroup().addContainerGap()
+						.addComponent(workIpRegExpLabel, GroupLayout.PREFERRED_SIZE, 137, GroupLayout.PREFERRED_SIZE)
+						.addPreferredGap(ComponentPlacement.UNRELATED)
+						.addComponent(workIpRegExpText, GroupLayout.DEFAULT_SIZE, 201, Short.MAX_VALUE).addGap(11)));
+		gl_otherPanel.setVerticalGroup(gl_otherPanel.createParallelGroup(Alignment.LEADING).addGroup(
+				gl_otherPanel
+						.createSequentialGroup()
+						.addContainerGap()
+						.addGroup(
+								gl_otherPanel
+										.createParallelGroup(Alignment.BASELINE)
+										.addComponent(workIpRegExpLabel)
+										.addComponent(workIpRegExpText, GroupLayout.PREFERRED_SIZE,
+												GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
+						.addContainerGap(108, Short.MAX_VALUE)));
 
-		GroupLayout connectionPanelLayout = new GroupLayout(connectionPanel);
-		connectionPanel.setLayout(connectionPanelLayout);
-		connectionPanelLayout.setHorizontalGroup(
-			connectionPanelLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
-			.addGroup(connectionPanelLayout.createSequentialGroup()
-				.addContainerGap()
-				.addGroup(connectionPanelLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
-					.addComponent(httpsProxyPortLabel, GroupLayout.DEFAULT_SIZE, 89, Short.MAX_VALUE)
-					.addComponent(httpsProxyHostLabel, GroupLayout.DEFAULT_SIZE, 89, Short.MAX_VALUE)
-					.addComponent(httpProxyPortLabel, GroupLayout.DEFAULT_SIZE, 89, Short.MAX_VALUE)
-					.addComponent(httpProxyHostLabel, GroupLayout.DEFAULT_SIZE, 89, Short.MAX_VALUE))
-				.addPreferredGap(LayoutStyle.ComponentPlacement.UNRELATED)
-				.addGroup(connectionPanelLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
-					.addComponent(httpsProxyHostText, GroupLayout.DEFAULT_SIZE, 169, Short.MAX_VALUE)
-					.addComponent(httpProxyPortText, GroupLayout.DEFAULT_SIZE, 169, Short.MAX_VALUE)
-					.addComponent(httpsProxyPortText, GroupLayout.DEFAULT_SIZE, 169, Short.MAX_VALUE)
-					.addComponent(httpProxyHostText, GroupLayout.Alignment.TRAILING, GroupLayout.DEFAULT_SIZE, 169, Short.MAX_VALUE))
-				.addContainerGap())
-		);
-		connectionPanelLayout.setVerticalGroup(
-			connectionPanelLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
-			.addGroup(connectionPanelLayout.createSequentialGroup()
-				.addContainerGap()
-				.addGroup(connectionPanelLayout.createParallelGroup(GroupLayout.Alignment.BASELINE)
-					.addComponent(httpProxyHostLabel)
-					.addComponent(httpProxyHostText, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
-				.addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
-				.addGroup(connectionPanelLayout.createParallelGroup(GroupLayout.Alignment.BASELINE)
-					.addComponent(httpProxyPortLabel)
-					.addComponent(httpProxyPortText, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
-				.addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
-				.addGroup(connectionPanelLayout.createParallelGroup(GroupLayout.Alignment.BASELINE)
-					.addComponent(httpsProxyHostLabel)
-					.addComponent(httpsProxyHostText, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
-				.addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
-				.addGroup(connectionPanelLayout.createParallelGroup(GroupLayout.Alignment.BASELINE)
-					.addComponent(httpsProxyPortLabel)
-					.addComponent(httpsProxyPortText, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
-				.addContainerGap(27, Short.MAX_VALUE))
-		);
-
-		jTabbedPane1.addTab("Connection", connectionPanel);
-		workIpRegExpLabel.setText("work IP regular expression");
-
-		GroupLayout otherPanelLayout = new GroupLayout(otherPanel);
-		otherPanel.setLayout(otherPanelLayout);
-		otherPanelLayout.setHorizontalGroup(
-			otherPanelLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
-			.addGroup(GroupLayout.Alignment.TRAILING, otherPanelLayout.createSequentialGroup()
-				.addContainerGap()
-				.addComponent(workIpRegExpLabel, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-				.addPreferredGap(LayoutStyle.ComponentPlacement.UNRELATED)
-				.addComponent(workIpRegExpText, GroupLayout.PREFERRED_SIZE, 130, GroupLayout.PREFERRED_SIZE)
-				.addContainerGap())
-		);
-		otherPanelLayout.setVerticalGroup(
-			otherPanelLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
-			.addGroup(otherPanelLayout.createSequentialGroup()
-				.addContainerGap()
-				.addGroup(otherPanelLayout.createParallelGroup(GroupLayout.Alignment.BASELINE)
-					.addComponent(workIpRegExpLabel)
-					.addComponent(workIpRegExpText, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
-				.addContainerGap(105, Short.MAX_VALUE))
-		);
-
-		jTabbedPane1.addTab("Other", otherPanel);
+		settingsTabbedPanel.addTab("Google account", googleAccountPanel);
+		settingsTabbedPanel.addTab("Events", eventsPanel);
+		settingsTabbedPanel.addTab("Connection", connectionPanel);
+		settingsTabbedPanel.addTab("Icons", null, iconsPanel, null);
+		settingsTabbedPanel.addTab("Other", otherPanel);
 
 		cancelButton.setText("Cancel");
 		cancelButton.addMouseListener(new java.awt.event.MouseAdapter() {
@@ -315,36 +410,35 @@ public class TabbedSettingsFrame extends JFrame {
 
 		GroupLayout layout = new GroupLayout(getContentPane());
 		getContentPane().setLayout(layout);
-		layout.setHorizontalGroup(
-			layout.createParallelGroup(GroupLayout.Alignment.LEADING)
-			.addGroup(GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-				.addContainerGap()
-				.addGroup(layout.createParallelGroup(GroupLayout.Alignment.TRAILING)
-					.addComponent(jTabbedPane1, GroupLayout.Alignment.LEADING)
-					.addGroup(layout.createSequentialGroup()
-						.addComponent(cancelButton)
+		layout.setHorizontalGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING).addGroup(
+				GroupLayout.Alignment.TRAILING,
+				layout.createSequentialGroup()
+						.addContainerGap()
+						.addGroup(
+								layout.createParallelGroup(GroupLayout.Alignment.TRAILING)
+										.addComponent(settingsTabbedPanel, GroupLayout.Alignment.LEADING)
+										.addGroup(
+												layout.createSequentialGroup().addComponent(cancelButton)
+														.addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
+														.addComponent(okButton))).addContainerGap()));
+		layout.setVerticalGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING).addGroup(
+				layout.createSequentialGroup()
+						.addContainerGap()
+						.addComponent(settingsTabbedPanel, GroupLayout.DEFAULT_SIZE, 164, Short.MAX_VALUE)
 						.addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
-						.addComponent(okButton)))
-				.addContainerGap())
-		);
-		layout.setVerticalGroup(
-			layout.createParallelGroup(GroupLayout.Alignment.LEADING)
-			.addGroup(layout.createSequentialGroup()
-				.addContainerGap()
-				.addComponent(jTabbedPane1, GroupLayout.DEFAULT_SIZE, 164, Short.MAX_VALUE)
-				.addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
-				.addGroup(layout.createParallelGroup(GroupLayout.Alignment.BASELINE)
-					.addComponent(okButton, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-					.addComponent(cancelButton, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-				.addContainerGap())
-		);
+						.addGroup(
+								layout.createParallelGroup(GroupLayout.Alignment.BASELINE)
+										.addComponent(okButton, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE,
+												Short.MAX_VALUE)
+										.addComponent(cancelButton, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE,
+												Short.MAX_VALUE)).addContainerGap()));
 
-		jTabbedPane1.getAccessibleContext().setAccessibleName("General");
+		settingsTabbedPanel.getAccessibleContext().setAccessibleName("Google account");
 
 		pack();
 	}
 
-	private void okButtonMouseClicked(MouseEvent evt) {
+	private void okButtonMouseClicked(MouseEvent event) {
 		try {
 			configuration.setUser(usernameText.getText());
 			configuration.setPasswd(new String(passwordText.getPassword()));
@@ -361,18 +455,41 @@ public class TabbedSettingsFrame extends JFrame {
 			configuration.setLastIdleTimeThreshold(lastIdleTimeThresholdText.getText());
 
 			configuration.setWorkIpRegExp(workIpRegExpText.getText());
+			configuration.setNormalIconLocation(iconNormalText.getText());
+			configuration.setInactiveIconLocation(iconInactiveText.getText());
 
 			configuration.writeConfiguration("passwd.properties");
 		} catch (FileNotFoundException ex) {
-			Logger.getLogger(TabbedSettingsFrame.class.getName()).log(Level.SEVERE, null, ex);
+			log.error("Configuration property file not found", ex);
 		} catch (IOException ex) {
-			Logger.getLogger(TabbedSettingsFrame.class.getName()).log(Level.SEVERE, null, ex);
+			log.error("Problem with writting to configuration property file", ex);
 		}
 		setVisible(false);
 	}
 
-	private void cancelButtonMouseClicked(MouseEvent evt) {
+	private void cancelButtonMouseClicked(MouseEvent event) {
 		setTextsFromConfiguration();
 		setVisible(false);
+	}
+	
+	private void handleFileSelection(JTextField textField) {
+		JFileChooser chooser = new JFileChooser();
+		FileNameExtensionFilter filter = new FileNameExtensionFilter("Images", "jpg", "jpeg", "gif", "png");
+		chooser.setFileFilter(filter);
+		int returnVal = chooser.showOpenDialog(this);
+		if (returnVal == JFileChooser.APPROVE_OPTION) {
+			File selectedFile = chooser.getSelectedFile();
+			String absolutePath = selectedFile.getAbsolutePath();
+			log.debug("absolutePath: {}", absolutePath);
+			textField.setText(absolutePath);
+		}
+	}
+	
+	private void iconNormalMouseClicked(MouseEvent event) {
+		handleFileSelection(iconNormalText);
+	}
+	
+	private void iconInactiveMouseClicked(MouseEvent event) {
+		handleFileSelection(iconInactiveText);
 	}
 }

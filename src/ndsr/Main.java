@@ -60,6 +60,7 @@ public class Main implements MouseListener {
 	private boolean grayIcon = false;
 	private Stats stats;
 	private TabbedSettingsFrame settingsFrame;
+	private StatisticsFrame statisticsFrame;
 	private CalendarHandler calendarHandler;
 	private IdleTime idleTime;
 	private MenuItem logsItem;
@@ -105,6 +106,8 @@ public class Main implements MouseListener {
 
 		calendarHandler = new CalendarHandler(configuration);
 		settingsFrame = new TabbedSettingsFrame(configuration);
+		
+		statisticsFrame = new StatisticsFrame(stats);
 
 		String statsStr = null;
 		Boolean running = true;
@@ -312,8 +315,8 @@ public class Main implements MouseListener {
 	}
 
 	private void showStatistics() {
-		StatisticsFrame statisticsFrame = new StatisticsFrame(stats);
-		log.debug("close Operation = {}", statisticsFrame.getDefaultCloseOperation());
+		log.debug("showStatistics");
+		statisticsFrame.refreshStats(stats);
 		statisticsFrame.setVisible(true);
 	}
 

@@ -26,18 +26,27 @@
 	</target>
 
 	<target name="jar" depends="compile,resources">
+		<property name="version.num" value="0.9.0" />
+		<buildnumber file="build.num" />
+		<tstamp>
+			<format property="NOW" pattern="yyyy-MM-dd HH:mm:ss" />
+		</tstamp>
+
 		<mkdir dir="${jar.dir}" />
 		<pathconvert property="mf.classpath" pathsep=" ">
 			<path refid="classpath" />
 			<chainedmapper>
-				<flattenmapper/>
-				<globmapper from="*.jar" to="${lib.dir}/*.jar"/>
+				<flattenmapper />
+				<globmapper from="*.jar" to="${lib.dir}/*.jar" />
 			</chainedmapper>
 		</pathconvert>
 		<jar destfile="${jar.dir}/${ant.project.name}.jar" basedir="${classes.dir}">
 			<manifest>
+				<attribute name="Built-By" value="${user.name}" />
 				<attribute name="Main-Class" value="${main-class}" />
 				<attribute name="Class-Path" value="${mf.classpath} log4j.properties" />
+				<attribute name="Implementation-Version" value="${version.num}.${build.number}" />
+				<attribute name="Built-Date" value="${NOW}"/>
 			</manifest>
 		</jar>
 	</target>

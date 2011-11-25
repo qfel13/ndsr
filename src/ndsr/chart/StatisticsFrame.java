@@ -62,17 +62,12 @@ public class StatisticsFrame extends JFrame {
 		initTextPanel(contentPane, stats);
 		initChartsPanel(contentPane, stats);
 
+		refreshStats(stats);
+		
 		pack();
 	}
 
 	private void initTextPanel(Container contentPane, Stats stats) {
-		String todayStats = "";
-		String weekStats = "";
-		if (stats != null) {
-			todayStats = stats.toTodayString();
-			weekStats = stats.toWeekString();
-		}
-
 		// TEXT
 		textPanel = new JPanel();
 		textPanel.setLayout(new BoxLayout(textPanel, BoxLayout.LINE_AXIS));
@@ -82,8 +77,6 @@ public class StatisticsFrame extends JFrame {
 		txtrDayTextArea.setEditable(false);
 		txtrDayTextArea.setLineWrap(true);
 		txtrDayTextArea.setFont(new Font("Monospaced", Font.PLAIN, 12));
-
-		txtrDayTextArea.setText(todayStats);
 		textPanel.add(txtrDayTextArea);
 
 		txtrWeekTextArea = new JTextArea();
@@ -91,7 +84,6 @@ public class StatisticsFrame extends JFrame {
 		txtrWeekTextArea.setEditable(false);
 		txtrWeekTextArea.setLineWrap(true);
 		txtrWeekTextArea.setFont(new Font("Monospaced", Font.PLAIN, 12));
-		txtrWeekTextArea.setText(weekStats);
 		textPanel.add(txtrWeekTextArea);
 		// ADD TEXT PANEL
 		contentPane.add(textPanel);
@@ -102,25 +94,8 @@ public class StatisticsFrame extends JFrame {
 		chartsPanel = new JPanel();
 		chartsPanel.setLayout(new BoxLayout(chartsPanel, BoxLayout.X_AXIS));
 
-		DefaultCategoryDataset data = new DefaultCategoryDataset();
-		DefaultCategoryDataset weekData = new DefaultCategoryDataset();
-
-		if (stats != null) {
-			double todayHours = stats.getTodayHours() + stats.getTodayMinutes() / 60.0;
-			double remainingTodayHours = stats.getRemainingTodayHours() + stats.getRemainingTodayMinutes() / 60.0;
-			data.addValue(todayHours, "Worked Hours", "Today");
-			data.addValue(remainingTodayHours, "Remaining Hours", "Today");
-
-			double weekHours = stats.getWeekHours() + stats.getWeekMinutes() / 60.0;
-			double weekTodayHours = stats.getRemainingWeekHours() + stats.getRemainingWeekMinutes() / 60.0;
-			weekData.addValue(weekHours, "Worked Hours", "Week");
-			weekData.addValue(weekTodayHours, "Remaining Hours", "Week");
-		}
-
-		JFreeChart dayChart = ChartFactory.createStackedBarChart3D("Today", null, "Hours", data,
-				PlotOrientation.HORIZONTAL, true, true, false);
-		JFreeChart weekChart = ChartFactory.createStackedBarChart3D("Week", null, "Hours", weekData,
-				PlotOrientation.HORIZONTAL, true, true, false);
+		JFreeChart dayChart = prepareDayChart(stats);
+		JFreeChart weekChart = prepareWeekChart(stats);
 
 		changePlot(dayChart);
 		changePlot(weekChart);
@@ -136,5 +111,55 @@ public class StatisticsFrame extends JFrame {
 		// ADD CHARTS
 		contentPane.add(chartsPanel);
 		return contentPane;
+	}
+
+	private JFreeChart prepareDayChart(Stats stats) {
+		DefaultCategoryDataset data = new DefaultCategoryDataset();
+
+		if (stats != null) {
+			double todayHours = stats.getTodayHours() + stats.getTodayMinutes() / 60.0;
+			double remainingTodayHours = stats.getRemainingTodayHours() + stats.getRemainingTodayMinutes() / 60.0;
+			data.addValue(todayHours, "Worked Hours", "Today");
+			data.addValue(remainingTodayHours, "Remaining Hours", "Today");
+		}
+
+		JFreeChart dayChart = ChartFactory.createStackedBarChart3D("Today", null, "Hours", data,
+				PlotOrientation.HORIZONTAL, true, true, false);
+
+		changePlot(dayChart);
+
+		return dayChart;
+	}
+
+	private JFreeChart prepareWeekChart(Stats stats) {
+		DefaultCategoryDataset weekData = new DefaultCategoryDataset();
+
+		if (stats != null) {
+			double weekHours = stats.getWeekHours() + stats.getWeekMinutes() / 60.0;
+			double weekTodayHours = stats.getRemainingWeekHours() + stats.getRemainingWeekMinutes() / 60.0;
+			weekData.addValue(weekHours, "Worked Hours", "Week");
+			weekData.addValue(weekTodayHours, "Remaining Hours", "Week");
+		}
+		JFreeChart weekChart = ChartFactory.createStackedBarChart3D("Week", null, "Hours", weekData,
+				PlotOrientation.HORIZONTAL, true, true, false);
+
+		changePlot(weekChart);
+
+		return weekChart;
+	}
+
+	public void refreshStats(Stats stats) {
+		String todayStats = "";
+		String weekStats = "";
+		if (stats != null) {
+			todayStats = stats.toTodayString();
+			weekStats = stats.toWeekString();
+		}
+
+		txtrDayTextArea.setText(todayStats);
+		txtrWeekTextArea.setText(weekStats);
+		
+		dayChartPanel.setChart(prepareDayChart(stats));
+		weekChartPanel.setChart(prepareWeekChart(stats));
 	}
 }

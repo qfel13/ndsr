@@ -26,7 +26,7 @@
 	</target>
 
 	<target name="jar" depends="compile,resources">
-		<property name="version.num" value="0.9.0" />
+		<property name="version.num" value="0.9.1" />
 		<buildnumber file="build.num" />
 		<tstamp>
 			<format property="NOW" pattern="yyyy-MM-dd HH:mm:ss" />

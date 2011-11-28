@@ -16,12 +16,14 @@ import java.awt.event.MouseListener;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.RandomAccessFile;
 import java.net.InetAddress;
 import java.net.InterfaceAddress;
 import java.net.NetworkInterface;
 import java.net.SocketException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.nio.channels.FileLock;
 import java.util.Enumeration;
 import java.util.List;
 
@@ -65,9 +67,17 @@ public class Main implements MouseListener {
 	private IdleTime idleTime;
 	private MenuItem logsItem;
 	private static String os = "";
+	private static final String ndsrInstanceLockFileName = System.getProperty("java.io.tmpdir") + "ndsr.lck";
 
 	public static void main(String args[]) throws InterruptedException, FileNotFoundException, IOException {
 		PropertyConfigurator.configure("log4j.properties");
+		// detect if ndsr is already running.
+		if (!lockInstance(ndsrInstanceLockFileName)) {
+			log.info("Duplicate ndsr instance, exitting. (Could not lock file {})", ndsrInstanceLockFileName);
+			return;
+		} else {
+			log.info("Starting program instance.");
+		}
 
 		try {
 			UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
@@ -439,6 +449,31 @@ public class Main implements MouseListener {
 
 	@Override
 	public void mouseReleased(MouseEvent arg0) {
+	}
+	
+	private static boolean lockInstance(final String lockFile) {
+	    try {
+	        final File file = new File(lockFile);
+	        final RandomAccessFile randomAccessFile = new RandomAccessFile(file, "rw");
+	        final FileLock fileLock = randomAccessFile.getChannel().tryLock();
+	        if (fileLock != null) {
+	            Runtime.getRuntime().addShutdownHook(new Thread() {
+	                public void run() {
+	                    try {
+	                        fileLock.release();
+	                        randomAccessFile.close();
+	                        file.delete();
+	                    } catch (Exception e) {
+	                        log.error("Unable to remove lock file: " + lockFile, e);
+	                    }
+	                }
+	            });
+	            return true;
+	        }
+	    } catch (Exception e) {
+	        log.error("Unable to create and/or lock file: " + lockFile, e);
+	    }
+	    return false;
 	}
 
 }

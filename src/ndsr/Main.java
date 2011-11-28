@@ -4,6 +4,7 @@ import java.awt.AWTException;
 import java.awt.Desktop;
 import java.awt.Desktop.Action;
 import java.awt.Image;
+import java.awt.Menu;
 import java.awt.MenuItem;
 import java.awt.PopupMenu;
 import java.awt.SystemTray;
@@ -32,6 +33,7 @@ import javax.swing.UIManager;
 
 import ndsr.beans.Stats;
 import ndsr.chart.StatisticsFrame;
+import ndsr.gui.OutOfWorkFrame;
 import ndsr.gui.TabbedSettingsFrame;
 import ndsr.idle.IdleTime;
 import ndsr.idle.LinuxIdleTime;
@@ -52,22 +54,37 @@ public class Main implements MouseListener {
 	private static final Logger log = LoggerFactory.getLogger(Main.class);
 
 	private TrayIcon trayIcon = null;
-	private PopupMenu popup = null;
+	private PopupMenu trayPopupMenu = null;
+
+	// POPUP MENU ITEMS
 	private MenuItem statisticsItem = null;
-	private MenuItem settingsItem = null;
 	private MenuItem calendarItem = null;
+	private MenuItem logsItem;
+	private MenuItem settingsItem = null;
+	private Menu moreItem = null;
+	// OTHER OPTIONS MENU ITEMS
+	private MenuItem outOfWorkItem = null;
 	private MenuItem exitItem = null;
+	// END OF POPUP MENU ITEMS
+
+	// IMAGES FOR TRAY ICON
 	private Image image;
 	private Image grayImage;
+
 	private boolean grayIcon = false;
 	private Stats stats;
 	private TabbedSettingsFrame settingsFrame;
 	private StatisticsFrame statisticsFrame;
+	private OutOfWorkFrame outOfWorkFrame;
 	private CalendarHandler calendarHandler;
+	private Configuration configuration;
 	private IdleTime idleTime;
-	private MenuItem logsItem;
-	private static String os = "";
+	private boolean work = true;
+	private static String os = ""; // FIXME: remove this
+
 	private static final String ndsrInstanceLockFileName = System.getProperty("java.io.tmpdir") + "ndsr.lck";
+	private static final String[] CONF_FILES = { "passwd.properties", "C:\\Program Files\\ndsr\\passwd.properties",
+			"/home/adro/ndsr/passwd.properties" };
 
 	public static void main(String args[]) throws InterruptedException, FileNotFoundException, IOException {
 		PropertyConfigurator.configure("log4j.properties");
@@ -82,42 +99,43 @@ public class Main implements MouseListener {
 		try {
 			UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
 		} catch (Exception e) {
-			log.error("Error setting native LAF: ", e);
+			log.error("Error setting native L&F: ", e);
 		}
 
 		new Main().run();
 	}
 
-	public void run() throws InterruptedException, FileNotFoundException, IOException {
-		Configuration configuration = new Configuration();
+	private void init() throws FileNotFoundException, IOException {
+		configuration = new Configuration();
 
 		os = System.getProperty("os.name").toLowerCase();
 
-		File f = new File("passwd.properties");
-		File fDevelopment = new File("C:\\Program Files\\ndsr\\passwd.properties");
-		File fDevelopment2 = new File("/home/adro/ndsr/passwd.properties");
-		boolean noConfiguration = false;
-		if (f.exists()) {
-			configuration.readConfiguration(f);
-		} else if (fDevelopment.exists()) {
-			configuration.readConfiguration(fDevelopment);
-		} else if (fDevelopment2.exists()) {
-			configuration.readConfiguration(fDevelopment2);
-		} else {
-			noConfiguration = true;
+		boolean configurationRead = false;
+		for (String conf : CONF_FILES) {
+			File f = new File(conf);
+			if (f.exists()) {
+				configuration.readConfiguration(f);
+				configurationRead = true;
+				break;
+			}
 		}
 
 		initTrayIcon(configuration);
 		initIdleTime();
 
-		if (noConfiguration) {
+		if (!configurationRead) {
 			trayIcon.displayMessage("No configuration found", "No configuration found", TrayIcon.MessageType.ERROR);
 		}
 
-		calendarHandler = new CalendarHandler(configuration);
 		settingsFrame = new TabbedSettingsFrame(configuration);
-		
 		statisticsFrame = new StatisticsFrame(stats);
+		outOfWorkFrame = new OutOfWorkFrame(this);
+
+		calendarHandler = new CalendarHandler(configuration);
+	}
+
+	public void run() throws InterruptedException, FileNotFoundException, IOException {
+		init();
 
 		String statsStr = null;
 		Boolean running = true;
@@ -131,7 +149,7 @@ public class Main implements MouseListener {
 					log.debug("NOT IDLE. idleSec = {}, idleTimeInSec = {}", idleSec, idleTimeInSec);
 
 					String workIpRegExp = configuration.getWorkIpRegExp();
-					if (workIpRegExp == null || workIpRegExp.isEmpty() || isIpFromWork(workIpRegExp)) {
+					if ((work) && (workIpRegExp == null || workIpRegExp.isEmpty() || isIpFromWork(workIpRegExp))) {
 						log.debug("At Work");
 						try {
 							int lastIdleTimeThreshold = configuration.getLastIdleTimeThresholdInSec();
@@ -212,7 +230,7 @@ public class Main implements MouseListener {
 				return;
 			}
 			log.debug("Creating popup manu");
-			popup = new PopupMenu();
+			trayPopupMenu = new PopupMenu();
 
 			log.debug("Creating statistics menu item");
 			// STATISTICS
@@ -227,9 +245,7 @@ public class Main implements MouseListener {
 			statisticsItem.addActionListener(statisticsListener);
 
 			log.debug("Adding statistics menu item");
-			popup.add(statisticsItem);
-
-			popup.addSeparator();
+			trayPopupMenu.add(statisticsItem);
 
 			log.debug("Creating calendar menu item");
 			// CALENDAR
@@ -244,9 +260,12 @@ public class Main implements MouseListener {
 			calendarItem.addActionListener(calendarListener);
 
 			log.debug("Adding calendar menu item");
-			popup.add(calendarItem);
+			trayPopupMenu.add(calendarItem);
 
-			popup.addSeparator();
+			trayPopupMenu.addSeparator();
+
+			// MORE
+			moreItem = new Menu("More");
 
 			log.debug("Creating logs menu item");
 			// LOGS
@@ -261,7 +280,7 @@ public class Main implements MouseListener {
 			logsItem.addActionListener(logsListener);
 
 			log.debug("Adding logs menu item");
-			popup.add(logsItem);
+			moreItem.add(logsItem);
 
 			// SETTING
 			log.debug("Creating settings menu item");
@@ -275,21 +294,28 @@ public class Main implements MouseListener {
 			settingsItem = new MenuItem("Settings");
 			settingsItem.addActionListener(settingsListener);
 			log.debug("Adding settings menu item");
-			popup.add(settingsItem);
+			moreItem.add(settingsItem);
 
-			// popup.addSeparator();
-			//
-			// Menu otherOptions = new Menu("More");
-			//
-			// MenuItem a = new MenuItem("a");
-			// MenuItem b = new MenuItem("a");
-			//
-			// otherOptions.add(a);
-			// otherOptions.add(b);
-			//
-			// popup.add(otherOptions);
+			moreItem.addSeparator();
 
-			popup.addSeparator();
+			// OUT OF WORK
+			ActionListener outOfWorkListener = new ActionListener() {
+
+				@Override
+				public void actionPerformed(ActionEvent e) {
+					showOutOfWork();
+				}
+			};
+
+			outOfWorkItem = new MenuItem("Go out of work");
+			outOfWorkItem.addActionListener(outOfWorkListener);
+			log.debug("Adding Go out of work menu item");
+			moreItem.add(outOfWorkItem);
+
+			log.debug("Adding More menu item");
+			trayPopupMenu.add(moreItem);
+
+			trayPopupMenu.addSeparator();
 
 			log.debug("Creating exit menu item");
 			ActionListener exitListener = new ActionListener() {
@@ -303,10 +329,10 @@ public class Main implements MouseListener {
 			exitItem = new MenuItem("Exit");
 			exitItem.addActionListener(exitListener);
 			log.debug("Adding exit menu item");
-			popup.add(exitItem);
+			trayPopupMenu.add(exitItem);
 
 			log.debug("Creating Tray icon");
-			trayIcon = new TrayIcon(image, "Initializing ...", popup);
+			trayIcon = new TrayIcon(image, "Initializing ...", trayPopupMenu);
 			trayIcon.setImageAutoSize(true);
 			trayIcon.addMouseListener(this);
 			try {
@@ -355,6 +381,24 @@ public class Main implements MouseListener {
 	private void showSettings() {
 		log.debug("showSettings");
 		settingsFrame.setVisible(true);
+	}
+
+	public void setWork(boolean newWork) {
+		work = newWork;
+	}
+
+	private void showOutOfWork() {
+		log.debug("showOutOfWork");
+		outOfWorkFrame.showWindow();
+		work = false;
+
+		// if (work) {
+		// outOfWorkItem.setLabel("I'm back");
+		// work = false;
+		// } else {
+		// outOfWorkItem.setLabel("Go out of work");
+		// work = true;
+		// }
 	}
 
 	private void showCalendar() {
@@ -450,30 +494,30 @@ public class Main implements MouseListener {
 	@Override
 	public void mouseReleased(MouseEvent arg0) {
 	}
-	
+
 	private static boolean lockInstance(final String lockFile) {
-	    try {
-	        final File file = new File(lockFile);
-	        final RandomAccessFile randomAccessFile = new RandomAccessFile(file, "rw");
-	        final FileLock fileLock = randomAccessFile.getChannel().tryLock();
-	        if (fileLock != null) {
-	            Runtime.getRuntime().addShutdownHook(new Thread() {
-	                public void run() {
-	                    try {
-	                        fileLock.release();
-	                        randomAccessFile.close();
-	                        file.delete();
-	                    } catch (Exception e) {
-	                        log.error("Unable to remove lock file: " + lockFile, e);
-	                    }
-	                }
-	            });
-	            return true;
-	        }
-	    } catch (Exception e) {
-	        log.error("Unable to create and/or lock file: " + lockFile, e);
-	    }
-	    return false;
+		try {
+			final File file = new File(lockFile);
+			final RandomAccessFile randomAccessFile = new RandomAccessFile(file, "rw");
+			final FileLock fileLock = randomAccessFile.getChannel().tryLock();
+			if (fileLock != null) {
+				Runtime.getRuntime().addShutdownHook(new Thread() {
+					public void run() {
+						try {
+							fileLock.release();
+							randomAccessFile.close();
+							file.delete();
+						} catch (Exception e) {
+							log.error("Unable to remove lock file: " + lockFile, e);
+						}
+					}
+				});
+				return true;
+			}
+		} catch (Exception e) {
+			log.error("Unable to create and/or lock file: " + lockFile, e);
+		}
+		return false;
 	}
 
 }

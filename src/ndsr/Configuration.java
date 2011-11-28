@@ -49,6 +49,10 @@ public class Configuration {
 
 	private final String os = System.getProperty("os.name").toLowerCase();
 	
+	public Configuration() {
+		properties = new Properties();
+	}
+	
 	public String getUser() {
 		return properties.getProperty(USER);
 	}
@@ -208,7 +212,6 @@ public class Configuration {
 	public void readConfiguration(File file) throws FileNotFoundException, IOException {
 		propertiesFile = file;
 
-		properties = new Properties();
 		properties.load(new FileInputStream(file));
 
 		setHttpProxyHost(properties.getProperty(HTTP_PROXY_HOST));

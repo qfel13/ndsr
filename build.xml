@@ -7,6 +7,7 @@
 	<property name="classes.dir" value="${build.dir}/classes" />
 	<property name="jar.dir" value="${build.dir}/jar" />
 	<property name="lib.dir" value="lib" />
+	<property name="script.dir" value="scripts" />
 
 	<path id="classpath">
 		<fileset dir="${lib.dir}" includes="**/*.jar" />
@@ -63,6 +64,9 @@
 		</copy>
 		<copy todir="${jar.dir}/${lib.dir}">
 			<fileset dir="${lib.dir}" includes="**/*.jar" />
+		</copy>
+		<copy todir="${jar.dir}/${script.dir}">
+			<fileset dir="scripts" includes="**/*" />
 		</copy>
 	</target>
 

@@ -380,7 +380,7 @@ public class Main implements MouseListener {
 
 	private void showSettings() {
 		log.debug("showSettings");
-		settingsFrame.setVisible(true);
+		settingsFrame.showFrame();
 	}
 
 	public void setWork(boolean newWork) {

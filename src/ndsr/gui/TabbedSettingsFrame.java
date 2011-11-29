@@ -11,15 +11,22 @@
 
 package ndsr.gui;
 
+import java.awt.Color;
 import java.awt.Dimension;
+import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.io.BufferedReader;
+import java.io.DataInputStream;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStreamReader;
 
 import javax.swing.GroupLayout;
 import javax.swing.GroupLayout.Alignment;
 import javax.swing.JButton;
+import javax.swing.JCheckBox;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
@@ -29,15 +36,13 @@ import javax.swing.JTabbedPane;
 import javax.swing.JTextField;
 import javax.swing.LayoutStyle;
 import javax.swing.LayoutStyle.ComponentPlacement;
+import javax.swing.SwingConstants;
 import javax.swing.filechooser.FileNameExtensionFilter;
 
 import ndsr.Configuration;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import java.awt.event.MouseAdapter;
-import java.awt.Color;
-import javax.swing.SwingConstants;
 
 /**
  * @author lkufel
@@ -110,7 +115,9 @@ public class TabbedSettingsFrame extends JFrame {
 	private JLabel workIpRegExpLabel = new JLabel("Work IP regular expression");
 	// Fields
 	private JTextField workIpRegExpText = new JTextField();
-
+	// runAtStartUp
+	JCheckBox runNdsrAtStartUpChkbox = new JCheckBox("Run Ndsr at system startup (current user only)");
+	
 	// Settings Buttons
 	private JButton cancelButton = new JButton();
 	private JButton okButton = new JButton();
@@ -127,6 +134,48 @@ public class TabbedSettingsFrame extends JFrame {
 		this.configuration = configuration;
 		initComponents();
 		setTextsFromConfiguration();
+		initRunNdsrAtStartUpChkbox();
+	}
+
+	private void initRunNdsrAtStartUpChkbox() {
+		try {
+			runNdsrAtStartUpChkbox.setEnabled(System.getProperty("os.name").toLowerCase().contains("windows"));
+			// run ndsr at startup, now supported only on windows
+			if(System.getProperty("os.name").toLowerCase().contains("windows")) {
+				
+				// get application path
+				String ndsrExecPath = getClass().getProtectionDomain().getCodeSource().getLocation().getPath().replace("%20", " ");
+				if (ndsrExecPath.startsWith("/")) {
+					ndsrExecPath = ndsrExecPath.replaceFirst("/", "");
+				}
+				String ndsrDirPath = (String) ndsrExecPath.subSequence(0,ndsrExecPath.lastIndexOf("/"));
+				// check if vbs scripts exist
+				File getStartupDirVBS = new File(ndsrDirPath + "/scripts/getWindowsUserStartUpDirectoryPath.vbs");
+				File addLnkVBS = new File(ndsrDirPath + "/scripts/addShortcutToStartUpWindows.vbs");
+				if (getStartupDirVBS.exists() && addLnkVBS.exists()) {
+					log.debug("Executing {}/scripts/getWindowsUserStartUpDirectoryPath.vbs script", ndsrDirPath);
+					// get user startup path using vbscript
+					String[] cmd = new String[] {"wscript.exe", ndsrDirPath+"/scripts/getWindowsUserStartUpDirectoryPath.vbs"};
+					Process p = Runtime.getRuntime().exec(cmd);
+					// read startup path from file
+					FileInputStream fstream = new FileInputStream(System.getProperty("java.io.tmpdir") + "/" + "ndsrStartUpPath.txt");
+					DataInputStream in = new DataInputStream(fstream);
+					BufferedReader br = new BufferedReader(new InputStreamReader(in));
+					String startupPath = br.readLine();
+					log.debug("Got StartUp dir path: {}", startupPath);
+					String ndsrShortcutName = "ndsr.lnk";
+					// check if ndsr.lnk exist in startup
+					File ndsrLnk = new File(startupPath + "\\" + ndsrShortcutName);
+					log.debug("Shortcut link ({}) exists: {}",ndsrLnk.getAbsolutePath(), ndsrLnk.exists());
+					runNdsrAtStartUpChkbox.setSelected(ndsrLnk.exists());
+				} else {
+					log.error("vbs scripts does not exist in scripts directory, disabling 'run ndsr at system start up' feature.");
+					runNdsrAtStartUpChkbox.setEnabled(false);
+				}
+			}
+		} catch(IOException ex) {
+			log.error("Failed to initialize run ndsr at system startup checkbox state.", ex);
+		}
 	}
 
 	private void setTextsFromConfiguration() {
@@ -480,24 +529,33 @@ public class TabbedSettingsFrame extends JFrame {
 
 		// Other Layout
 		GroupLayout gl_otherPanel = new GroupLayout(otherPanel);
+		gl_otherPanel.setHorizontalGroup(
+			gl_otherPanel.createParallelGroup(Alignment.LEADING)
+				.addGroup(gl_otherPanel.createSequentialGroup()
+					.addContainerGap()
+					.addGroup(gl_otherPanel.createParallelGroup(Alignment.LEADING)
+						.addGroup(gl_otherPanel.createSequentialGroup()
+							.addGap(6)
+							.addComponent(workIpRegExpLabel, GroupLayout.PREFERRED_SIZE, 137, GroupLayout.PREFERRED_SIZE)
+							.addPreferredGap(ComponentPlacement.RELATED)
+							.addComponent(workIpRegExpText, GroupLayout.DEFAULT_SIZE, 232, Short.MAX_VALUE)
+							.addGap(11))
+						.addGroup(gl_otherPanel.createSequentialGroup()
+							.addComponent(runNdsrAtStartUpChkbox)
+							.addContainerGap(241, Short.MAX_VALUE))))
+		);
+		gl_otherPanel.setVerticalGroup(
+			gl_otherPanel.createParallelGroup(Alignment.LEADING)
+				.addGroup(gl_otherPanel.createSequentialGroup()
+					.addContainerGap()
+					.addGroup(gl_otherPanel.createParallelGroup(Alignment.BASELINE)
+						.addComponent(workIpRegExpText, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+						.addComponent(workIpRegExpLabel))
+					.addPreferredGap(ComponentPlacement.UNRELATED)
+					.addComponent(runNdsrAtStartUpChkbox)
+					.addContainerGap(129, Short.MAX_VALUE))
+		);
 		otherPanel.setLayout(gl_otherPanel);
-		gl_otherPanel.setHorizontalGroup(gl_otherPanel.createParallelGroup(Alignment.TRAILING).addGroup(
-				Alignment.LEADING,
-				gl_otherPanel.createSequentialGroup().addContainerGap()
-						.addComponent(workIpRegExpLabel, GroupLayout.PREFERRED_SIZE, 137, GroupLayout.PREFERRED_SIZE)
-						.addPreferredGap(ComponentPlacement.UNRELATED)
-						.addComponent(workIpRegExpText, GroupLayout.DEFAULT_SIZE, 201, Short.MAX_VALUE).addGap(11)));
-		gl_otherPanel.setVerticalGroup(gl_otherPanel.createParallelGroup(Alignment.LEADING).addGroup(
-				gl_otherPanel
-						.createSequentialGroup()
-						.addContainerGap()
-						.addGroup(
-								gl_otherPanel
-										.createParallelGroup(Alignment.BASELINE)
-										.addComponent(workIpRegExpLabel)
-										.addComponent(workIpRegExpText, GroupLayout.PREFERRED_SIZE,
-												GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
-						.addContainerGap(108, Short.MAX_VALUE)));
 
 		settingsTabbedPanel.addTab("Google account", googleAccountPanel);
 		settingsTabbedPanel.addTab("Events", eventsPanel);
@@ -570,6 +628,48 @@ public class TabbedSettingsFrame extends JFrame {
 			configuration.setInactiveIconLocation(iconInactiveText.getText());
 
 			configuration.writeConfiguration("passwd.properties");
+			
+			// run ndsr at startup, now supported only on windows
+			if(System.getProperty("os.name").toLowerCase().contains("windows") && runNdsrAtStartUpChkbox.isEnabled()) {
+				// get application path
+				String ndsrExecPath = getClass().getProtectionDomain().getCodeSource().getLocation().getPath().replace("%20", " ");
+				if (ndsrExecPath.startsWith("/")) {
+					ndsrExecPath = ndsrExecPath.replaceFirst("/", "");
+				}
+				String ndsrDirPath = (String) ndsrExecPath.subSequence(0,ndsrExecPath.lastIndexOf("/"));
+				// ndsr starter filename needs to be hardcoded 
+//				String ndsrExecFilename = (String) ndsrExecPath.subSequence(ndsrExecPath.lastIndexOf("/")+1, ndsrExecPath.length());
+				log.debug("Executing {}/scripts/getWindowsUserStartUpDirectoryPath.vbs script", ndsrDirPath);
+				// get user startup path using vbscript
+				String[] cmd1 = new String[] {"wscript.exe", ndsrDirPath+"/scripts/getWindowsUserStartUpDirectoryPath.vbs"};
+				Process p1 = Runtime.getRuntime().exec(cmd1);
+				// read startup path from file
+				FileInputStream fstream = new FileInputStream(System.getProperty("java.io.tmpdir") + "/" + "ndsrStartUpPath.txt");
+				DataInputStream in = new DataInputStream(fstream);
+				BufferedReader br = new BufferedReader(new InputStreamReader(in));
+				String startupPath = br.readLine();
+				String ndsrShortcutName = "ndsr.lnk";
+				File ndsrLnk = new File(startupPath + "\\" + ndsrShortcutName);
+				if (runNdsrAtStartUpChkbox.isEnabled() && runNdsrAtStartUpChkbox.isSelected()) {
+					// create startup lnk
+					if (!ndsrLnk.exists()) {
+						// ndsr.exe is hardcoded since we are running the jar not the exe starter so we cannot get exe file name  
+						String[] cmd2 = new String[] {"wscript.exe", ndsrDirPath+"/scripts/addShortcutToStartUpWindows.vbs", ndsrDirPath, "ndsr.exe", ndsrShortcutName};
+						log.debug("Executing {}/scripts/addShortcutToStartUpWindows.vbs script", ndsrDirPath);
+						Process p2 = Runtime.getRuntime().exec(cmd2);
+					} else {
+						log.debug("Startup lnk file already exists, skipping  creation.");
+					}
+				} else if(runNdsrAtStartUpChkbox.isEnabled()) {
+					// remove lnk, only if it exists
+					if (ndsrLnk.exists()) {
+						log.debug("Removing ndsr shortcut from startup dir: {}", ndsrLnk.getAbsolutePath());
+						ndsrLnk.delete();
+					} else {
+						log.debug("Startup lnk file ({}) does not exist,nothing to delete.", ndsrLnk.getAbsolutePath());
+					}
+				}
+			}
 		} catch (FileNotFoundException ex) {
 			log.error("Configuration property file not found", ex);
 		} catch (IOException ex) {
@@ -602,5 +702,11 @@ public class TabbedSettingsFrame extends JFrame {
 
 	private void iconInactiveMouseClicked(MouseEvent event) {
 		handleFileSelection(iconInactiveText);
+	}
+
+	public void showFrame() {
+		initRunNdsrAtStartUpChkbox();
+		
+		setVisible(true);
 	}
 }

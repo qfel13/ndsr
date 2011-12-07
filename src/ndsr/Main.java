@@ -421,6 +421,7 @@ public class Main implements MouseListener {
 		Enumeration<NetworkInterface> interfaces = NetworkInterface.getNetworkInterfaces();
 
 		if (interfaces == null) {
+			log.debug("interfaces == null");
 			return false;
 		}
 
@@ -428,8 +429,30 @@ public class Main implements MouseListener {
 			NetworkInterface nif = interfaces.nextElement();
 			if (nif != null) {
 				List<InterfaceAddress> interfaceAddresses = nif.getInterfaceAddresses();
-
+				log.debug("nif.toString() = {}", nif.toString());
+				byte[] mac = nif.getHardwareAddress();
+				if (mac != null) {
+					StringBuilder macBuilder = new StringBuilder(18);
+				    for (byte b : mac) {
+				        if (macBuilder.length() > 0)
+				            macBuilder.append(':');
+				        macBuilder.append(String.format("%02x", b));
+				    }
+				    macBuilder.toString();
+					log.debug("nif.getHardwareAddress() = {}", macBuilder.toString());
+				}
+				Enumeration<InetAddress> inetAddresses = nif.getInetAddresses();
+				log.debug("inetAddresses.hasMoreElements = {}", inetAddresses.hasMoreElements());
+				
+				log.debug("nif.getMTU() = {}", nif.getMTU());
+				log.debug("nif.isLoopback() = {}", nif.isLoopback());
+				log.debug("nif.isPointToPoint() = {}", nif.isPointToPoint());
+				log.debug("nif.isUp() = {}", nif.isUp());
+				log.debug("nif.isVirtual() = {}", nif.isVirtual());
+				log.debug("nif.supportsMulticast() = {}", nif.supportsMulticast());
+				
 				if (interfaceAddresses == null) {
+					log.debug("interfaceAddresses == null");
 					return false;
 				}
 

@@ -1,4 +1,4 @@
-package ndsr.chart;
+package ndsr.gui;
 
 import java.awt.Color;
 import java.awt.Container;

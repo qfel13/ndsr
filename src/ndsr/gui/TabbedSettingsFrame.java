@@ -76,6 +76,8 @@ public class TabbedSettingsFrame extends JFrame {
 	private JLabel lastIdleTimeThresholdLabel = new JLabel("New event after idle (in minutes)");
 	private JLabel minutesBeforeFirstLabel = new JLabel("Minutes before first event");
 	private JLabel eventMinutesAheadLabel = new JLabel("Current event minutes ahead");
+	private JLabel inactiveTimeStartLabel = new JLabel("Inactive time start");
+	private JLabel inactiveTimeEndLabel = new JLabel("Inactive time end");
 	// Fields
 	private JTextField sleepTimeText = new JTextField();
 	private JTextField idleTimeText = new JTextField();
@@ -83,6 +85,8 @@ public class TabbedSettingsFrame extends JFrame {
 	private JTextField lastIdleTimeThresholdText = new JTextField();
 	private JTextField minutesBeforeFirstText = new JTextField();
 	private JTextField eventMinutesAheadText = new JTextField();
+	private JTextField inactiveTimeStartText = new JTextField();
+	private JTextField inactiveTimeEndText = new JTextField();
 
 	// Connection Panel
 	private JPanel connectionPanel = new JPanel(/* "Connection" */);
@@ -115,7 +119,7 @@ public class TabbedSettingsFrame extends JFrame {
 	private JLabel workIpRegExpLabel = new JLabel("Work IP regular expression");
 	// Fields
 	private JTextField workIpRegExpText = new JTextField();
-	// runAtStartUp
+	// Checkboxes
 	JCheckBox runNdsrAtStartUpChkbox = new JCheckBox("Run Ndsr at system startup (current user only)");
 	
 	// Settings Buttons
@@ -156,7 +160,7 @@ public class TabbedSettingsFrame extends JFrame {
 					log.debug("Executing {}/scripts/getWindowsUserStartUpDirectoryPath.vbs script", ndsrDirPath);
 					// get user startup path using vbscript
 					String[] cmd = new String[] {"wscript.exe", ndsrDirPath+"/scripts/getWindowsUserStartUpDirectoryPath.vbs"};
-					Process p = Runtime.getRuntime().exec(cmd);
+					Runtime.getRuntime().exec(cmd);
 					// read startup path from file
 					FileInputStream fstream = new FileInputStream(System.getProperty("java.io.tmpdir") + "/" + "ndsrStartUpPath.txt");
 					DataInputStream in = new DataInputStream(fstream);
@@ -192,6 +196,11 @@ public class TabbedSettingsFrame extends JFrame {
 		idleTimeText.setText("" + configuration.getIdleTime());
 		eventNameText.setText(configuration.getEventName());
 		lastIdleTimeThresholdText.setText("" + configuration.getLastIdleTimeThreshold());
+		minutesBeforeFirstText.setText("" + configuration.getMinutesBeforeFirstEvent());
+		eventMinutesAheadText.setText("" + configuration.getEventMinutesAhead());
+		inactiveTimeStartText.setText(configuration.getInactiveTimeStart());
+		inactiveTimeEndText.setText(configuration.getInactiveTimeEnd());
+		
 
 		workIpRegExpText.setText(configuration.getWorkIpRegExp());
 		iconNormalText.setText(configuration.getNormalIconLocation());
@@ -201,8 +210,7 @@ public class TabbedSettingsFrame extends JFrame {
 	private void initComponents() {
 		// JFrame settings
 		this.setTitle("Settings");
-		this.setMinimumSize(new Dimension(400, 250));
-		this.setResizable(false);
+		this.setMinimumSize(new Dimension(400, 225));
 
 		// Account Layout
 		GroupLayout gl_googleAccountPanel = new GroupLayout(googleAccountPanel);
@@ -251,105 +259,71 @@ public class TabbedSettingsFrame extends JFrame {
 												.addComponent(urlText, GroupLayout.PREFERRED_SIZE,
 														GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
 								.addGap(53, 53, 53)));
-
+		
 		// Events Layout
 		GroupLayout gl_eventsPanel = new GroupLayout(eventsPanel);
-		gl_eventsPanel.setHorizontalGroup(gl_eventsPanel.createParallelGroup(Alignment.LEADING).addGroup(
-				gl_eventsPanel
-						.createSequentialGroup()
-						.addContainerGap()
-						.addGroup(
-								gl_eventsPanel
-										.createParallelGroup(Alignment.LEADING)
-										.addComponent(eventMinutesAheadLabel, Alignment.TRAILING,
-												GroupLayout.DEFAULT_SIZE, 164, Short.MAX_VALUE)
-										.addComponent(minutesBeforeFirstLabel, GroupLayout.DEFAULT_SIZE, 164,
-												Short.MAX_VALUE)
-										.addComponent(idleTimeLabel, GroupLayout.DEFAULT_SIZE, 164, Short.MAX_VALUE)
-										.addComponent(eventNameLabel, GroupLayout.DEFAULT_SIZE, 164, Short.MAX_VALUE)
-										.addComponent(sleepTimeLabel, GroupLayout.DEFAULT_SIZE, 164, Short.MAX_VALUE)
-										.addComponent(lastIdleTimeThresholdLabel, GroupLayout.DEFAULT_SIZE, 164,
-												Short.MAX_VALUE))
-						.addGroup(
-								gl_eventsPanel
-										.createParallelGroup(Alignment.LEADING)
-										.addGroup(
-												gl_eventsPanel
-														.createSequentialGroup()
-														.addPreferredGap(ComponentPlacement.UNRELATED)
-														.addGroup(
-																gl_eventsPanel
-																		.createParallelGroup(Alignment.LEADING)
-																		.addComponent(minutesBeforeFirstText,
-																				GroupLayout.DEFAULT_SIZE, 206,
-																				Short.MAX_VALUE)
-																		.addComponent(sleepTimeText,
-																				Alignment.TRAILING,
-																				GroupLayout.DEFAULT_SIZE, 206,
-																				Short.MAX_VALUE)
-																		.addComponent(idleTimeText, Alignment.TRAILING,
-																				GroupLayout.DEFAULT_SIZE, 206,
-																				Short.MAX_VALUE)
-																		.addComponent(eventNameText,
-																				Alignment.TRAILING,
-																				GroupLayout.DEFAULT_SIZE, 206,
-																				Short.MAX_VALUE)
-																		.addComponent(lastIdleTimeThresholdText,
-																				GroupLayout.DEFAULT_SIZE, 206,
-																				Short.MAX_VALUE)))
-										.addGroup(
-												Alignment.TRAILING,
-												gl_eventsPanel
-														.createSequentialGroup()
-														.addGap(10)
-														.addComponent(eventMinutesAheadText,
-																GroupLayout.PREFERRED_SIZE, 206,
-																GroupLayout.PREFERRED_SIZE))).addContainerGap()));
-		gl_eventsPanel.setVerticalGroup(gl_eventsPanel.createParallelGroup(Alignment.LEADING).addGroup(
-				gl_eventsPanel
-						.createSequentialGroup()
-						.addContainerGap()
-						.addGroup(
-								gl_eventsPanel
-										.createParallelGroup(Alignment.BASELINE, false)
-										.addComponent(sleepTimeLabel)
-										.addComponent(sleepTimeText, GroupLayout.PREFERRED_SIZE,
-												GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
-						.addPreferredGap(ComponentPlacement.RELATED)
-						.addGroup(
-								gl_eventsPanel
-										.createParallelGroup(Alignment.BASELINE)
-										.addComponent(idleTimeText, GroupLayout.PREFERRED_SIZE,
-												GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-										.addComponent(idleTimeLabel))
-						.addPreferredGap(ComponentPlacement.RELATED)
-						.addGroup(
-								gl_eventsPanel
-										.createParallelGroup(Alignment.TRAILING)
-										.addComponent(eventNameLabel)
-										.addComponent(eventNameText, GroupLayout.PREFERRED_SIZE,
-												GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
-						.addPreferredGap(ComponentPlacement.RELATED)
-						.addGroup(
-								gl_eventsPanel
-										.createParallelGroup(Alignment.BASELINE)
-										.addComponent(lastIdleTimeThresholdText, GroupLayout.PREFERRED_SIZE,
-												GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-										.addComponent(lastIdleTimeThresholdLabel))
-						.addPreferredGap(ComponentPlacement.RELATED)
-						.addGroup(
-								gl_eventsPanel
-										.createParallelGroup(Alignment.BASELINE)
-										.addComponent(minutesBeforeFirstLabel)
-										.addComponent(minutesBeforeFirstText, GroupLayout.PREFERRED_SIZE,
-												GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
-						.addPreferredGap(ComponentPlacement.RELATED)
-						.addGroup(
-								gl_eventsPanel
-										.createParallelGroup(Alignment.LEADING)
-										.addComponent(eventMinutesAheadText, GroupLayout.PREFERRED_SIZE,
-												GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-										.addComponent(eventMinutesAheadLabel)).addGap(29)));
+		gl_eventsPanel.setHorizontalGroup(
+			gl_eventsPanel.createParallelGroup(Alignment.LEADING)
+				.addGroup(gl_eventsPanel.createSequentialGroup()
+					.addContainerGap()
+					.addGroup(gl_eventsPanel.createParallelGroup(Alignment.TRAILING)
+						.addComponent(inactiveTimeEndLabel, Alignment.LEADING, GroupLayout.DEFAULT_SIZE, 213, Short.MAX_VALUE)
+						.addComponent(inactiveTimeStartLabel, Alignment.LEADING, GroupLayout.DEFAULT_SIZE, 213, Short.MAX_VALUE)
+						.addComponent(eventMinutesAheadLabel, Alignment.LEADING, GroupLayout.DEFAULT_SIZE, 213, Short.MAX_VALUE)
+						.addComponent(minutesBeforeFirstLabel, Alignment.LEADING, GroupLayout.DEFAULT_SIZE, 213, Short.MAX_VALUE)
+						.addComponent(idleTimeLabel, Alignment.LEADING, GroupLayout.DEFAULT_SIZE, 213, Short.MAX_VALUE)
+						.addComponent(eventNameLabel, Alignment.LEADING, GroupLayout.DEFAULT_SIZE, 213, Short.MAX_VALUE)
+						.addComponent(sleepTimeLabel, Alignment.LEADING, GroupLayout.DEFAULT_SIZE, 213, Short.MAX_VALUE)
+						.addComponent(lastIdleTimeThresholdLabel, Alignment.LEADING, GroupLayout.DEFAULT_SIZE, 213, Short.MAX_VALUE))
+					.addPreferredGap(ComponentPlacement.UNRELATED)
+					.addGroup(gl_eventsPanel.createParallelGroup(Alignment.LEADING)
+						.addComponent(inactiveTimeStartText, Alignment.TRAILING, GroupLayout.DEFAULT_SIZE, 255, Short.MAX_VALUE)
+						.addComponent(eventMinutesAheadText, Alignment.TRAILING, GroupLayout.DEFAULT_SIZE, 255, Short.MAX_VALUE)
+						.addComponent(minutesBeforeFirstText, Alignment.TRAILING, GroupLayout.DEFAULT_SIZE, 255, Short.MAX_VALUE)
+						.addComponent(sleepTimeText, Alignment.TRAILING, GroupLayout.DEFAULT_SIZE, 255, Short.MAX_VALUE)
+						.addComponent(idleTimeText, Alignment.TRAILING, GroupLayout.DEFAULT_SIZE, 255, Short.MAX_VALUE)
+						.addComponent(eventNameText, Alignment.TRAILING, GroupLayout.DEFAULT_SIZE, 255, Short.MAX_VALUE)
+						.addComponent(lastIdleTimeThresholdText, Alignment.TRAILING, GroupLayout.DEFAULT_SIZE, 255, Short.MAX_VALUE)
+						.addComponent(inactiveTimeEndText, Alignment.TRAILING, GroupLayout.DEFAULT_SIZE, 255, Short.MAX_VALUE))
+					.addContainerGap())
+		);
+		gl_eventsPanel.setVerticalGroup(
+			gl_eventsPanel.createParallelGroup(Alignment.LEADING)
+				.addGroup(gl_eventsPanel.createSequentialGroup()
+					.addContainerGap()
+					.addGroup(gl_eventsPanel.createParallelGroup(Alignment.BASELINE, false)
+						.addComponent(sleepTimeLabel)
+						.addComponent(sleepTimeText, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
+					.addPreferredGap(ComponentPlacement.RELATED)
+					.addGroup(gl_eventsPanel.createParallelGroup(Alignment.BASELINE)
+						.addComponent(idleTimeText, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+						.addComponent(idleTimeLabel))
+					.addPreferredGap(ComponentPlacement.RELATED)
+					.addGroup(gl_eventsPanel.createParallelGroup(Alignment.TRAILING)
+						.addComponent(eventNameLabel)
+						.addComponent(eventNameText, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
+					.addPreferredGap(ComponentPlacement.RELATED)
+					.addGroup(gl_eventsPanel.createParallelGroup(Alignment.BASELINE)
+						.addComponent(lastIdleTimeThresholdText, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+						.addComponent(lastIdleTimeThresholdLabel))
+					.addPreferredGap(ComponentPlacement.RELATED)
+					.addGroup(gl_eventsPanel.createParallelGroup(Alignment.BASELINE)
+						.addComponent(minutesBeforeFirstLabel)
+						.addComponent(minutesBeforeFirstText, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
+					.addPreferredGap(ComponentPlacement.RELATED)
+					.addGroup(gl_eventsPanel.createParallelGroup(Alignment.LEADING)
+						.addComponent(eventMinutesAheadLabel)
+						.addComponent(eventMinutesAheadText, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
+					.addPreferredGap(ComponentPlacement.RELATED)
+					.addGroup(gl_eventsPanel.createParallelGroup(Alignment.LEADING)
+						.addComponent(inactiveTimeStartText, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+						.addComponent(inactiveTimeStartLabel))
+					.addPreferredGap(ComponentPlacement.RELATED)
+					.addGroup(gl_eventsPanel.createParallelGroup(Alignment.BASELINE)
+						.addComponent(inactiveTimeEndLabel)
+						.addComponent(inactiveTimeEndText, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
+					.addGap(43))
+		);
 		eventsPanel.setLayout(gl_eventsPanel);
 
 		// Connection Layout
@@ -578,29 +552,31 @@ public class TabbedSettingsFrame extends JFrame {
 		});
 
 		GroupLayout layout = new GroupLayout(getContentPane());
+		layout.setHorizontalGroup(
+			layout.createParallelGroup(Alignment.LEADING)
+				.addGroup(layout.createSequentialGroup()
+					.addContainerGap()
+					.addComponent(settingsTabbedPanel, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+					.addContainerGap())
+				.addGroup(Alignment.TRAILING, layout.createSequentialGroup()
+					.addContainerGap(395, Short.MAX_VALUE)
+					.addComponent(cancelButton)
+					.addPreferredGap(ComponentPlacement.RELATED)
+					.addComponent(okButton)
+					.addContainerGap())
+		);
+		layout.setVerticalGroup(
+			layout.createParallelGroup(Alignment.LEADING)
+				.addGroup(layout.createSequentialGroup()
+					.addContainerGap()
+					.addComponent(settingsTabbedPanel, GroupLayout.PREFERRED_SIZE, 260, GroupLayout.PREFERRED_SIZE)
+					.addPreferredGap(ComponentPlacement.RELATED)
+					.addGroup(layout.createParallelGroup(Alignment.BASELINE)
+						.addComponent(okButton, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+						.addComponent(cancelButton, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+					.addGap(5))
+		);
 		getContentPane().setLayout(layout);
-		layout.setHorizontalGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING).addGroup(
-				GroupLayout.Alignment.TRAILING,
-				layout.createSequentialGroup()
-						.addContainerGap()
-						.addGroup(
-								layout.createParallelGroup(GroupLayout.Alignment.TRAILING)
-										.addComponent(settingsTabbedPanel, GroupLayout.Alignment.LEADING)
-										.addGroup(
-												layout.createSequentialGroup().addComponent(cancelButton)
-														.addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
-														.addComponent(okButton))).addContainerGap()));
-		layout.setVerticalGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING).addGroup(
-				layout.createSequentialGroup()
-						.addContainerGap()
-						.addComponent(settingsTabbedPanel, GroupLayout.DEFAULT_SIZE, 164, Short.MAX_VALUE)
-						.addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
-						.addGroup(
-								layout.createParallelGroup(GroupLayout.Alignment.BASELINE)
-										.addComponent(okButton, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE,
-												Short.MAX_VALUE)
-										.addComponent(cancelButton, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE,
-												Short.MAX_VALUE)).addContainerGap()));
 
 		settingsTabbedPanel.getAccessibleContext().setAccessibleName("Google account");
 
@@ -622,6 +598,14 @@ public class TabbedSettingsFrame extends JFrame {
 			configuration.setIdleTime(idleTimeText.getText());
 			configuration.setEventName(eventNameText.getText());
 			configuration.setLastIdleTimeThreshold(lastIdleTimeThresholdText.getText());
+			configuration.setMinutesBeforeFirstEvent(minutesBeforeFirstText.getText());
+			configuration.setEventMinutesAhead(eventMinutesAheadText.getText());
+			try {
+				configuration.setInactiveTimeStart(inactiveTimeStartText.getText());
+				configuration.setInactiveTimeEnd(inactiveTimeEndText.getText());
+			} catch (IllegalArgumentException e) {
+				log.debug("zly format czasu", e);
+			}
 
 			configuration.setWorkIpRegExp(workIpRegExpText.getText());
 			configuration.setNormalIconLocation(iconNormalText.getText());
@@ -629,53 +613,57 @@ public class TabbedSettingsFrame extends JFrame {
 
 			configuration.writeConfiguration("passwd.properties");
 			
-			// run ndsr at startup, now supported only on windows
-			if(System.getProperty("os.name").toLowerCase().contains("windows") && runNdsrAtStartUpChkbox.isEnabled()) {
-				// get application path
-				String ndsrExecPath = getClass().getProtectionDomain().getCodeSource().getLocation().getPath().replace("%20", " ");
-				if (ndsrExecPath.startsWith("/")) {
-					ndsrExecPath = ndsrExecPath.replaceFirst("/", "");
-				}
-				String ndsrDirPath = (String) ndsrExecPath.subSequence(0,ndsrExecPath.lastIndexOf("/"));
-				// ndsr starter filename needs to be hardcoded 
-//				String ndsrExecFilename = (String) ndsrExecPath.subSequence(ndsrExecPath.lastIndexOf("/")+1, ndsrExecPath.length());
-				log.debug("Executing {}/scripts/getWindowsUserStartUpDirectoryPath.vbs script", ndsrDirPath);
-				// get user startup path using vbscript
-				String[] cmd1 = new String[] {"wscript.exe", ndsrDirPath+"/scripts/getWindowsUserStartUpDirectoryPath.vbs"};
-				Process p1 = Runtime.getRuntime().exec(cmd1);
-				// read startup path from file
-				FileInputStream fstream = new FileInputStream(System.getProperty("java.io.tmpdir") + "/" + "ndsrStartUpPath.txt");
-				DataInputStream in = new DataInputStream(fstream);
-				BufferedReader br = new BufferedReader(new InputStreamReader(in));
-				String startupPath = br.readLine();
-				String ndsrShortcutName = "ndsr.lnk";
-				File ndsrLnk = new File(startupPath + "\\" + ndsrShortcutName);
-				if (runNdsrAtStartUpChkbox.isEnabled() && runNdsrAtStartUpChkbox.isSelected()) {
-					// create startup lnk
-					if (!ndsrLnk.exists()) {
-						// ndsr.exe is hardcoded since we are running the jar not the exe starter so we cannot get exe file name  
-						String[] cmd2 = new String[] {"wscript.exe", ndsrDirPath+"/scripts/addShortcutToStartUpWindows.vbs", ndsrDirPath, "ndsr.exe", ndsrShortcutName};
-						log.debug("Executing {}/scripts/addShortcutToStartUpWindows.vbs script", ndsrDirPath);
-						Process p2 = Runtime.getRuntime().exec(cmd2);
-					} else {
-						log.debug("Startup lnk file already exists, skipping  creation.");
-					}
-				} else if(runNdsrAtStartUpChkbox.isEnabled()) {
-					// remove lnk, only if it exists
-					if (ndsrLnk.exists()) {
-						log.debug("Removing ndsr shortcut from startup dir: {}", ndsrLnk.getAbsolutePath());
-						ndsrLnk.delete();
-					} else {
-						log.debug("Startup lnk file ({}) does not exist,nothing to delete.", ndsrLnk.getAbsolutePath());
-					}
-				}
-			}
+			checkStartupLink();
 		} catch (FileNotFoundException ex) {
 			log.error("Configuration property file not found", ex);
 		} catch (IOException ex) {
 			log.error("Problem with writting to configuration property file", ex);
 		}
 		setVisible(false);
+	}
+
+	private void checkStartupLink() throws IOException, FileNotFoundException {
+		// run ndsr at startup, now supported only on windows
+		if(System.getProperty("os.name").toLowerCase().contains("windows") && runNdsrAtStartUpChkbox.isEnabled()) {
+			// get application path
+			String ndsrExecPath = getClass().getProtectionDomain().getCodeSource().getLocation().getPath().replace("%20", " ");
+			if (ndsrExecPath.startsWith("/")) {
+				ndsrExecPath = ndsrExecPath.replaceFirst("/", "");
+			}
+			String ndsrDirPath = (String) ndsrExecPath.subSequence(0,ndsrExecPath.lastIndexOf("/"));
+			// ndsr starter filename needs to be hardcoded 
+//				String ndsrExecFilename = (String) ndsrExecPath.subSequence(ndsrExecPath.lastIndexOf("/")+1, ndsrExecPath.length());
+			log.debug("Executing {}/scripts/getWindowsUserStartUpDirectoryPath.vbs script", ndsrDirPath);
+			// get user startup path using vbscript
+			String[] cmd1 = new String[] {"wscript.exe", ndsrDirPath+"/scripts/getWindowsUserStartUpDirectoryPath.vbs"};
+			Runtime.getRuntime().exec(cmd1);
+			// read startup path from file
+			FileInputStream fstream = new FileInputStream(System.getProperty("java.io.tmpdir") + "/" + "ndsrStartUpPath.txt");
+			DataInputStream in = new DataInputStream(fstream);
+			BufferedReader br = new BufferedReader(new InputStreamReader(in));
+			String startupPath = br.readLine();
+			String ndsrShortcutName = "ndsr.lnk";
+			File ndsrLnk = new File(startupPath + "\\" + ndsrShortcutName);
+			if (runNdsrAtStartUpChkbox.isEnabled() && runNdsrAtStartUpChkbox.isSelected()) {
+				// create startup lnk
+				if (!ndsrLnk.exists()) {
+					// ndsr.exe is hardcoded since we are running the jar not the exe starter so we cannot get exe file name  
+					String[] cmd2 = new String[] {"wscript.exe", ndsrDirPath+"/scripts/addShortcutToStartUpWindows.vbs", ndsrDirPath, "ndsr.exe", ndsrShortcutName};
+					log.debug("Executing {}/scripts/addShortcutToStartUpWindows.vbs script", ndsrDirPath);
+					Runtime.getRuntime().exec(cmd2);
+				} else {
+					log.debug("Startup lnk file already exists, skipping  creation.");
+				}
+			} else if(runNdsrAtStartUpChkbox.isEnabled()) {
+				// remove lnk, only if it exists
+				if (ndsrLnk.exists()) {
+					log.debug("Removing ndsr shortcut from startup dir: {}", ndsrLnk.getAbsolutePath());
+					ndsrLnk.delete();
+				} else {
+					log.debug("Startup lnk file ({}) does not exist,nothing to delete.", ndsrLnk.getAbsolutePath());
+				}
+			}
+		}
 	}
 
 	private void cancelButtonMouseClicked(MouseEvent event) {

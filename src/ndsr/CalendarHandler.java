@@ -97,7 +97,9 @@ public class CalendarHandler {
 				log.debug("editUrl =  {}", editUrl);
 
 				Calendar cal = Calendar.getInstance(TimeZone.getTimeZone("Europe/Warsaw"));
-				cal.add(Calendar.MINUTE, 5);
+				int eventMinutesAhead = configuration.getEventMinutesAhead();
+				log.debug("eventMinutesAhead = {}", eventMinutesAhead);
+				cal.add(Calendar.MINUTE, eventMinutesAhead);
 				DateTime endTime = new DateTime(cal.getTime(), TimeZone.getTimeZone("Europe/Warsaw"));
 
 				List<When> times = entryForUpdate.getTimes();
@@ -110,24 +112,14 @@ public class CalendarHandler {
 					return errorMsg;
 				}
 
-				// REMINDER
-				// int reminderMinutes = 15;
-				// Method methodType = Method.SMS;
-				//
-				// Reminder reminder = new Reminder();
-				// reminder.setMinutes(reminderMinutes);
-				// reminder.setMethod(methodType);
-
-				// entryForUpdate.getReminder().add(reminder);
-
 				CalendarEventEntry updatedEntry = entryForUpdate.update();
-				// CalendarEventEntry updatedEntry = (CalendarEventEntry)
-				// myService.update(editUrl, entryForUpdate);
 				String result = "Updated " + updatedEntry.getTitle().getPlainText();
 				log.debug(result);
 				return result;
 			} else {
-				return createEvent(10);
+				int minutesBeforeFirstEvent = configuration.getMinutesBeforeFirstEvent();
+				log.debug("minutesBeforeFirstEvent = {}", minutesBeforeFirstEvent);
+				return createEvent(minutesBeforeFirstEvent);
 			}
 		} catch (IOException ex) {
 			log.error("IOException: ", ex);

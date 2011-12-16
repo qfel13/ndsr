@@ -25,15 +25,17 @@ import java.net.SocketException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.channels.FileLock;
+import java.util.Calendar;
 import java.util.Enumeration;
 import java.util.List;
+import java.util.TimeZone;
 
 import javax.swing.JOptionPane;
 import javax.swing.UIManager;
 
 import ndsr.beans.Stats;
-import ndsr.chart.StatisticsFrame;
 import ndsr.gui.OutOfWorkFrame;
+import ndsr.gui.StatisticsFrame;
 import ndsr.gui.TabbedSettingsFrame;
 import ndsr.idle.IdleTime;
 import ndsr.idle.LinuxIdleTime;
@@ -148,8 +150,7 @@ public class Main implements MouseListener {
 				if (idleSec < idleTimeInSec) {
 					log.debug("NOT IDLE. idleSec = {}, idleTimeInSec = {}", idleSec, idleTimeInSec);
 
-					String workIpRegExp = configuration.getWorkIpRegExp();
-					if ((work) && (workIpRegExp == null || workIpRegExp.isEmpty() || isIpFromWork(workIpRegExp))) {
+					if (isAtWork()) {
 						log.debug("At Work");
 						try {
 							int lastIdleTimeThreshold = configuration.getLastIdleTimeThresholdInSec();
@@ -205,6 +206,40 @@ public class Main implements MouseListener {
 				log.error("Throwable ", t);
 			}
 		} while (running);
+	}
+
+	private boolean isAtWork() throws SocketException {
+		return (work && !isInactiveTime() && isIpFromWork());
+	}
+
+	private boolean isInactiveTime() {
+		try {
+			int inactiveTimeStartHour = configuration.getInactiveTimeStartHour();
+			int inactiveTimeStartMinute = configuration.getInactiveTimeStartMinute();
+			int inactiveTimeEndHour = configuration.getInactiveTimeEndHour();
+			int inactiveTimeEndMinute = configuration.getInactiveTimeEndMinute();
+
+			Calendar now = Calendar.getInstance(TimeZone.getTimeZone("Europe/Warsaw"));
+			Calendar start = Calendar.getInstance(TimeZone.getTimeZone("Europe/Warsaw"));
+			Calendar end = Calendar.getInstance(TimeZone.getTimeZone("Europe/Warsaw"));
+
+			start.set(Calendar.HOUR_OF_DAY, inactiveTimeStartHour);
+			start.set(Calendar.MINUTE, inactiveTimeStartMinute);
+
+			end.set(Calendar.HOUR_OF_DAY, inactiveTimeEndHour);
+			end.set(Calendar.MINUTE, inactiveTimeEndMinute);
+
+			if (end.before(start)) {
+				log.debug("end before start - adding one day");
+				end.add(Calendar.DATE, 1);
+			}
+
+			log.debug("now.after(start) = {}", now.after(start));
+			log.debug("now.before(end) = {}", now.before(end));
+			return (now.after(start) && now.before(end));
+		} catch (IllegalStateException e) {
+			return false;
+		}
 	}
 
 	private void initTrayIcon(Configuration configuration) throws RuntimeException {
@@ -391,14 +426,6 @@ public class Main implements MouseListener {
 		log.debug("showOutOfWork");
 		outOfWorkFrame.showWindow();
 		work = false;
-
-		// if (work) {
-		// outOfWorkItem.setLabel("I'm back");
-		// work = false;
-		// } else {
-		// outOfWorkItem.setLabel("Go out of work");
-		// work = true;
-		// }
 	}
 
 	private void showCalendar() {
@@ -417,7 +444,13 @@ public class Main implements MouseListener {
 		}
 	}
 
-	private boolean isIpFromWork(String workIpRegExp) throws SocketException {
+	private boolean isIpFromWork() throws SocketException {
+		String workIpRegExp = configuration.getWorkIpRegExp();
+
+		if (workIpRegExp == null || workIpRegExp.isEmpty()) {
+			return true;
+		}
+
 		Enumeration<NetworkInterface> interfaces = NetworkInterface.getNetworkInterfaces();
 
 		if (interfaces == null) {
@@ -433,24 +466,24 @@ public class Main implements MouseListener {
 				byte[] mac = nif.getHardwareAddress();
 				if (mac != null) {
 					StringBuilder macBuilder = new StringBuilder(18);
-				    for (byte b : mac) {
-				        if (macBuilder.length() > 0)
-				            macBuilder.append(':');
-				        macBuilder.append(String.format("%02x", b));
-				    }
-				    macBuilder.toString();
+					for (byte b : mac) {
+						if (macBuilder.length() > 0)
+							macBuilder.append(':');
+						macBuilder.append(String.format("%02x", b));
+					}
+					macBuilder.toString();
 					log.debug("nif.getHardwareAddress() = {}", macBuilder.toString());
 				}
 				Enumeration<InetAddress> inetAddresses = nif.getInetAddresses();
 				log.debug("inetAddresses.hasMoreElements = {}", inetAddresses.hasMoreElements());
-				
+
 				log.debug("nif.getMTU() = {}", nif.getMTU());
 				log.debug("nif.isLoopback() = {}", nif.isLoopback());
 				log.debug("nif.isPointToPoint() = {}", nif.isPointToPoint());
 				log.debug("nif.isUp() = {}", nif.isUp());
 				log.debug("nif.isVirtual() = {}", nif.isVirtual());
 				log.debug("nif.supportsMulticast() = {}", nif.supportsMulticast());
-				
+
 				if (interfaceAddresses == null) {
 					log.debug("interfaceAddresses == null");
 					return false;

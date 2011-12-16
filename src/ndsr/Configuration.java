@@ -28,6 +28,12 @@ public class Configuration {
 	private static final String IDLE_TIME = "idleTime";
 	private static final String EVENT_NAME = "eventName";
 	private static final String LAST_IDLE_TIME_THRESHOLD = "lastIdleTimeThreshold";
+	private static final String MINUTES_BEFORE_FIRST_EVENT = "minutesBeforeFirst";
+	private static final String EVENT_MINUTES_AHEAD = "eventMinutesAhead";
+	private static final String INACTIVE_TIME_START_HOUR = "inactiveTimeStartHour";
+	private static final String INACTIVE_TIME_START_MINUTE = "inactiveTimeStartMinute";
+	private static final String INACTIVE_TIME_END_HOUR = "inactiveTimeEndHour";
+	private static final String INACTIVE_TIME_END_MINUTE = "inactiveTimeEndMinute";
 	// Connection
 	private static final String HTTPS_PROXY_HOST = "https.proxyHost";
 	private static final String HTTPS_PROXY_PORT = "https.proxyPort";
@@ -42,6 +48,8 @@ public class Configuration {
 	private static final int DEFAULT_IDLE_TIME = 10;
 	private static final int DEFAULT_SLEEP_TIME = 5;
 	private static final int DEFAULT_LAST_IDLE_TIME_THRESHOLD = 60;
+	private static final int DEFAULT_MINUTES_BEFORE_FIRST_EVENT = 10;
+	private static final int DEFAULT_EVENT_MINUTES_AHEAD = 5;
 	private static final String DEFAULT_NORMAL_WIN_ICON_LOCATION = "icon/no.png";
 	private static final String DEFAULT_INACTIVE_WIN_ICON_LOCATION = "icon/no_gray.png";
 	private static final String DEFAULT_NORMAL_LINUX_ICON_LOCATION = "icon/no_linux.png";
@@ -109,10 +117,160 @@ public class Configuration {
 		properties.setProperty(IDLE_TIME, "" + parseOrDefault(idleTimeStr, DEFAULT_IDLE_TIME));
 	}
 
+	public String getEventName() {
+		String eventName = properties.getProperty(EVENT_NAME);
+		if (eventName == null || eventName.isEmpty()) {
+			eventName = "Praca";
+		}
+		return eventName;
+	}
+
+	public void setEventName(String eventName) {
+		properties.setProperty(EVENT_NAME, eventName);
+	}
+
+	public int getLastIdleTimeThresholdInSec() {
+		return getLastIdleTimeThreshold() * 60;
+	}
+
+	public void setLastIdleTimeThreshold(String lastIdleTimeThreshold) {
+		properties.setProperty(LAST_IDLE_TIME_THRESHOLD, "" + parseOrDefault(lastIdleTimeThreshold, DEFAULT_LAST_IDLE_TIME_THRESHOLD));
+	}
+	
+	public int getLastIdleTimeThreshold() {
+		// in minutes
+		return parseOrDefault(properties.getProperty(LAST_IDLE_TIME_THRESHOLD), DEFAULT_LAST_IDLE_TIME_THRESHOLD);
+	}
+	
+	public int getMinutesBeforeFirstEvent() {
+		return parseOrDefault(properties.getProperty(MINUTES_BEFORE_FIRST_EVENT), DEFAULT_MINUTES_BEFORE_FIRST_EVENT);
+	}
+	
+	public void setMinutesBeforeFirstEvent(String minutesBeforeFirstEvent) {
+		properties.setProperty(MINUTES_BEFORE_FIRST_EVENT, "" + parseOrDefault(minutesBeforeFirstEvent, 
+				DEFAULT_MINUTES_BEFORE_FIRST_EVENT));
+	}
+	
+	public int getEventMinutesAhead() {
+		return parseOrDefault(properties.getProperty(EVENT_MINUTES_AHEAD), DEFAULT_EVENT_MINUTES_AHEAD);
+	}
+	
+	public void setEventMinutesAhead(String eventMinutesAhead) {
+		properties.setProperty(EVENT_MINUTES_AHEAD, "" + parseOrDefault(eventMinutesAhead, DEFAULT_EVENT_MINUTES_AHEAD));
+	}
+	
+	private int getHour(String time) {
+		int colonIndex = time.indexOf(":");
+		if (colonIndex == -1) {
+			throw new IllegalArgumentException("Time should contain colon");
+		}
+		String hourStr = time.substring(0, colonIndex);
+		try {
+			int hour = Integer.valueOf(hourStr, 10);
+			
+			if (hour < 0 || hour > 23) {
+				throw new IllegalArgumentException("Hour should be between 0 and 23");
+			}
+			
+			return hour;
+		} catch (NumberFormatException e) {
+			throw new IllegalArgumentException("Hour should be integer");
+		}
+	}
+	
+	private int getMinute(String time) {
+		int colonIndex = time.indexOf(":");
+		if (colonIndex == -1) {
+			throw new IllegalArgumentException("Time should contain colon");
+		}
+		String minuteStr = time.substring(colonIndex + 1);
+		try {
+			Integer minute = Integer.valueOf(minuteStr, 10);
+			
+			if (minute < 0 || minute > 59) {
+				throw new IllegalArgumentException("Minute should be between 0 and 59");
+			}
+			
+			return minute;
+		} catch (NumberFormatException e) {
+			throw new IllegalArgumentException("Minute should be integer");
+		}
+	}
+	
+	public String getInactiveTimeStart() {
+		try {
+			return getInactiveTimeStartHour() + ":" + getInactiveTimeStartMinute();
+		} catch (IllegalStateException e) {
+			return "";
+		}
+	}
+	
+	public void setInactiveTimeStart(String inactiveTimeStart) {
+		int inactiveTimeStartHour = getHour(inactiveTimeStart);
+		int inactiveTimeStartMinute = getMinute(inactiveTimeStart);
+		
+		log.debug("inactiveTimeStartHour = {}", inactiveTimeStartHour);
+		log.debug("inactiveTimeStartMinute = {}", inactiveTimeStartMinute);
+		
+		properties.setProperty(INACTIVE_TIME_START_HOUR, "" + inactiveTimeStartHour);
+		properties.setProperty(INACTIVE_TIME_START_MINUTE, "" + inactiveTimeStartMinute);
+	}
+	
+	public int getInactiveTimeStartHour() {
+		return parseOrThrow(properties.getProperty(INACTIVE_TIME_START_HOUR));
+	}
+	
+	public void setInactiveTimeStartHour(String inactiveTimeStartHour) {
+		properties.setProperty(INACTIVE_TIME_START_HOUR, inactiveTimeStartHour);
+	}
+	
+	public int getInactiveTimeStartMinute() {
+		return parseOrThrow(properties.getProperty(INACTIVE_TIME_START_MINUTE));
+	}
+	
+	public void setInactiveTimeStartMinute(String inactiveTimeStartHour) {
+		properties.setProperty(INACTIVE_TIME_START_MINUTE, inactiveTimeStartHour);
+	}
+	
+	public String getInactiveTimeEnd() {
+		try {
+			return getInactiveTimeEndHour() + ":" + getInactiveTimeEndMinute();
+		} catch (IllegalStateException e) {
+			return "";
+		}
+	}
+	
+	public void setInactiveTimeEnd(String inactiveTimeEnd) {
+		int inactiveTimeEndHour = getHour(inactiveTimeEnd);
+		int inactiveTimeEndMinute = getMinute(inactiveTimeEnd);
+		
+		log.debug("inactiveTimeEndHour = {}", inactiveTimeEndHour);
+		log.debug("inactiveTimeEndMinute = {}", inactiveTimeEndMinute);
+		
+		properties.setProperty(INACTIVE_TIME_END_HOUR, "" + inactiveTimeEndHour);
+		properties.setProperty(INACTIVE_TIME_END_MINUTE, "" + inactiveTimeEndMinute);
+	}
+
+	public int getInactiveTimeEndHour() {
+		return parseOrThrow(properties.getProperty(INACTIVE_TIME_END_HOUR));
+	}
+	
+	public void setInactiveTimeEndHour(String inactiveTimeEndHour) {
+		properties.setProperty(INACTIVE_TIME_END_HOUR, inactiveTimeEndHour);
+	}
+	
+	public int getInactiveTimeEndMinute() {
+		return parseOrThrow(properties.getProperty(INACTIVE_TIME_END_MINUTE));
+	}
+	
+	public void setInactiveTimeEndMinute(String inactiveTimeEndHour) {
+		properties.setProperty(INACTIVE_TIME_END_MINUTE, inactiveTimeEndHour);
+	}
+
 	public String getHttpProxyHost() {
 		return properties.getProperty(HTTPS_PROXY_HOST);
 	}
-
+	
 	public void setHttpProxyHost(String httpProxyHost) {
 		System.setProperty(HTTP_PROXY_HOST, httpProxyHost);
 		properties.setProperty(HTTP_PROXY_HOST, httpProxyHost);
@@ -145,38 +303,12 @@ public class Configuration {
 		properties.setProperty(HTTPS_PROXY_PORT, httpsProxyPort);
 	}
 
-	public String getEventName() {
-		String eventName = properties.getProperty(EVENT_NAME);
-		if (eventName == null || eventName.isEmpty()) {
-			eventName = "Praca";
-		}
-		return eventName;
-	}
-
-	public void setEventName(String eventName) {
-		properties.setProperty(EVENT_NAME, eventName);
-	}
-
 	public String getWorkIpRegExp() {
 		return properties.getProperty(WORK_IP_REG_EXP);
 	}
 
 	public void setWorkIpRegExp(String workIpRegExp) {
 		properties.setProperty(WORK_IP_REG_EXP, workIpRegExp);
-	}
-
-	public int getLastIdleTimeThreshold() {
-		// in minutes
-		return parseOrDefault(properties.getProperty(LAST_IDLE_TIME_THRESHOLD), DEFAULT_LAST_IDLE_TIME_THRESHOLD);
-	}
-
-	public int getLastIdleTimeThresholdInSec() {
-		return getLastIdleTimeThreshold() * 60;
-	}
-
-	public void setLastIdleTimeThreshold(String lastIdleTimeThreshold) {
-		properties.setProperty(LAST_IDLE_TIME_THRESHOLD,
-				"" + parseOrDefault(lastIdleTimeThreshold, DEFAULT_LAST_IDLE_TIME_THRESHOLD));
 	}
 
 	public String getNormalIconLocation() {
@@ -237,6 +369,15 @@ public class Configuration {
 			return Integer.valueOf(value);
 		} catch (NumberFormatException e) {
 			return defaultValue;
+		}
+	}
+	
+	private int parseOrThrow(String value) {
+		try {
+			return Integer.valueOf(value);
+		} catch (NumberFormatException e) {
+			log.debug("value = {}", value);
+			throw new IllegalStateException(e);
 		}
 	}
 }

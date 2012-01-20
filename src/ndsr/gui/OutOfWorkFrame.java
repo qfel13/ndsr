@@ -5,23 +5,22 @@ import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.Toolkit;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 
-import ndsr.Main;
-
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
+import ndsr.Ndsr;
 
 public class OutOfWorkFrame extends JFrame {
 	private static final long serialVersionUID = -2110810928222164586L;
 	
-	private Main main;
+	private Ndsr ndsr;
 	
-	public OutOfWorkFrame(Main m) {
-		main = m;
+	public OutOfWorkFrame(Ndsr n) {
+		ndsr = n;
 		
 		setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
 		setTitle("Ndsr out of work");
@@ -44,7 +43,7 @@ public class OutOfWorkFrame extends JFrame {
 	
 	private void workClicked() {
 		this.setVisible(false);
-		main.setWork(true);
+		ndsr.setWork(true);
 	}
 	
 	public void showWindow() {

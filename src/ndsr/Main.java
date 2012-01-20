@@ -1,579 +1,119 @@
 package ndsr;
 
-import java.awt.AWTException;
-import java.awt.Desktop;
-import java.awt.Desktop.Action;
-import java.awt.Image;
-import java.awt.Menu;
-import java.awt.MenuItem;
-import java.awt.PopupMenu;
-import java.awt.SystemTray;
-import java.awt.Toolkit;
-import java.awt.TrayIcon;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
 import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.RandomAccessFile;
-import java.net.InetAddress;
-import java.net.InterfaceAddress;
-import java.net.NetworkInterface;
-import java.net.SocketException;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.nio.channels.FileLock;
-import java.util.Calendar;
-import java.util.Enumeration;
-import java.util.List;
-import java.util.TimeZone;
 
-import javax.swing.JOptionPane;
 import javax.swing.UIManager;
 
-import ndsr.beans.Stats;
-import ndsr.gui.OutOfWorkFrame;
-import ndsr.gui.StatisticsFrame;
-import ndsr.gui.TabbedSettingsFrame;
-import ndsr.idle.IdleTime;
-import ndsr.idle.LinuxIdleTime;
-import ndsr.idle.WindowsIdleTime;
+import ndsr.gui.WelcomeFrame;
 
 import org.apache.log4j.PropertyConfigurator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.gdata.util.AuthenticationException;
-import com.google.gdata.util.ServiceException;
-
 /**
+ * Main class of Ndsr application.
+ * 
  * @author lkufel
  */
-public class Main implements MouseListener {
+public class Main {
+	private static final Logger LOG = LoggerFactory.getLogger(Main.class);
 
-	private static final Logger log = LoggerFactory.getLogger(Main.class);
-
-	private TrayIcon trayIcon = null;
-	private PopupMenu trayPopupMenu = null;
-
-	// POPUP MENU ITEMS
-	private MenuItem statisticsItem = null;
-	private MenuItem calendarItem = null;
-	private MenuItem logsItem;
-	private MenuItem settingsItem = null;
-	private Menu moreItem = null;
-	// OTHER OPTIONS MENU ITEMS
-	private MenuItem outOfWorkItem = null;
-	private MenuItem exitItem = null;
-	// END OF POPUP MENU ITEMS
-
-	// IMAGES FOR TRAY ICON
-	private Image image;
-	private Image grayImage;
-
-	private boolean grayIcon = false;
-	private Stats stats;
-	private TabbedSettingsFrame settingsFrame;
-	private StatisticsFrame statisticsFrame;
-	private OutOfWorkFrame outOfWorkFrame;
-	private CalendarHandler calendarHandler;
+	private CalendarHelper calendarHelper;
 	private Configuration configuration;
-	private IdleTime idleTime;
-	private boolean work = true;
-	private static String os = ""; // FIXME: remove this
 
-	private static final String ndsrInstanceLockFileName = System.getProperty("java.io.tmpdir") + "ndsr.lck";
-	private static final String[] CONF_FILES = { "passwd.properties", "C:\\Program Files\\ndsr\\passwd.properties",
-			"/home/adro/ndsr/passwd.properties" };
+	private WelcomeFrame welcomeFrame;
+	private Ndsr ndsr;
 
-	public static void main(String args[]) throws InterruptedException, FileNotFoundException, IOException {
-		PropertyConfigurator.configure("log4j.properties");
-		// detect if ndsr is already running.
-		if (!lockInstance(ndsrInstanceLockFileName)) {
-			log.info("Duplicate ndsr instance, exitting. (Could not lock file {})", ndsrInstanceLockFileName);
-			return;
-		} else {
-			log.info("Starting program instance.");
+	// command line flags
+	private boolean systemLookAndFeel = true;
+	private boolean development = false;
+	private boolean forceInitialConfiguration = false;
+	private boolean multipleInstances = false;
+
+	public static void main(String[] args) {
+		new Main().run(args);
+	}
+
+	/**
+	 * Initialization method for Ndsr application.
+	 * 
+	 * @param args parameters from command line.
+	 */
+	public void run(String[] args) {
+		setLog4jConfiguration();
+		parseArguments(args);
+
+		configuration = new Configuration(development);
+		calendarHelper = new CalendarHelper(configuration);
+
+		if (systemLookAndFeel) {
+			setDefaulfLookAndFeel();
 		}
 
+		if (!multipleInstances) {
+			if (!InstanceLocker.lockInstance()) {
+				LOG.info("Duplicate ndsr instance, exiting. (Could not lock file)");
+				return;
+			} else {
+				LOG.info("Starting program instance.");
+			}
+		}
+
+		if (forceInitialConfiguration || !configuration.isInitialConfiguraionDone()) {
+			welcomeFrame = new WelcomeFrame(this, calendarHelper);
+			welcomeFrame.setVisible(true);
+		} else {
+			createNdsrAndRun();
+		}
+	}
+
+	public void createNdsrAndRun() {
+		new Thread(new Runnable() {
+			
+			@Override
+			public void run() {
+				ndsr = new Ndsr();
+				ndsr.run(configuration, calendarHelper);
+			}
+		}).start();
+	}
+	
+	/**
+	 * Sets system look and feel for java application.
+	 */
+	private void setDefaulfLookAndFeel() {
 		try {
 			UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
 		} catch (Exception e) {
-			log.error("Error setting native L&F: ", e);
-		}
-
-		new Main().run();
-	}
-
-	private void init() throws FileNotFoundException, IOException {
-		configuration = new Configuration();
-
-		os = System.getProperty("os.name").toLowerCase();
-
-		boolean configurationRead = false;
-		for (String conf : CONF_FILES) {
-			File f = new File(conf);
-			if (f.exists()) {
-				configuration.readConfiguration(f);
-				configurationRead = true;
-				break;
-			}
-		}
-
-		initTrayIcon(configuration);
-		initIdleTime();
-
-		if (!configurationRead) {
-			trayIcon.displayMessage("No configuration found", "No configuration found", TrayIcon.MessageType.ERROR);
-		}
-
-		settingsFrame = new TabbedSettingsFrame(configuration);
-		statisticsFrame = new StatisticsFrame(stats);
-		outOfWorkFrame = new OutOfWorkFrame(this);
-
-		calendarHandler = new CalendarHandler(configuration);
-	}
-
-	public void run() throws InterruptedException, FileNotFoundException, IOException {
-		init();
-
-		String statsStr = null;
-		Boolean running = true;
-		int lastIdleSec = 0;
-
-		do {
-			try {
-				int idleTimeInSec = configuration.getIdleTimeInSec();
-				int idleSec = idleTime.getIdleTime();
-				if (idleSec < idleTimeInSec) {
-					log.debug("NOT IDLE. idleSec = {}, idleTimeInSec = {}", idleSec, idleTimeInSec);
-
-					if (isAtWork()) {
-						log.debug("At Work");
-						try {
-							int lastIdleTimeThreshold = configuration.getLastIdleTimeThresholdInSec();
-							log.debug("lastIdleSec = {} lastIdleTimeThreshold = {}", lastIdleSec, lastIdleTimeThreshold);
-							if (lastIdleSec > lastIdleTimeThreshold) {
-								log.debug("CREATE NEW EVENT: {}", calendarHandler.createNewEvent());
-							} else {
-								log.debug("CREATE OR UPDATE: {}", calendarHandler.createOrUpdate());
-							}
-
-							stats = calendarHandler.getStats();
-							statsStr = stats.toString();
-						} catch (IOException ex) {
-							statsStr = "io exception";
-							log.error(statsStr, ex);
-						} catch (AuthenticationException ex) {
-							statsStr = "Authentication Exception";
-							log.error(statsStr, ex);
-							calendarHandler.authenticate(configuration);
-						} catch (ServiceException ex) {
-							statsStr = "service exception";
-							log.error(statsStr, ex);
-						} catch (Exception ex) {
-							statsStr = "exception";
-							log.error(statsStr, ex);
-						}
-
-						if (statsStr != null) {
-							trayIcon.setToolTip(statsStr);
-						}
-						if (grayIcon) {
-							trayIcon.setImage(image);
-							grayIcon = false;
-						}
-					} else {
-						log.debug("Not at work");
-						if (!grayIcon) {
-							if (statsStr == null) {
-								trayIcon.setToolTip("Not at work");
-							}
-							trayIcon.setImage(grayImage);
-							grayIcon = true;
-						}
-					}
-				} else {
-					log.debug("IDLE: System is idle for more then {} min", idleTimeInSec / 60);
-				}
-				lastIdleSec = idleSec;
-				long sleepTime = configuration.getSleepTimeInMili();
-				log.debug("Sleep for {} min == {} millis", configuration.getSleepTime(), sleepTime);
-				Thread.sleep(sleepTime);
-			} catch (Throwable t) {
-				log.error("Throwable ", t);
-			}
-		} while (running);
-	}
-
-	private boolean isAtWork() throws SocketException {
-		return (work && !isInactiveTime() && isIpFromWork());
-	}
-
-	private boolean isInactiveTime() {
-		try {
-			int inactiveTimeStartHour = configuration.getInactiveTimeStartHour();
-			int inactiveTimeStartMinute = configuration.getInactiveTimeStartMinute();
-			int inactiveTimeEndHour = configuration.getInactiveTimeEndHour();
-			int inactiveTimeEndMinute = configuration.getInactiveTimeEndMinute();
-
-			Calendar now = Calendar.getInstance(TimeZone.getTimeZone("Europe/Warsaw"));
-			Calendar start = Calendar.getInstance(TimeZone.getTimeZone("Europe/Warsaw"));
-			Calendar end = Calendar.getInstance(TimeZone.getTimeZone("Europe/Warsaw"));
-
-			start.set(Calendar.HOUR_OF_DAY, inactiveTimeStartHour);
-			start.set(Calendar.MINUTE, inactiveTimeStartMinute);
-
-			end.set(Calendar.HOUR_OF_DAY, inactiveTimeEndHour);
-			end.set(Calendar.MINUTE, inactiveTimeEndMinute);
-
-			if (end.before(start)) {
-				log.debug("end before start - adding one day");
-				end.add(Calendar.DATE, 1);
-			}
-
-			log.debug("now.after(start) = {}", now.after(start));
-			log.debug("now.before(end) = {}", now.before(end));
-			return (now.after(start) && now.before(end));
-		} catch (IllegalStateException e) {
-			return false;
+			LOG.debug("cannot set system look and feel");
 		}
 	}
 
-	private void initTrayIcon(Configuration configuration) throws RuntimeException {
-		if (SystemTray.isSupported()) {
-			log.info("System Tray is supported");
-			SystemTray tray = SystemTray.getSystemTray();
-
-			String iconPath = configuration.getNormalIconLocation();
-			String grayIconPath = configuration.getInactiveIconLocation();
-
-			log.debug("iconPath = {}, grayIconPath = {}", iconPath, grayIconPath);
-
-			File iconFile = new File(iconPath);
-			File grayIconFile = new File(grayIconPath);
-			log.debug("Checking tray icon file ...");
-			if (iconFile.exists() && grayIconFile.exists()) {
-				log.debug("Tray icon file found");
-				image = Toolkit.getDefaultToolkit().getImage(iconPath);
-				grayImage = Toolkit.getDefaultToolkit().getImage(grayIconPath);
-			} else {
-				log.error("Tray icon file NOT found. Try to work without tray.");
-				log.info("Trying to work without tray.");
-				return;
-			}
-			log.debug("Creating popup manu");
-			trayPopupMenu = new PopupMenu();
-
-			log.debug("Creating statistics menu item");
-			// STATISTICS
-			ActionListener statisticsListener = new ActionListener() {
-
-				@Override
-				public void actionPerformed(ActionEvent e) {
-					showStatistics();
-				}
-			};
-			statisticsItem = new MenuItem("Statistics");
-			statisticsItem.addActionListener(statisticsListener);
-
-			log.debug("Adding statistics menu item");
-			trayPopupMenu.add(statisticsItem);
-
-			log.debug("Creating calendar menu item");
-			// CALENDAR
-			ActionListener calendarListener = new ActionListener() {
-
-				@Override
-				public void actionPerformed(ActionEvent e) {
-					showCalendar();
-				}
-			};
-			calendarItem = new MenuItem("Go to Calendar");
-			calendarItem.addActionListener(calendarListener);
-
-			log.debug("Adding calendar menu item");
-			trayPopupMenu.add(calendarItem);
-
-			trayPopupMenu.addSeparator();
-
-			// MORE
-			moreItem = new Menu("More");
-
-			log.debug("Creating logs menu item");
-			// LOGS
-			ActionListener logsListener = new ActionListener() {
-
-				@Override
-				public void actionPerformed(ActionEvent e) {
-					showLogs();
-				}
-			};
-			logsItem = new MenuItem("Logs");
-			logsItem.addActionListener(logsListener);
-
-			log.debug("Adding logs menu item");
-			moreItem.add(logsItem);
-
-			// SETTING
-			log.debug("Creating settings menu item");
-			ActionListener settingsListener = new ActionListener() {
-
-				@Override
-				public void actionPerformed(ActionEvent e) {
-					showSettings();
-				}
-			};
-			settingsItem = new MenuItem("Settings");
-			settingsItem.addActionListener(settingsListener);
-			log.debug("Adding settings menu item");
-			moreItem.add(settingsItem);
-
-			moreItem.addSeparator();
-
-			// OUT OF WORK
-			ActionListener outOfWorkListener = new ActionListener() {
-
-				@Override
-				public void actionPerformed(ActionEvent e) {
-					showOutOfWork();
-				}
-			};
-
-			outOfWorkItem = new MenuItem("Go out of work");
-			outOfWorkItem.addActionListener(outOfWorkListener);
-			log.debug("Adding Go out of work menu item");
-			moreItem.add(outOfWorkItem);
-
-			log.debug("Adding More menu item");
-			trayPopupMenu.add(moreItem);
-
-			trayPopupMenu.addSeparator();
-
-			log.debug("Creating exit menu item");
-			ActionListener exitListener = new ActionListener() {
-
-				@Override
-				public void actionPerformed(ActionEvent e) {
-					log.debug("Exiting...");
-					System.exit(0);
-				}
-			};
-			exitItem = new MenuItem("Exit");
-			exitItem.addActionListener(exitListener);
-			log.debug("Adding exit menu item");
-			trayPopupMenu.add(exitItem);
-
-			log.debug("Creating Tray icon");
-			trayIcon = new TrayIcon(image, "Initializing ...", trayPopupMenu);
-			trayIcon.setImageAutoSize(true);
-			trayIcon.addMouseListener(this);
-			try {
-				log.debug("Adding Tray icon to Tray");
-				tray.add(trayIcon);
-			} catch (AWTException e) {
-				log.error("TrayIcon could not be added. " + e.getMessage());
-				log.info("Trying to work without tray.");
-				return;
-			}
-		} else {
-			log.error("System Tray is NOT supported");
-			log.info("Trying to work without tray.");
-			return;
+	/**
+	 * Used in development because log4j.properties is not listed in classpath.
+	 */
+	private void setLog4jConfiguration() {
+		String filePath = "log4j.properties";
+		File file = new File(filePath);
+		if (file.exists()) {
+			PropertyConfigurator.configure(filePath);
 		}
 	}
 
-	private void showStatistics() {
-		log.debug("showStatistics");
-		statisticsFrame.refreshStats(stats);
-		statisticsFrame.setVisible(true);
-	}
-
-	private void showLogs() {
-		String jar = Main.class.getProtectionDomain().getCodeSource().getLocation().getPath();
-		File dir = new File(jar.substring(0, jar.lastIndexOf("/")).replaceAll("%20", " ").concat("/logs"));
-		log.debug("jar = {}, dir = {}", jar, dir);
-		if (Desktop.isDesktopSupported()) {
-			Desktop d = Desktop.getDesktop();
-			if (d.isSupported(Action.OPEN)) {
-				try {
-					if (dir.exists()) {
-						d.open(dir);
-					} else {
-						JOptionPane.showMessageDialog(null, "Logs dir does not exist!\n" + dir.toString(),
-								"Logs dir does not exist!", JOptionPane.ERROR_MESSAGE);
-						log.error("Logs dir does not exist");
-					}
-				} catch (IOException e1) {
-					log.error("d.open failed", e1);
-				}
+	/**
+	 * Sets flags used during initialization.
+	 */
+	private void parseArguments(String[] args) {
+		for (String arg : args) {
+			if (arg.equals("--development") || arg.equals("-d")) {
+				development = true;
+			} else if (arg.equals("--java-look-and-feel") || arg.equals("-j")) {
+				systemLookAndFeel = false;
+			} else if (arg.equals("--initial-configuration") || arg.equals("-c")) {
+				forceInitialConfiguration = true;
+			} else if (arg.equals("--allow-multiple-instances") || arg.equals("-m")) {
+				multipleInstances = true;
 			}
 		}
 	}
-
-	private void showSettings() {
-		log.debug("showSettings");
-		settingsFrame.showFrame();
-	}
-
-	public void setWork(boolean newWork) {
-		work = newWork;
-	}
-
-	private void showOutOfWork() {
-		log.debug("showOutOfWork");
-		outOfWorkFrame.showWindow();
-		work = false;
-	}
-
-	private void showCalendar() {
-		log.debug("showCalendar");
-		if (Desktop.isDesktopSupported()) {
-			Desktop d = Desktop.getDesktop();
-			if (d.isSupported(Action.BROWSE)) {
-				try {
-					d.browse(new URI("https://www.google.com/calendar/render"));
-				} catch (IOException e) {
-					log.error("d.browse failed", e);
-				} catch (URISyntaxException e) {
-					log.error("URI syntax", e);
-				}
-			}
-		}
-	}
-
-	private boolean isIpFromWork() throws SocketException {
-		String workIpRegExp = configuration.getWorkIpRegExp();
-
-		if (workIpRegExp == null || workIpRegExp.isEmpty()) {
-			return true;
-		}
-
-		Enumeration<NetworkInterface> interfaces = NetworkInterface.getNetworkInterfaces();
-
-		if (interfaces == null) {
-			log.debug("interfaces == null");
-			return false;
-		}
-
-		while (interfaces.hasMoreElements()) {
-			NetworkInterface nif = interfaces.nextElement();
-			if (nif != null) {
-				List<InterfaceAddress> interfaceAddresses = nif.getInterfaceAddresses();
-				log.debug("nif.toString() = {}", nif.toString());
-				byte[] mac = nif.getHardwareAddress();
-				if (mac != null) {
-					StringBuilder macBuilder = new StringBuilder(18);
-					for (byte b : mac) {
-						if (macBuilder.length() > 0)
-							macBuilder.append(':');
-						macBuilder.append(String.format("%02x", b));
-					}
-					macBuilder.toString();
-					log.debug("nif.getHardwareAddress() = {}", macBuilder.toString());
-				}
-				Enumeration<InetAddress> inetAddresses = nif.getInetAddresses();
-				log.debug("inetAddresses.hasMoreElements = {}", inetAddresses.hasMoreElements());
-
-				log.debug("nif.getMTU() = {}", nif.getMTU());
-				log.debug("nif.isLoopback() = {}", nif.isLoopback());
-				log.debug("nif.isPointToPoint() = {}", nif.isPointToPoint());
-				log.debug("nif.isUp() = {}", nif.isUp());
-				log.debug("nif.isVirtual() = {}", nif.isVirtual());
-				log.debug("nif.supportsMulticast() = {}", nif.supportsMulticast());
-
-				if (interfaceAddresses == null) {
-					log.debug("interfaceAddresses == null");
-					return false;
-				}
-
-				for (InterfaceAddress interfaceAddress : interfaceAddresses) {
-					if (interfaceAddress == null) {
-						log.debug("interfaceAddress == null");
-						continue;
-					}
-					InetAddress inetAddress = interfaceAddress.getAddress();
-					if (inetAddress == null) {
-						log.debug("inetAddress == null");
-						continue;
-					}
-					String ip = inetAddress.getHostAddress();
-					log.debug("ip = {} workIpRegExp = {}", ip, workIpRegExp);
-					if (ip != null && ip.matches(workIpRegExp)) {
-						log.debug("{} matches to {}", ip, workIpRegExp);
-						return true;
-					}
-				}
-			}
-		}
-		return false;
-	}
-
-	private void initIdleTime() {
-		if (os.equals("linux")) {
-			idleTime = new LinuxIdleTime();
-		} else if (os.startsWith("windows")) {
-			idleTime = new WindowsIdleTime();
-		} else {
-			log.error("Unsupported operating system: {}", os);
-			System.exit(1);
-		}
-	}
-
-	public static String getOs() {
-		return os;
-	}
-
-	@Override
-	public void mouseClicked(MouseEvent event) {
-		int count = event.getClickCount();
-		log.debug("mouseClick {}", count);
-		if (count == 2) {
-			showStatistics();
-		}
-	}
-
-	@Override
-	public void mouseEntered(MouseEvent arg0) {
-	}
-
-	@Override
-	public void mouseExited(MouseEvent arg0) {
-	}
-
-	@Override
-	public void mousePressed(MouseEvent arg0) {
-	}
-
-	@Override
-	public void mouseReleased(MouseEvent arg0) {
-	}
-
-	private static boolean lockInstance(final String lockFile) {
-		try {
-			final File file = new File(lockFile);
-			final RandomAccessFile randomAccessFile = new RandomAccessFile(file, "rw");
-			final FileLock fileLock = randomAccessFile.getChannel().tryLock();
-			if (fileLock != null) {
-				Runtime.getRuntime().addShutdownHook(new Thread() {
-					public void run() {
-						try {
-							fileLock.release();
-							randomAccessFile.close();
-							file.delete();
-						} catch (Exception e) {
-							log.error("Unable to remove lock file: " + lockFile, e);
-						}
-					}
-				});
-				return true;
-			}
-		} catch (Exception e) {
-			log.error("Unable to create and/or lock file: " + lockFile, e);
-		}
-		return false;
-	}
-
 }

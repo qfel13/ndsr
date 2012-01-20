@@ -27,7 +27,7 @@
 	</target>
 
 	<target name="jar" depends="compile,resources">
-		<property name="version.num" value="0.9.1" />
+		<property name="version.num" value="2.0" />
 		<buildnumber file="build.num" />
 		<tstamp>
 			<format property="NOW" pattern="yyyy-MM-dd HH:mm:ss" />
@@ -75,6 +75,8 @@
 			<classpath>
 				<path location="${jar.dir}/${ant.project.name}.jar" />
 			</classpath>
+			<arg value="-d"/>
+			<!--<arg value="-w"/>-->
 		</java>
 	</target>
 

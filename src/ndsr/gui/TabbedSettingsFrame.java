@@ -59,9 +59,9 @@ public class TabbedSettingsFrame extends JFrame {
 	private JPanel googleAccountPanel = new JPanel(/* "Google account" */);
 
 	// Labels
-	private JLabel usernameLabel = new JLabel("Username");
-	private JLabel passwordLabel = new JLabel("Password");
-	private JLabel urlLabel = new JLabel("Calendar URL");
+	private JLabel usernameLabel = new JLabel("Username"); // FIXME
+	private JLabel passwordLabel = new JLabel("Password"); // FIXME
+	private JLabel urlLabel = new JLabel("Calendar URL");  // FIXME
 	// Fields
 	private JTextField usernameText = new JTextField();
 	private JPasswordField passwordText = new JPasswordField();
@@ -183,10 +183,7 @@ public class TabbedSettingsFrame extends JFrame {
 	}
 
 	private void setTextsFromConfiguration() {
-		usernameText.setText(configuration.getUser());
-		passwordText.setText(configuration.getPasswd());
-		urlText.setText(configuration.getUrl());
-
+		
 		httpProxyHostText.setText(configuration.getHttpProxyHost());
 		httpProxyPortText.setText(configuration.getHttpProxyPort());
 		httpsProxyHostText.setText(configuration.getHttpsProxyHost());
@@ -585,10 +582,6 @@ public class TabbedSettingsFrame extends JFrame {
 
 	private void okButtonMouseClicked(MouseEvent event) {
 		try {
-			configuration.setUser(usernameText.getText());
-			configuration.setPasswd(new String(passwordText.getPassword()));
-			configuration.setUrl(urlText.getText());
-
 			configuration.setHttpProxyHost(httpProxyHostText.getText());
 			configuration.setHttpProxyPort(httpProxyPortText.getText());
 			configuration.setHttpsProxyHost(httpsProxyHostText.getText());
@@ -611,7 +604,7 @@ public class TabbedSettingsFrame extends JFrame {
 			configuration.setNormalIconLocation(iconNormalText.getText());
 			configuration.setInactiveIconLocation(iconInactiveText.getText());
 
-			configuration.writeConfiguration("passwd.properties");
+			configuration.writeConfiguration();
 			
 			checkStartupLink();
 		} catch (FileNotFoundException ex) {

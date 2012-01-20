@@ -14,6 +14,7 @@ import org.slf4j.LoggerFactory;
  * @author lkufel
  */
 public class Configuration {
+	private static final String DEFAULT_PROPERTIES_FILENAME = "passwd.properties";
 	private Properties properties;
 	private File propertiesFile;
 
@@ -23,6 +24,11 @@ public class Configuration {
 	private static final String USER = "user";
 	private static final String PASSWD = "passwd";
 	private static final String URL = "url";
+	// Oauth
+	private static final String INITIAL_CONFIGURATION_DONE = "oauthConfigured"; // FIXME
+	private static final String ACCESS_TOKEN = "accessToken";
+	private static final String REFRESH_TOKEN = "refreshToken";
+	private static final String CALENDAR_ID = "calendarId";
 	// Event
 	private static final String SLEEP_TIME = "sleepTime";
 	private static final String IDLE_TIME = "idleTime";
@@ -43,6 +49,8 @@ public class Configuration {
 	private static final String WORK_IP_REG_EXP = "workIpRegExp";
 	private static final String NORMAL_ICON_LOCATION = "normalIconLocation";
 	private static final String INACTIVE_ICON_LOCATION = "inactiveIconLocation";
+	
+	//
 
 	// DEFAULT VALUES
 	private static final int DEFAULT_IDLE_TIME = 10;
@@ -55,34 +63,74 @@ public class Configuration {
 	private static final String DEFAULT_NORMAL_LINUX_ICON_LOCATION = "icon/no_linux.png";
 	private static final String DEFAULT_INACTIVE_LINUX_ICON_LOCATION = "icon/no_gray_linux.png";
 
+	private static final String[] STANDARD_CONF_FILES = { Configuration.DEFAULT_PROPERTIES_FILENAME };
+	private static final String[] DEVELOPMENT_CONF_FILES = {"C:\\Program Files\\ndsr\\passwd.properties",
+			"/home/adro/ndsr/passwd.properties" };
+	
 	private final String os = System.getProperty("os.name").toLowerCase();
+	private boolean initilized = false;
 	
-	public Configuration() {
+	public Configuration(boolean development) {
 		properties = new Properties();
+		
+		if (development) {
+			for (String conf : DEVELOPMENT_CONF_FILES) {
+				File f = new File(conf);
+				if (f.exists()) {
+					try {
+						readConfiguration(f);
+					} catch (FileNotFoundException e) {
+						continue;
+					} catch (IOException e) {
+						continue;
+					}
+					initilized = true;
+					break;
+				}
+			}
+		}
+		for (String conf : STANDARD_CONF_FILES) {
+			File f = new File(conf);
+			if (f.exists()) {
+				try {
+					readConfiguration(f);
+				} catch (FileNotFoundException e) {
+					continue;
+				} catch (IOException e) {
+					continue;
+				}
+				initilized = true;
+				break;
+			}
+		}
 	}
 	
-	public String getUser() {
-		return properties.getProperty(USER);
+	public boolean isInitialized() {
+		return initilized;
+	}
+	
+	public String getAccessToken() {
+		return properties.getProperty(ACCESS_TOKEN);
 	}
 
-	public void setUser(String user) {
-		properties.setProperty(USER, user);
+	public void setAccessToken(String accessToken) {
+		properties.setProperty(ACCESS_TOKEN, accessToken);
 	}
 
-	public String getPasswd() {
-		return properties.getProperty(PASSWD);
+	public String getRefreshToken() {
+		return properties.getProperty(REFRESH_TOKEN);
 	}
 
-	public void setPasswd(String passwd) {
-		properties.setProperty(PASSWD, passwd);
+	public void setRefreshToken(String refreshToken) {
+		properties.setProperty(REFRESH_TOKEN, refreshToken);
 	}
 
-	public String getUrl() {
-		return properties.getProperty(URL);
+	public String getCalendarId() {
+		return properties.getProperty(CALENDAR_ID);
 	}
 
-	public void setUrl(String url) {
-		properties.setProperty(URL, url);
+	public void setCalendarId(String calendarId) {
+		properties.setProperty(CALENDAR_ID, calendarId);
 	}
 
 	public int getSleepTime() {
@@ -206,14 +254,19 @@ public class Configuration {
 	}
 	
 	public void setInactiveTimeStart(String inactiveTimeStart) {
-		int inactiveTimeStartHour = getHour(inactiveTimeStart);
-		int inactiveTimeStartMinute = getMinute(inactiveTimeStart);
-		
-		log.debug("inactiveTimeStartHour = {}", inactiveTimeStartHour);
-		log.debug("inactiveTimeStartMinute = {}", inactiveTimeStartMinute);
-		
-		properties.setProperty(INACTIVE_TIME_START_HOUR, "" + inactiveTimeStartHour);
-		properties.setProperty(INACTIVE_TIME_START_MINUTE, "" + inactiveTimeStartMinute);
+		if (!inactiveTimeStart.isEmpty()) {
+			int inactiveTimeStartHour = getHour(inactiveTimeStart);
+			int inactiveTimeStartMinute = getMinute(inactiveTimeStart);
+			
+			log.debug("inactiveTimeStartHour = {}", inactiveTimeStartHour);
+			log.debug("inactiveTimeStartMinute = {}", inactiveTimeStartMinute);
+			
+			properties.setProperty(INACTIVE_TIME_START_HOUR, "" + inactiveTimeStartHour);
+			properties.setProperty(INACTIVE_TIME_START_MINUTE, "" + inactiveTimeStartMinute);
+		} else {
+			properties.setProperty(INACTIVE_TIME_START_HOUR, "");
+			properties.setProperty(INACTIVE_TIME_START_MINUTE, "");
+		}
 	}
 	
 	public int getInactiveTimeStartHour() {
@@ -241,14 +294,19 @@ public class Configuration {
 	}
 	
 	public void setInactiveTimeEnd(String inactiveTimeEnd) {
-		int inactiveTimeEndHour = getHour(inactiveTimeEnd);
-		int inactiveTimeEndMinute = getMinute(inactiveTimeEnd);
-		
-		log.debug("inactiveTimeEndHour = {}", inactiveTimeEndHour);
-		log.debug("inactiveTimeEndMinute = {}", inactiveTimeEndMinute);
-		
-		properties.setProperty(INACTIVE_TIME_END_HOUR, "" + inactiveTimeEndHour);
-		properties.setProperty(INACTIVE_TIME_END_MINUTE, "" + inactiveTimeEndMinute);
+		if (!inactiveTimeEnd.isEmpty()) {
+			int inactiveTimeEndHour = getHour(inactiveTimeEnd);
+			int inactiveTimeEndMinute = getMinute(inactiveTimeEnd);
+			
+			log.debug("inactiveTimeEndHour = {}", inactiveTimeEndHour);
+			log.debug("inactiveTimeEndMinute = {}", inactiveTimeEndMinute);
+			
+			properties.setProperty(INACTIVE_TIME_END_HOUR, "" + inactiveTimeEndHour);
+			properties.setProperty(INACTIVE_TIME_END_MINUTE, "" + inactiveTimeEndMinute);
+		} else {
+			properties.setProperty(INACTIVE_TIME_END_HOUR, "");
+			properties.setProperty(INACTIVE_TIME_END_MINUTE, "");
+		}
 	}
 
 	public int getInactiveTimeEndHour() {
@@ -337,6 +395,14 @@ public class Configuration {
 		properties.setProperty(INACTIVE_ICON_LOCATION, inactiveIconLocation);
 	}
 	
+	public void setInitialConfiguraionDone(boolean configured) {
+		properties.setProperty(INITIAL_CONFIGURATION_DONE, String.valueOf(configured));
+	}
+	
+	public boolean isInitialConfiguraionDone() {
+		return Boolean.valueOf(properties.getProperty(INITIAL_CONFIGURATION_DONE));
+	}
+	
 	public void readConfiguration(String filename) throws FileNotFoundException, IOException {
 		readConfiguration(new File(filename));
 	}
@@ -351,9 +417,19 @@ public class Configuration {
 		setHttpsProxyHost(properties.getProperty(HTTPS_PROXY_HOST));
 		setHttpsProxyPort(properties.getProperty(HTTPS_PROXY_PORT));
 	}
+	
+	public void deleteOldProperties() {
+		properties.remove(USER);
+		properties.remove(PASSWD);
+		properties.remove(URL);
+	}
 
-	public void writeConfiguration(String filename) throws FileNotFoundException, IOException {
-		log.debug("user = {}", this.getUser());
+	public void writeConfiguration() throws FileNotFoundException, IOException {
+		if (!initilized) { 
+			String filename = DEFAULT_PROPERTIES_FILENAME;
+			log.debug("Writing properties to file: {}", filename);
+			propertiesFile = new File(filename);
+		}
 
 		FileWriter fileWriter = new FileWriter(propertiesFile);
 		try {
@@ -380,4 +456,5 @@ public class Configuration {
 			throw new IllegalStateException(e);
 		}
 	}
+
 }

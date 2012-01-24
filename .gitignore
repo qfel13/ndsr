@@ -4,3 +4,4 @@
 /.settings
 /logs
 /build.num
+/nsis/NdsrInstaller*

@@ -1,6 +1,8 @@
 package ndsr.gui;
 
 import java.awt.BorderLayout;
+import java.awt.Dimension;
+import java.awt.Toolkit;
 
 import javax.swing.JFrame;
 
@@ -20,18 +22,20 @@ public class WelcomeFrame extends JFrame {
 	private CalendarChoosePanel calendarChoosePanel;
 	private ReadyToUsePanel readyToUsePanel;
 	
-	final Main main;
+	private final Main main;
+	private final TabbedSettingsFrame settings;
 
-	public WelcomeFrame(Main m, CalendarHelper calendarHelper) {
+	public WelcomeFrame(Main m, CalendarHelper calendarHelper, TabbedSettingsFrame s) {
 		main = m;
+		settings = s;
 		
 		LOG.debug("WelcomeFrame init start");
 		setTitle("Welcome screen");
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-
-		oauthPanel = new OAuthPanel(this, calendarHelper);
+		
+		oauthPanel = new OAuthPanel(this, calendarHelper, settings);
 		calendarChoosePanel = new CalendarChoosePanel(this, calendarHelper);
-		readyToUsePanel = new ReadyToUsePanel(this);
+		readyToUsePanel = new ReadyToUsePanel(this, settings);
 		
 		cardPanel = new CardPanel(this);
 		
@@ -43,6 +47,18 @@ public class WelcomeFrame extends JFrame {
 
 		pack();
 
+		// Get the size of the screen
+		Dimension dim = Toolkit.getDefaultToolkit().getScreenSize();
+		 
+		// Determine the new location of the window
+		int w = getSize().width;
+		int h = getSize().height;
+		int x = (dim.width-w)/2;
+		int y = (dim.height-h)/2;
+		 
+		// Move the window
+		setLocation(x, y);
+		
 		// SwingUtilities.invokeLater(arg0);
 		LOG.debug("WelcomeFrame init end");
 	}

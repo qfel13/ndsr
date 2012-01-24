@@ -25,7 +25,7 @@ public class Configuration {
 	private static final String PASSWD = "passwd";
 	private static final String URL = "url";
 	// Oauth
-	private static final String INITIAL_CONFIGURATION_DONE = "oauthConfigured"; // FIXME
+	private static final String INITIAL_CONFIGURATION_DONE = "oauthConfigured";
 	private static final String ACCESS_TOKEN = "accessToken";
 	private static final String REFRESH_TOKEN = "refreshToken";
 	private static final String CALENDAR_ID = "calendarId";
@@ -41,10 +41,11 @@ public class Configuration {
 	private static final String INACTIVE_TIME_END_HOUR = "inactiveTimeEndHour";
 	private static final String INACTIVE_TIME_END_MINUTE = "inactiveTimeEndMinute";
 	// Connection
-	private static final String HTTPS_PROXY_HOST = "https.proxyHost";
-	private static final String HTTPS_PROXY_PORT = "https.proxyPort";
 	private static final String HTTP_PROXY_HOST = "http.proxyHost";
 	private static final String HTTP_PROXY_PORT = "http.proxyPort";
+	private static final String HTTP_PROXY_USE_FOR_ALL = "httpProxtUseForAll";
+	private static final String HTTPS_PROXY_HOST = "https.proxyHost";
+	private static final String HTTPS_PROXY_PORT = "https.proxyPort";
 	// Other
 	private static final String WORK_IP_REG_EXP = "workIpRegExp";
 	private static final String NORMAL_ICON_LOCATION = "normalIconLocation";
@@ -58,6 +59,7 @@ public class Configuration {
 	private static final int DEFAULT_LAST_IDLE_TIME_THRESHOLD = 60;
 	private static final int DEFAULT_MINUTES_BEFORE_FIRST_EVENT = 10;
 	private static final int DEFAULT_EVENT_MINUTES_AHEAD = 5;
+	private static final String DEFAULT_EVENT_NAME = "Work";
 	private static final String DEFAULT_NORMAL_WIN_ICON_LOCATION = "icon/no.png";
 	private static final String DEFAULT_INACTIVE_WIN_ICON_LOCATION = "icon/no_gray.png";
 	private static final String DEFAULT_NORMAL_LINUX_ICON_LOCATION = "icon/no_linux.png";
@@ -168,7 +170,7 @@ public class Configuration {
 	public String getEventName() {
 		String eventName = properties.getProperty(EVENT_NAME);
 		if (eventName == null || eventName.isEmpty()) {
-			eventName = "Praca";
+			eventName = DEFAULT_EVENT_NAME;
 		}
 		return eventName;
 	}
@@ -326,7 +328,7 @@ public class Configuration {
 	}
 
 	public String getHttpProxyHost() {
-		return properties.getProperty(HTTPS_PROXY_HOST);
+		return properties.getProperty(HTTP_PROXY_HOST);
 	}
 	
 	public void setHttpProxyHost(String httpProxyHost) {
@@ -334,13 +336,21 @@ public class Configuration {
 		properties.setProperty(HTTP_PROXY_HOST, httpProxyHost);
 	}
 
-	public String getHttpProxyPort() {
-		return properties.getProperty(HTTPS_PROXY_PORT);
+	public int getHttpProxyPort() {
+		return parseOrDefault(properties.getProperty(HTTP_PROXY_PORT), 0);
 	}
 
 	public void setHttpProxyPort(String httpProxyPort) {
 		System.setProperty(HTTP_PROXY_PORT, httpProxyPort);
 		properties.setProperty(HTTP_PROXY_PORT, httpProxyPort);
+	}
+	
+	public boolean isHttpProxyUseForAll() {
+		return Boolean.valueOf(properties.getProperty(HTTP_PROXY_USE_FOR_ALL));
+	}
+	
+	public void setHttpProxyUseForAll(boolean useForAll) {
+		properties.setProperty(HTTP_PROXY_USE_FOR_ALL, String.valueOf(useForAll));
 	}
 
 	public String getHttpsProxyHost() {
@@ -348,17 +358,21 @@ public class Configuration {
 	}
 
 	public void setHttpsProxyHost(String httpsProxyHost) {
-		System.setProperty(HTTPS_PROXY_HOST, httpsProxyHost);
-		properties.setProperty(HTTPS_PROXY_HOST, httpsProxyHost);
+		if (httpsProxyHost != null) {
+			System.setProperty(HTTPS_PROXY_HOST, httpsProxyHost);
+			properties.setProperty(HTTPS_PROXY_HOST, httpsProxyHost);
+		}
 	}
 
-	public String getHttpsProxyPort() {
-		return properties.getProperty(HTTPS_PROXY_PORT);
+	public int getHttpsProxyPort() {
+		return parseOrDefault(properties.getProperty(HTTPS_PROXY_PORT), 0);
 	}
 
 	public void setHttpsProxyPort(String httpsProxyPort) {
-		System.setProperty(HTTPS_PROXY_PORT, httpsProxyPort);
-		properties.setProperty(HTTPS_PROXY_PORT, httpsProxyPort);
+		if (httpsProxyPort != null) {
+			System.setProperty(HTTPS_PROXY_PORT, httpsProxyPort);
+			properties.setProperty(HTTPS_PROXY_PORT, httpsProxyPort);
+		}
 	}
 
 	public String getWorkIpRegExp() {
@@ -456,5 +470,4 @@ public class Configuration {
 			throw new IllegalStateException(e);
 		}
 	}
-
 }

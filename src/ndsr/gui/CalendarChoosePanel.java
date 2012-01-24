@@ -57,7 +57,7 @@ public class CalendarChoosePanel extends CardChildPanel {
 		buttonGroup = new ButtonGroup();
 		// radio
 		useExistingRadio = new JRadioButton("Use existing calendar");
-		createNewRadio = new JRadioButton("Create new one");
+		createNewRadio = new JRadioButton("Create new one (NOT IMPLEMENTED YET. STAY TUNNED)");
 		createNewRadio.setEnabled(false);
 		// combo
 		calendarsCombo = new JComboBox();

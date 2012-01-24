@@ -4,6 +4,7 @@ import java.io.File;
 
 import javax.swing.UIManager;
 
+import ndsr.gui.TabbedSettingsFrame;
 import ndsr.gui.WelcomeFrame;
 
 import org.apache.log4j.PropertyConfigurator;
@@ -20,6 +21,7 @@ public class Main {
 
 	private CalendarHelper calendarHelper;
 	private Configuration configuration;
+	private TabbedSettingsFrame settings;
 
 	private WelcomeFrame welcomeFrame;
 	private Ndsr ndsr;
@@ -29,6 +31,7 @@ public class Main {
 	private boolean development = false;
 	private boolean forceInitialConfiguration = false;
 	private boolean multipleInstances = false;
+
 
 	public static void main(String[] args) {
 		new Main().run(args);
@@ -49,18 +52,20 @@ public class Main {
 		if (systemLookAndFeel) {
 			setDefaulfLookAndFeel();
 		}
+		
+		settings = new TabbedSettingsFrame(configuration);
 
 		if (!multipleInstances) {
 			if (!InstanceLocker.lockInstance()) {
-				LOG.info("Duplicate ndsr instance, exiting. (Could not lock file)");
-				return;
+				LOG.error("Duplicate ndsr instance, exiting. (Could not lock file)");
+				System.exit(1);
 			} else {
 				LOG.info("Starting program instance.");
 			}
 		}
 
 		if (forceInitialConfiguration || !configuration.isInitialConfiguraionDone()) {
-			welcomeFrame = new WelcomeFrame(this, calendarHelper);
+			welcomeFrame = new WelcomeFrame(this, calendarHelper, settings);
 			welcomeFrame.setVisible(true);
 		} else {
 			createNdsrAndRun();
@@ -73,7 +78,7 @@ public class Main {
 			@Override
 			public void run() {
 				ndsr = new Ndsr();
-				ndsr.run(configuration, calendarHelper);
+				ndsr.run(configuration, calendarHelper, settings);
 			}
 		}).start();
 	}

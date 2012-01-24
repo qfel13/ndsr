@@ -31,10 +31,8 @@ import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
-import javax.swing.JPasswordField;
 import javax.swing.JTabbedPane;
 import javax.swing.JTextField;
-import javax.swing.LayoutStyle;
 import javax.swing.LayoutStyle.ComponentPlacement;
 import javax.swing.SwingConstants;
 import javax.swing.filechooser.FileNameExtensionFilter;
@@ -55,18 +53,10 @@ public class TabbedSettingsFrame extends JFrame {
 
 	private Configuration configuration;
 
-	// Account Panel
-	private JPanel googleAccountPanel = new JPanel(/* "Google account" */);
-
-	// Labels
-	private JLabel usernameLabel = new JLabel("Username"); // FIXME
-	private JLabel passwordLabel = new JLabel("Password"); // FIXME
-	private JLabel urlLabel = new JLabel("Calendar URL");  // FIXME
-	// Fields
-	private JTextField usernameText = new JTextField();
-	private JPasswordField passwordText = new JPasswordField();
-	private JTextField urlText = new JTextField();
-
+	// Connection Panel
+	private ConnectionSettingsPanel connectionPanel = new ConnectionSettingsPanel();
+	
+	
 	// Event Panel
 	private JPanel eventsPanel = new JPanel(/* "Events */);
 	// Labels
@@ -88,19 +78,6 @@ public class TabbedSettingsFrame extends JFrame {
 	private JTextField inactiveTimeStartText = new JTextField();
 	private JTextField inactiveTimeEndText = new JTextField();
 
-	// Connection Panel
-	private JPanel connectionPanel = new JPanel(/* "Connection" */);
-	// Labels
-	private JLabel httpProxyHostLabel = new JLabel("Http proxy host");
-	private JLabel httpProxyPortLabel = new JLabel("Http proxy port");
-	private JLabel httpsProxyHostLabel = new JLabel("Https proxy host");
-	private JLabel httpsProxyPortLabel = new JLabel("Https proxy port");
-	// Fields
-	private JTextField httpProxyHostText = new JTextField();
-	private JTextField httpProxyPortText = new JTextField();
-	private JTextField httpsProxyHostText = new JTextField();
-	private JTextField httpsProxyPortText = new JTextField();
-
 	// Icons Panel
 	private JPanel iconsPanel = new JPanel(/* "Icons" */);
 	// Labels
@@ -120,13 +97,14 @@ public class TabbedSettingsFrame extends JFrame {
 	// Fields
 	private JTextField workIpRegExpText = new JTextField();
 	// Checkboxes
-	JCheckBox runNdsrAtStartUpChkbox = new JCheckBox("Run Ndsr at system startup (current user only)");
+	private JCheckBox runNdsrAtStartUpChkbox = new JCheckBox("Run Ndsr at system startup (current user only)");
 	
 	// Settings Buttons
 	private JButton cancelButton = new JButton();
 	private JButton okButton = new JButton();
 
 	private JTabbedPane settingsTabbedPanel = new JTabbedPane();
+	private static int[] notConnectiontabIndexes = {0, 2, 3};
 
 	/** Creates new form TabbedSettingsFrame */
 	public TabbedSettingsFrame() {
@@ -141,6 +119,20 @@ public class TabbedSettingsFrame extends JFrame {
 		initRunNdsrAtStartUpChkbox();
 	}
 
+	public void enableOnlyConnectionTab() {
+		for (int index : notConnectiontabIndexes) {
+			settingsTabbedPanel.setEnabledAt(index, false);
+		}
+		settingsTabbedPanel.setSelectedIndex(1);
+	}
+	
+	public void enableAllTabs() {
+		for (int index : notConnectiontabIndexes) {
+			settingsTabbedPanel.setEnabledAt(index, true);
+		}
+		settingsTabbedPanel.setSelectedIndex(0);
+	}
+	
 	private void initRunNdsrAtStartUpChkbox() {
 		try {
 			runNdsrAtStartUpChkbox.setEnabled(System.getProperty("os.name").toLowerCase().contains("windows"));
@@ -184,10 +176,15 @@ public class TabbedSettingsFrame extends JFrame {
 
 	private void setTextsFromConfiguration() {
 		
-		httpProxyHostText.setText(configuration.getHttpProxyHost());
-		httpProxyPortText.setText(configuration.getHttpProxyPort());
-		httpsProxyHostText.setText(configuration.getHttpsProxyHost());
-		httpsProxyPortText.setText(configuration.getHttpsProxyPort());
+		connectionPanel.setHttpProxyHost(configuration.getHttpProxyHost());
+		connectionPanel.setHttpProxyPort(configuration.getHttpProxyPort());
+		boolean useForAll = configuration.isHttpProxyUseForAll();
+		if (useForAll) {
+			connectionPanel.setUseForAll(useForAll);
+		} else {
+			connectionPanel.setHttpsProxyHost(configuration.getHttpsProxyHost());
+			connectionPanel.setHttpsProxyPort(configuration.getHttpsProxyPort());
+		}
 
 		sleepTimeText.setText("" + configuration.getSleepTime());
 		idleTimeText.setText("" + configuration.getIdleTime());
@@ -208,54 +205,6 @@ public class TabbedSettingsFrame extends JFrame {
 		// JFrame settings
 		this.setTitle("Settings");
 		this.setMinimumSize(new Dimension(400, 225));
-
-		// Account Layout
-		GroupLayout gl_googleAccountPanel = new GroupLayout(googleAccountPanel);
-		googleAccountPanel.setLayout(gl_googleAccountPanel);
-		gl_googleAccountPanel.setHorizontalGroup(gl_googleAccountPanel.createParallelGroup(
-				GroupLayout.Alignment.LEADING).addGroup(
-				gl_googleAccountPanel
-						.createSequentialGroup()
-						.addContainerGap()
-						.addGroup(
-								gl_googleAccountPanel
-										.createParallelGroup(GroupLayout.Alignment.TRAILING)
-										.addComponent(usernameLabel, GroupLayout.Alignment.LEADING,
-												GroupLayout.DEFAULT_SIZE, 62, Short.MAX_VALUE)
-										.addComponent(passwordLabel, GroupLayout.Alignment.LEADING,
-												GroupLayout.DEFAULT_SIZE, 62, Short.MAX_VALUE)
-										.addComponent(urlLabel, GroupLayout.DEFAULT_SIZE, 62, Short.MAX_VALUE))
-						.addPreferredGap(LayoutStyle.ComponentPlacement.UNRELATED)
-						.addGroup(
-								gl_googleAccountPanel
-										.createParallelGroup(GroupLayout.Alignment.LEADING)
-										.addComponent(urlText, GroupLayout.DEFAULT_SIZE, 196, Short.MAX_VALUE)
-										.addComponent(passwordText, GroupLayout.DEFAULT_SIZE, 196, Short.MAX_VALUE)
-										.addComponent(usernameText, GroupLayout.Alignment.TRAILING,
-												GroupLayout.DEFAULT_SIZE, 196, Short.MAX_VALUE)).addContainerGap()));
-		gl_googleAccountPanel.setVerticalGroup(gl_googleAccountPanel.createParallelGroup(GroupLayout.Alignment.LEADING)
-				.addGroup(
-						gl_googleAccountPanel
-								.createSequentialGroup()
-								.addContainerGap()
-								.addGroup(
-										gl_googleAccountPanel.createParallelGroup(GroupLayout.Alignment.BASELINE)
-												.addComponent(usernameLabel).addComponent(usernameText))
-								.addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
-								.addGroup(
-										gl_googleAccountPanel
-												.createParallelGroup(GroupLayout.Alignment.BASELINE)
-												.addComponent(passwordLabel)
-												.addComponent(passwordText, GroupLayout.PREFERRED_SIZE,
-														GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
-								.addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
-								.addGroup(
-										gl_googleAccountPanel
-												.createParallelGroup(GroupLayout.Alignment.BASELINE)
-												.addComponent(urlLabel)
-												.addComponent(urlText, GroupLayout.PREFERRED_SIZE,
-														GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
-								.addGap(53, 53, 53)));
 		
 		// Events Layout
 		GroupLayout gl_eventsPanel = new GroupLayout(eventsPanel);
@@ -322,71 +271,6 @@ public class TabbedSettingsFrame extends JFrame {
 					.addGap(43))
 		);
 		eventsPanel.setLayout(gl_eventsPanel);
-
-		// Connection Layout
-		GroupLayout gl_connectionPanel = new GroupLayout(connectionPanel);
-		gl_connectionPanel.setHorizontalGroup(gl_connectionPanel.createParallelGroup(Alignment.LEADING)
-				.addGroup(
-						gl_connectionPanel
-								.createSequentialGroup()
-								.addContainerGap()
-								.addGroup(
-										gl_connectionPanel
-												.createParallelGroup(Alignment.LEADING, false)
-												.addComponent(httpsProxyPortLabel, GroupLayout.DEFAULT_SIZE,
-														GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-												.addComponent(httpsProxyHostLabel, GroupLayout.DEFAULT_SIZE,
-														GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-												.addComponent(httpProxyPortLabel, GroupLayout.DEFAULT_SIZE,
-														GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-												.addComponent(httpProxyHostLabel, GroupLayout.DEFAULT_SIZE, 101,
-														Short.MAX_VALUE))
-								.addPreferredGap(ComponentPlacement.UNRELATED)
-								.addGroup(
-										gl_connectionPanel
-												.createParallelGroup(Alignment.LEADING)
-												.addComponent(httpsProxyHostText, GroupLayout.DEFAULT_SIZE, 240,
-														Short.MAX_VALUE)
-												.addComponent(httpProxyPortText, GroupLayout.DEFAULT_SIZE, 240,
-														Short.MAX_VALUE)
-												.addComponent(httpProxyHostText, Alignment.TRAILING,
-														GroupLayout.DEFAULT_SIZE, 240, Short.MAX_VALUE)
-												.addComponent(httpsProxyPortText, Alignment.TRAILING,
-														GroupLayout.DEFAULT_SIZE, 269, Short.MAX_VALUE))
-								.addContainerGap()));
-		gl_connectionPanel.setVerticalGroup(gl_connectionPanel.createParallelGroup(Alignment.LEADING).addGroup(
-				gl_connectionPanel
-						.createSequentialGroup()
-						.addContainerGap()
-						.addGroup(
-								gl_connectionPanel
-										.createParallelGroup(Alignment.BASELINE)
-										.addComponent(httpProxyHostLabel)
-										.addComponent(httpProxyHostText, GroupLayout.PREFERRED_SIZE,
-												GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
-						.addPreferredGap(ComponentPlacement.RELATED)
-						.addGroup(
-								gl_connectionPanel
-										.createParallelGroup(Alignment.BASELINE)
-										.addComponent(httpProxyPortLabel)
-										.addComponent(httpProxyPortText, GroupLayout.PREFERRED_SIZE,
-												GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
-						.addPreferredGap(ComponentPlacement.RELATED)
-						.addGroup(
-								gl_connectionPanel
-										.createParallelGroup(Alignment.BASELINE)
-										.addComponent(httpsProxyHostLabel)
-										.addComponent(httpsProxyHostText, GroupLayout.PREFERRED_SIZE,
-												GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
-						.addPreferredGap(ComponentPlacement.RELATED)
-						.addGroup(
-								gl_connectionPanel
-										.createParallelGroup(Alignment.BASELINE)
-										.addComponent(httpsProxyPortLabel)
-										.addComponent(httpsProxyPortText, GroupLayout.PREFERRED_SIZE,
-												GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
-						.addContainerGap(43, Short.MAX_VALUE)));
-		connectionPanel.setLayout(gl_connectionPanel);
 
 		// Icons Layout
 		JLabel lblWarningChangesIn = new JLabel("Warning: changes in this tab requires restart");
@@ -527,12 +411,11 @@ public class TabbedSettingsFrame extends JFrame {
 					.addContainerGap(129, Short.MAX_VALUE))
 		);
 		otherPanel.setLayout(gl_otherPanel);
-
-		settingsTabbedPanel.addTab("Google account", googleAccountPanel);
 		settingsTabbedPanel.addTab("Events", eventsPanel);
 		settingsTabbedPanel.addTab("Connection", connectionPanel);
 		settingsTabbedPanel.addTab("Icons", null, iconsPanel, null);
 		settingsTabbedPanel.addTab("Other", otherPanel);
+		
 
 		cancelButton.setText("Cancel");
 		cancelButton.addMouseListener(new java.awt.event.MouseAdapter() {
@@ -575,17 +458,27 @@ public class TabbedSettingsFrame extends JFrame {
 		);
 		getContentPane().setLayout(layout);
 
-		settingsTabbedPanel.getAccessibleContext().setAccessibleName("Google account");
+//		settingsTabbedPanel.getAccessibleContext().setAccessibleName("Connection");
+//		settingsTabbedPanel.
 
 		pack();
 	}
 
 	private void okButtonMouseClicked(MouseEvent event) {
 		try {
-			configuration.setHttpProxyHost(httpProxyHostText.getText());
-			configuration.setHttpProxyPort(httpProxyPortText.getText());
-			configuration.setHttpsProxyHost(httpsProxyHostText.getText());
-			configuration.setHttpsProxyPort(httpsProxyPortText.getText());
+			String httpProxyHost = connectionPanel.getHttpProxyHost();
+			String httpProxyPort = connectionPanel.getHttpProxyPort();
+			configuration.setHttpProxyHost(httpProxyHost);
+			configuration.setHttpProxyPort(httpProxyPort);
+			boolean useForAll = connectionPanel.isUseForAll();
+			if (useForAll) {
+				configuration.setHttpProxyUseForAll(useForAll);
+				configuration.setHttpsProxyHost(httpProxyHost);
+				configuration.setHttpsProxyPort(httpProxyPort);
+			} else {
+				configuration.setHttpsProxyHost(connectionPanel.getHttpsProxyHost());
+				configuration.setHttpsProxyPort(connectionPanel.getHttpsProxyPort());
+			}
 
 			configuration.setSleepTime(sleepTimeText.getText());
 			configuration.setIdleTime(idleTimeText.getText());

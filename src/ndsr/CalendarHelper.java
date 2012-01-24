@@ -2,6 +2,7 @@ package ndsr;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.net.SocketTimeoutException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
@@ -150,20 +151,22 @@ public class CalendarHelper {
 		return initialized;
 	}
 
-	public boolean initCalendarService(String code) {
+	public boolean initCalendarService(String code) throws SocketTimeoutException, IOException {
 		try {
-			// Step 2: Exchange -->
 			AccessTokenResponse response = new GoogleAuthorizationCodeGrant(httpTransport, jsonFactory, clientId, clientSecret, code,
 					redirectUrl).execute();
-			// End of Step 2 <--
-
 			String accessToken = response.accessToken;
 			String refreshToken = response.refreshToken;
-
+			
 			initialized = initCalendarService(accessToken, refreshToken);
-		} catch (IOException e) {
-			System.out.println("Cannot get code");
+		} catch (SocketTimeoutException e) {
+			LOG.warn("SocketTimeoutException", e);
 			initialized = false;
+			throw e;
+		} catch (IOException e) {
+			LOG.warn("Cannot get code", e);
+			initialized = false;
+			throw e;
 		}
 		return initialized;
 	}
@@ -305,8 +308,13 @@ public class CalendarHelper {
 		List<Event> eventList = new ArrayList<Event>();
 
 		while (true) {
-			for (Event event : events.getItems()) {
-				eventList.add(event);
+			if (events != null) {
+				List<Event> items = events.getItems();
+				if (items != null) {
+					for (Event event : items) {
+						eventList.add(event);
+					}
+				}
 			}
 
 			String pageToken = events.getNextPageToken();

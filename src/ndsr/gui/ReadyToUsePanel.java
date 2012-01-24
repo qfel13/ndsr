@@ -16,9 +16,11 @@ public class ReadyToUsePanel extends CardChildPanel {
 	private JButton finishButton;
 	
 	private final WelcomeFrame welcomeFrame;
+	private final TabbedSettingsFrame settings;
 	
-	public ReadyToUsePanel(WelcomeFrame w) {
+	public ReadyToUsePanel(WelcomeFrame w, TabbedSettingsFrame s) {
 		welcomeFrame = w;
+		settings = s;
 		
 		configuredLabel = new JLabel("<html>Nsdr was configured sucessfully<br>Now you can start using it with default settings by clicking on 'Start' or<br> change settings ussing 'Settings' button</html>");
 		configuredLabel.setHorizontalAlignment(SwingConstants.CENTER);
@@ -84,7 +86,7 @@ public class ReadyToUsePanel extends CardChildPanel {
 		setLayout(groupLayout);
 	}
 	protected void showSettingsFrame() {
-		
+		settings.showFrame();
 	}
 
 	@Override

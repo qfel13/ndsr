@@ -82,15 +82,14 @@ public class Ndsr implements MouseListener {
 		initTrayIcon(configuration);
 		initIdleTime();
 
-		settingsFrame = new TabbedSettingsFrame(configuration);
 		statisticsFrame = new StatisticsFrame(stats);
 		outOfWorkFrame = new OutOfWorkFrame(this);
 	}
 
-	public void run(Configuration configuration, CalendarHelper calendarHelper) {
+	public void run(Configuration configuration, CalendarHelper calendarHelper, TabbedSettingsFrame settings) {
 		this.configuration = configuration;
 		this.calendarHelper = calendarHelper;
-		
+		this.settingsFrame = settings;
 		init();
 
 		runMainLoop();
@@ -119,8 +118,10 @@ public class Ndsr implements MouseListener {
 								log.debug("CREATE OR UPDATE: {}", calendarHelper.createOrUpdate());
 							}
 
-							stats = calendarHelper.getStats(); // FIXME
-							statsStr = stats.toString();
+							stats = calendarHelper.getStats();
+							if (stats != null) {
+								statsStr = stats.toString();
+							}
 						} catch (IOException ex) {
 							statsStr = "io exception";
 							log.error(statsStr, ex);

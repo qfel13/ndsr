@@ -1,4 +1,4 @@
-package ndsr;
+package ndsr.utils;
 
 import java.io.File;
 import java.io.RandomAccessFile;

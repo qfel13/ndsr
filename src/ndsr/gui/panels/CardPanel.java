@@ -1,9 +1,11 @@
-package ndsr.gui;
+package ndsr.gui.panels;
 
 import java.awt.CardLayout;
 import java.util.HashMap;
 
 import javax.swing.JPanel;
+
+import ndsr.gui.WelcomeFrame;
 
 public class CardPanel extends JPanel {
 

@@ -1,4 +1,4 @@
-package ndsr;
+package ndsr.calendar;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.TimeZone;
 
+import ndsr.Configuration;
 import ndsr.beans.Stats;
 
 import org.slf4j.Logger;

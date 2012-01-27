@@ -1,4 +1,4 @@
-package ndsr.gui;
+package ndsr.gui.panels;
 
 import java.awt.Dimension;
 import java.awt.event.MouseAdapter;
@@ -20,7 +20,8 @@ import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.LayoutStyle.ComponentPlacement;
 
-import ndsr.CalendarHelper;
+import ndsr.calendar.CalendarHelper;
+import ndsr.gui.WelcomeFrame;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

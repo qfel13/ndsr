@@ -1,4 +1,4 @@
-package ndsr.gui;
+package ndsr.gui.panels;
 
 import java.awt.Component;
 import java.awt.event.ItemEvent;

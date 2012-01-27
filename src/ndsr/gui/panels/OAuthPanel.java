@@ -1,4 +1,4 @@
-package ndsr.gui;
+package ndsr.gui.panels;
 
 import java.awt.Color;
 import java.awt.Desktop;
@@ -22,7 +22,9 @@ import javax.swing.LayoutStyle.ComponentPlacement;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 
-import ndsr.CalendarHelper;
+import ndsr.calendar.CalendarHelper;
+import ndsr.gui.TabbedSettingsFrame;
+import ndsr.gui.WelcomeFrame;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

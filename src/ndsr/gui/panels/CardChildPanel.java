@@ -1,4 +1,4 @@
-package ndsr.gui;
+package ndsr.gui.panels;
 
 import javax.swing.JPanel;
 

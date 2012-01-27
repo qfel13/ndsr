@@ -38,6 +38,7 @@ import javax.swing.SwingConstants;
 import javax.swing.filechooser.FileNameExtensionFilter;
 
 import ndsr.Configuration;
+import ndsr.gui.panels.ConnectionSettingsPanel;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

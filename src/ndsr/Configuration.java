@@ -18,7 +18,7 @@ public class Configuration {
 	private Properties properties;
 	private File propertiesFile;
 
-	private static final Logger log = LoggerFactory.getLogger(Configuration.class);
+	private static final Logger LOG = LoggerFactory.getLogger(Configuration.class);
 
 	// General 
 	private static final String USER = "user";
@@ -260,8 +260,8 @@ public class Configuration {
 			int inactiveTimeStartHour = getHour(inactiveTimeStart);
 			int inactiveTimeStartMinute = getMinute(inactiveTimeStart);
 			
-			log.debug("inactiveTimeStartHour = {}", inactiveTimeStartHour);
-			log.debug("inactiveTimeStartMinute = {}", inactiveTimeStartMinute);
+			LOG.debug("inactiveTimeStartHour = {}", inactiveTimeStartHour);
+			LOG.debug("inactiveTimeStartMinute = {}", inactiveTimeStartMinute);
 			
 			properties.setProperty(INACTIVE_TIME_START_HOUR, "" + inactiveTimeStartHour);
 			properties.setProperty(INACTIVE_TIME_START_MINUTE, "" + inactiveTimeStartMinute);
@@ -300,8 +300,8 @@ public class Configuration {
 			int inactiveTimeEndHour = getHour(inactiveTimeEnd);
 			int inactiveTimeEndMinute = getMinute(inactiveTimeEnd);
 			
-			log.debug("inactiveTimeEndHour = {}", inactiveTimeEndHour);
-			log.debug("inactiveTimeEndMinute = {}", inactiveTimeEndMinute);
+			LOG.debug("inactiveTimeEndHour = {}", inactiveTimeEndHour);
+			LOG.debug("inactiveTimeEndMinute = {}", inactiveTimeEndMinute);
 			
 			properties.setProperty(INACTIVE_TIME_END_HOUR, "" + inactiveTimeEndHour);
 			properties.setProperty(INACTIVE_TIME_END_MINUTE, "" + inactiveTimeEndMinute);
@@ -441,7 +441,7 @@ public class Configuration {
 	public void writeConfiguration() throws FileNotFoundException, IOException {
 		if (!initilized) { 
 			String filename = DEFAULT_PROPERTIES_FILENAME;
-			log.debug("Writing properties to file: {}", filename);
+			LOG.debug("Writing properties to file: {}", filename);
 			propertiesFile = new File(filename);
 		}
 
@@ -466,7 +466,7 @@ public class Configuration {
 		try {
 			return Integer.valueOf(value);
 		} catch (NumberFormatException e) {
-			log.debug("value = {}", value);
+			LOG.debug("value = {}", value);
 			throw new IllegalStateException(e);
 		}
 	}

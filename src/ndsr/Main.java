@@ -1,11 +1,19 @@
 package ndsr;
 
 import java.io.File;
+import java.io.IOException;
+import java.net.URL;
+import java.util.Enumeration;
+import java.util.jar.Attributes;
+import java.util.jar.Manifest;
 
 import javax.swing.UIManager;
 
+import ndsr.calendar.CalendarHelper;
+import ndsr.gui.BeforeExitMessage;
 import ndsr.gui.TabbedSettingsFrame;
 import ndsr.gui.WelcomeFrame;
+import ndsr.utils.InstanceLocker;
 
 import org.apache.log4j.PropertyConfigurator;
 import org.slf4j.Logger;
@@ -32,7 +40,6 @@ public class Main {
 	private boolean forceInitialConfiguration = false;
 	private boolean multipleInstances = false;
 
-
 	public static void main(String[] args) {
 		new Main().run(args);
 	}
@@ -46,19 +53,46 @@ public class Main {
 		setLog4jConfiguration();
 		parseArguments(args);
 
+		Enumeration<URL> resources;
+		try {
+			resources = getClass().getClassLoader().getResources("META-INF/MANIFEST.MF");
+			while (resources.hasMoreElements()) {
+				URL nextElement = resources.nextElement();
+				LOG.debug("URL = {}", nextElement);
+				Manifest manifest = new Manifest(nextElement.openStream());
+				// check that this is your manifest and do what you need or get the next one
+				Attributes mainAttributes = manifest.getMainAttributes();
+				if ("ndsr.Main".equals(mainAttributes.get(new Attributes.Name("Main-Class")))) {
+					LOG.debug("{}", mainAttributes.get(new Attributes.Name("Implementation-Version")));
+				}	
+//				if ("ndsr.Main".equals(mainAttributes.get("Main-Class"))) {
+//					LOG.debug("{}", mainAttributes.get(new Attributes.Name("Implementation-Version")));
+//				}
+			}
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+
+		System.exit(1);
 		configuration = new Configuration(development);
 		calendarHelper = new CalendarHelper(configuration);
 
 		if (systemLookAndFeel) {
 			setDefaulfLookAndFeel();
 		}
-		
+
 		settings = new TabbedSettingsFrame(configuration);
 
 		if (!multipleInstances) {
 			if (!InstanceLocker.lockInstance()) {
 				LOG.error("Duplicate ndsr instance, exiting. (Could not lock file)");
-				System.exit(1);
+				if (development) {
+					System.exit(1);
+				} else {
+					new BeforeExitMessage("Duplicate ndsr instance, exiting. \n(Could not lock file)");
+					return;
+				}
 			} else {
 				LOG.info("Starting program instance.");
 			}
@@ -74,7 +108,7 @@ public class Main {
 
 	public void createNdsrAndRun() {
 		new Thread(new Runnable() {
-			
+
 			@Override
 			public void run() {
 				ndsr = new Ndsr();
@@ -82,7 +116,7 @@ public class Main {
 			}
 		}).start();
 	}
-	
+
 	/**
 	 * Sets system look and feel for java application.
 	 */

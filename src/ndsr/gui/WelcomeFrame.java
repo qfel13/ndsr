@@ -6,8 +6,12 @@ import java.awt.Toolkit;
 
 import javax.swing.JFrame;
 
-import ndsr.CalendarHelper;
 import ndsr.Main;
+import ndsr.calendar.CalendarHelper;
+import ndsr.gui.panels.CalendarChoosePanel;
+import ndsr.gui.panels.CardPanel;
+import ndsr.gui.panels.OAuthPanel;
+import ndsr.gui.panels.ReadyToUsePanel;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

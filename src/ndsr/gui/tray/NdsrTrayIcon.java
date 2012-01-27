@@ -34,6 +34,7 @@ public class NdsrTrayIcon implements MouseListener {
 	private MenuItem outOfWorkItem = null;
 	private MenuItem logsItem;
 	private MenuItem settingsItem = null;
+	private MenuItem helpItem = null;
 	private MenuItem aboutItem = null;
 	private MenuItem exitItem = null;
 	// END OF POPUP MENU ITEMS
@@ -42,6 +43,39 @@ public class NdsrTrayIcon implements MouseListener {
 	private Image image;
 	private Image grayImage;
 	private boolean gray = false;
+	private String version;
+
+	public NdsrTrayIcon(Ndsr n, Configuration c, String v) throws RuntimeException {
+		ndsr = n;
+		configuration = c;
+		version = v;
+		
+		if (SystemTray.isSupported()) {
+			LOG.info("System Tray is supported");
+			SystemTray tray = SystemTray.getSystemTray();
+	
+			loadIcons();
+			trayPopupMenu = buildPopupMenu();
+	
+			LOG.debug("Creating Tray icon");
+			trayIcon = new TrayIcon(image, "Initializing ...", trayPopupMenu);
+			trayIcon.setImageAutoSize(true);
+			trayIcon.addMouseListener(this);
+			try {
+				LOG.debug("Adding Tray icon to Tray");
+				tray.add(trayIcon);
+			} catch (AWTException e) {
+				LOG.error("TrayIcon could not be added. " + e.getMessage());
+				LOG.info("Trying to work without tray.");
+				return;
+			}
+		} else {
+			LOG.error("System Tray is NOT supported");
+			LOG.info("Trying to work without tray.");
+			// TODO: throw exception and show message and exit
+			return;
+		}
+	}
 
 	public void useGrayIcon() {
 		if (!gray) {
@@ -90,37 +124,6 @@ public class NdsrTrayIcon implements MouseListener {
 		trayIcon.setToolTip(tooltip);
 	}
 
-	public NdsrTrayIcon(Ndsr n, Configuration c) throws RuntimeException {
-		ndsr = n;
-		configuration = c;
-
-		if (SystemTray.isSupported()) {
-			LOG.info("System Tray is supported");
-			SystemTray tray = SystemTray.getSystemTray();
-
-			loadIcons();
-			trayPopupMenu = buildPopupMenu();
-
-			LOG.debug("Creating Tray icon");
-			trayIcon = new TrayIcon(image, "Initializing ...", trayPopupMenu);
-			trayIcon.setImageAutoSize(true);
-			trayIcon.addMouseListener(this);
-			try {
-				LOG.debug("Adding Tray icon to Tray");
-				tray.add(trayIcon);
-			} catch (AWTException e) {
-				LOG.error("TrayIcon could not be added. " + e.getMessage());
-				LOG.info("Trying to work without tray.");
-				return;
-			}
-		} else {
-			LOG.error("System Tray is NOT supported");
-			LOG.info("Trying to work without tray.");
-			// TODO: throw exception and show message and exit
-			return;
-		}
-	}
-
 	private PopupMenu buildPopupMenu() {
 		LOG.debug("Creating popup manu");
 		trayPopupMenu = new PopupMenu();
@@ -130,6 +133,7 @@ public class NdsrTrayIcon implements MouseListener {
 		createOutOfWorkItem();
 		createLogsItem();
 		createSettingsItem();
+		createHelpItem();
 		createAboutItem();
 		createExitItem();
 
@@ -152,9 +156,14 @@ public class NdsrTrayIcon implements MouseListener {
 		trayPopupMenu.add(settingsItem);
 
 		trayPopupMenu.addSeparator();
+		
+		LOG.debug("Adding help menu item");
+		trayPopupMenu.add(helpItem);
 
 		LOG.debug("Adding about menu item");
 		trayPopupMenu.add(aboutItem);
+		
+		trayPopupMenu.addSeparator();
 		
 		LOG.debug("Adding exit menu item");
 		trayPopupMenu.add(exitItem);
@@ -231,6 +240,21 @@ public class NdsrTrayIcon implements MouseListener {
 		settingsItem = new MenuItem("Settings");
 		settingsItem.addActionListener(settingsListener);
 	}
+	
+	private void createHelpItem() {
+		// HELP
+		LOG.debug("Creating about menu item");
+		ActionListener helpListener = new ActionListener() {
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				ndsr.showAbout();
+			}
+		};
+		
+		helpItem = new MenuItem("Help");
+		helpItem.addActionListener(helpListener);
+	}
 
 	private void createAboutItem() {
 		// ABOUT
@@ -242,7 +266,12 @@ public class NdsrTrayIcon implements MouseListener {
 				ndsr.showAbout();
 			}
 		};
-		aboutItem = new MenuItem("About");
+		
+		String aboutLabel = "About";
+		if (version != null) {
+			aboutLabel += " v" + version;
+		}
+		aboutItem = new MenuItem(aboutLabel);
 		aboutItem.addActionListener(aboutListener);
 	}
 	

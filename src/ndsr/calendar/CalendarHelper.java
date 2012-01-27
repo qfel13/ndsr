@@ -45,6 +45,8 @@ public class CalendarHelper {
 	private Calendar calendarService = null;
 	private boolean initialized = false;
 	private Configuration configuration;
+	
+	private long counter = 0;
 
 	private List<CalendarListEntry> calendarList;
 
@@ -87,6 +89,7 @@ public class CalendarHelper {
 		calendarList = new ArrayList<CalendarListEntry>();
 
 		CalendarList calendars = calendarService.calendarList().list().setMinAccessRole("writer").execute();
+		++counter;
 
 		while (true) {
 			for (CalendarListEntry calendarListEntry : calendars.getItems()) {
@@ -95,6 +98,7 @@ public class CalendarHelper {
 			String pageToken = calendars.getNextPageToken();
 			if (pageToken != null && !pageToken.isEmpty()) {
 				calendars = calendarService.calendarList().list().setPageToken(pageToken).execute();
+				++counter;
 			} else {
 				break;
 			}
@@ -114,6 +118,7 @@ public class CalendarHelper {
 		}
 
 		Events events = calendarService.events().list(calendarId).setTimeMin(timeMin).setTimeMax(timeMax).execute();
+		++counter;
 
 		List<Event> eventList = new ArrayList<Event>();
 
@@ -125,6 +130,7 @@ public class CalendarHelper {
 			String pageToken = events.getNextPageToken();
 			if (pageToken != null && !pageToken.isEmpty()) {
 				events = calendarService.events().list(calendarId).setPageToken(pageToken).execute();
+				++counter;
 			} else {
 				break;
 			}
@@ -156,6 +162,7 @@ public class CalendarHelper {
 		try {
 			AccessTokenResponse response = new GoogleAuthorizationCodeGrant(httpTransport, jsonFactory, clientId, clientSecret, code,
 					redirectUrl).execute();
+			++counter;
 			String accessToken = response.accessToken;
 			String refreshToken = response.refreshToken;
 			
@@ -254,6 +261,7 @@ public class CalendarHelper {
 		event.setEnd(eventDateTime);
 
 		Event updated = calendarService.events().update(configuration.getCalendarId(), event.getId(), event).execute();
+		++counter;
 		LOG.debug("end: " + updated.getEnd());
 
 		return updated;
@@ -287,6 +295,7 @@ public class CalendarHelper {
 		String calendarId = configuration.getCalendarId();
 		LOG.debug("calendarId = {}", calendarId);
 		Event createdEvent = calendarService.events().insert(calendarId, event).execute();
+		++counter;
 
 		System.out.println(createdEvent.getId());
 
@@ -305,6 +314,7 @@ public class CalendarHelper {
 		String calendarId = configuration.getCalendarId();
 		LOG.debug("calendarId = {}", calendarId);
 		Events events = calendarService.events().list(calendarId).setTimeMin(timeMin).setTimeMax(timeMax)/* .setQ("praca") */.execute();
+		++counter;
 
 		List<Event> eventList = new ArrayList<Event>();
 
@@ -321,6 +331,7 @@ public class CalendarHelper {
 			String pageToken = events.getNextPageToken();
 			if (pageToken != null && !pageToken.isEmpty()) {
 				events = calendarService.events().list(calendarId).setPageToken(pageToken).execute();
+				++counter;
 			} else {
 				break;
 			}

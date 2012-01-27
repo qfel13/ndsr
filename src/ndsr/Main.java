@@ -1,11 +1,6 @@
 package ndsr;
 
 import java.io.File;
-import java.io.IOException;
-import java.net.URL;
-import java.util.Enumeration;
-import java.util.jar.Attributes;
-import java.util.jar.Manifest;
 
 import javax.swing.UIManager;
 
@@ -14,6 +9,7 @@ import ndsr.gui.BeforeExitMessage;
 import ndsr.gui.TabbedSettingsFrame;
 import ndsr.gui.WelcomeFrame;
 import ndsr.utils.InstanceLocker;
+import ndsr.utils.VersionRetriever;
 
 import org.apache.log4j.PropertyConfigurator;
 import org.slf4j.Logger;
@@ -40,6 +36,8 @@ public class Main {
 	private boolean forceInitialConfiguration = false;
 	private boolean multipleInstances = false;
 
+	private String version;
+
 	public static void main(String[] args) {
 		new Main().run(args);
 	}
@@ -53,28 +51,8 @@ public class Main {
 		setLog4jConfiguration();
 		parseArguments(args);
 
-		Enumeration<URL> resources;
-		try {
-			resources = getClass().getClassLoader().getResources("META-INF/MANIFEST.MF");
-			while (resources.hasMoreElements()) {
-				URL nextElement = resources.nextElement();
-				LOG.debug("URL = {}", nextElement);
-				Manifest manifest = new Manifest(nextElement.openStream());
-				// check that this is your manifest and do what you need or get the next one
-				Attributes mainAttributes = manifest.getMainAttributes();
-				if ("ndsr.Main".equals(mainAttributes.get(new Attributes.Name("Main-Class")))) {
-					LOG.debug("{}", mainAttributes.get(new Attributes.Name("Implementation-Version")));
-				}	
-//				if ("ndsr.Main".equals(mainAttributes.get("Main-Class"))) {
-//					LOG.debug("{}", mainAttributes.get(new Attributes.Name("Implementation-Version")));
-//				}
-			}
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-
-		System.exit(1);
+		version = VersionRetriever.getVersion();
+		
 		configuration = new Configuration(development);
 		calendarHelper = new CalendarHelper(configuration);
 
@@ -112,7 +90,7 @@ public class Main {
 			@Override
 			public void run() {
 				ndsr = new Ndsr();
-				ndsr.run(configuration, calendarHelper, settings);
+				ndsr.run(configuration, calendarHelper, settings, version);
 			}
 		}).start();
 	}

@@ -50,22 +50,22 @@ public class Ndsr {
 
 	private Boolean running = false;
 
-	private void init() {
+	private void init(String version) {
 		os = System.getProperty("os.name").toLowerCase();
 
-		ndsrTrayIcon = new NdsrTrayIcon(this, configuration);
+		ndsrTrayIcon = new NdsrTrayIcon(this, configuration, version);
 		initIdleTime();
 
 		statisticsFrame = new StatisticsFrame(stats);
 		outOfWorkFrame = new OutOfWorkFrame(this);
-		aboutFrame = new AboutFrame();
+		aboutFrame = new AboutFrame(version);
 	}
 
-	public void run(Configuration configuration, CalendarHelper calendarHelper, TabbedSettingsFrame settings) {
+	public void run(Configuration configuration, CalendarHelper calendarHelper, TabbedSettingsFrame settings, String version) {
 		this.configuration = configuration;
 		this.calendarHelper = calendarHelper;
 		this.settingsFrame = settings;
-		init();
+		init(version);
 
 		runMainLoop();
 	}

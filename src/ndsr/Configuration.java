@@ -52,6 +52,7 @@ public class Configuration {
 	private static final String INACTIVE_ICON_LOCATION = "inactiveIconLocation";
 	
 	//
+	private static final String COUNTER = "counter";
 
 	// DEFAULT VALUES
 	private static final int DEFAULT_IDLE_TIME = 10;
@@ -136,11 +137,11 @@ public class Configuration {
 	}
 
 	public int getSleepTime() {
-		return parseOrDefault(properties.getProperty(SLEEP_TIME), DEFAULT_SLEEP_TIME);
+		return parseIntOrDefault(properties.getProperty(SLEEP_TIME), DEFAULT_SLEEP_TIME);
 	}
 
 	public long getSleepTimeInMili() {
-		return parseOrDefault(properties.getProperty(SLEEP_TIME), DEFAULT_SLEEP_TIME) * 60 * 1000;
+		return parseIntOrDefault(properties.getProperty(SLEEP_TIME), DEFAULT_SLEEP_TIME) * 60 * 1000;
 	}
 
 	public void setSleepTime(int sleepTime) {
@@ -148,11 +149,11 @@ public class Configuration {
 	}
 
 	public void setSleepTime(String sleepTimeStr) {
-		properties.setProperty(SLEEP_TIME, "" + parseOrDefault(sleepTimeStr, DEFAULT_SLEEP_TIME));
+		properties.setProperty(SLEEP_TIME, "" + parseIntOrDefault(sleepTimeStr, DEFAULT_SLEEP_TIME));
 	}
 
 	public int getIdleTime() {
-		return parseOrDefault(properties.getProperty(IDLE_TIME), DEFAULT_IDLE_TIME);
+		return parseIntOrDefault(properties.getProperty(IDLE_TIME), DEFAULT_IDLE_TIME);
 	}
 
 	public int getIdleTimeInSec() {
@@ -164,7 +165,7 @@ public class Configuration {
 	}
 
 	public void setIdleTime(String idleTimeStr) {
-		properties.setProperty(IDLE_TIME, "" + parseOrDefault(idleTimeStr, DEFAULT_IDLE_TIME));
+		properties.setProperty(IDLE_TIME, "" + parseIntOrDefault(idleTimeStr, DEFAULT_IDLE_TIME));
 	}
 
 	public String getEventName() {
@@ -184,29 +185,29 @@ public class Configuration {
 	}
 
 	public void setLastIdleTimeThreshold(String lastIdleTimeThreshold) {
-		properties.setProperty(LAST_IDLE_TIME_THRESHOLD, "" + parseOrDefault(lastIdleTimeThreshold, DEFAULT_LAST_IDLE_TIME_THRESHOLD));
+		properties.setProperty(LAST_IDLE_TIME_THRESHOLD, "" + parseIntOrDefault(lastIdleTimeThreshold, DEFAULT_LAST_IDLE_TIME_THRESHOLD));
 	}
 	
 	public int getLastIdleTimeThreshold() {
 		// in minutes
-		return parseOrDefault(properties.getProperty(LAST_IDLE_TIME_THRESHOLD), DEFAULT_LAST_IDLE_TIME_THRESHOLD);
+		return parseIntOrDefault(properties.getProperty(LAST_IDLE_TIME_THRESHOLD), DEFAULT_LAST_IDLE_TIME_THRESHOLD);
 	}
 	
 	public int getMinutesBeforeFirstEvent() {
-		return parseOrDefault(properties.getProperty(MINUTES_BEFORE_FIRST_EVENT), DEFAULT_MINUTES_BEFORE_FIRST_EVENT);
+		return parseIntOrDefault(properties.getProperty(MINUTES_BEFORE_FIRST_EVENT), DEFAULT_MINUTES_BEFORE_FIRST_EVENT);
 	}
 	
 	public void setMinutesBeforeFirstEvent(String minutesBeforeFirstEvent) {
-		properties.setProperty(MINUTES_BEFORE_FIRST_EVENT, "" + parseOrDefault(minutesBeforeFirstEvent, 
+		properties.setProperty(MINUTES_BEFORE_FIRST_EVENT, "" + parseIntOrDefault(minutesBeforeFirstEvent, 
 				DEFAULT_MINUTES_BEFORE_FIRST_EVENT));
 	}
 	
 	public int getEventMinutesAhead() {
-		return parseOrDefault(properties.getProperty(EVENT_MINUTES_AHEAD), DEFAULT_EVENT_MINUTES_AHEAD);
+		return parseIntOrDefault(properties.getProperty(EVENT_MINUTES_AHEAD), DEFAULT_EVENT_MINUTES_AHEAD);
 	}
 	
 	public void setEventMinutesAhead(String eventMinutesAhead) {
-		properties.setProperty(EVENT_MINUTES_AHEAD, "" + parseOrDefault(eventMinutesAhead, DEFAULT_EVENT_MINUTES_AHEAD));
+		properties.setProperty(EVENT_MINUTES_AHEAD, "" + parseIntOrDefault(eventMinutesAhead, DEFAULT_EVENT_MINUTES_AHEAD));
 	}
 	
 	private int getHour(String time) {
@@ -337,7 +338,7 @@ public class Configuration {
 	}
 
 	public int getHttpProxyPort() {
-		return parseOrDefault(properties.getProperty(HTTP_PROXY_PORT), 0);
+		return parseIntOrDefault(properties.getProperty(HTTP_PROXY_PORT), 0);
 	}
 
 	public void setHttpProxyPort(String httpProxyPort) {
@@ -365,7 +366,7 @@ public class Configuration {
 	}
 
 	public int getHttpsProxyPort() {
-		return parseOrDefault(properties.getProperty(HTTPS_PROXY_PORT), 0);
+		return parseIntOrDefault(properties.getProperty(HTTPS_PROXY_PORT), 0);
 	}
 
 	public void setHttpsProxyPort(String httpsProxyPort) {
@@ -417,6 +418,14 @@ public class Configuration {
 		return Boolean.valueOf(properties.getProperty(INITIAL_CONFIGURATION_DONE));
 	}
 	
+	public void setCounter(long counter) {
+		properties.setProperty(COUNTER, String.valueOf(counter));
+	}
+	
+	public long getCounter() {
+		return parseLongOrDefault(properties.getProperty(COUNTER), 0);
+	}
+
 	public void readConfiguration(String filename) throws FileNotFoundException, IOException {
 		readConfiguration(new File(filename));
 	}
@@ -454,9 +463,17 @@ public class Configuration {
 		}
 	}
 
-	private int parseOrDefault(String value, int defaultValue) {
+	private int parseIntOrDefault(String value, int defaultValue) {
 		try {
 			return Integer.valueOf(value);
+		} catch (NumberFormatException e) {
+			return defaultValue;
+		}
+	}
+	
+	private long parseLongOrDefault(String value, long defaultValue) {
+		try {
+			return Long.valueOf(value);
 		} catch (NumberFormatException e) {
 			return defaultValue;
 		}

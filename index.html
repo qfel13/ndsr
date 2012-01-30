@@ -1,2 +1,92 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset=utf-8 />
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<link rel="stylesheet" type="text/css" href="s/m.css" />
+<!--[if lt IE 9]><script src="js/html5.js"></script><![endif]-->
 <title>Ndsr</title>
-<h1>NDSR page</h1>
+</head>
+<body>
+<a href="http://github.com/qfel13/ndsr">
+	<img width="135px" height="135px" style="position: absolute; top: 0; right: 0; border: 0; width: 135px; height: 135px;" src="i/gh.png" alt="Fork me on GitHub">
+</a>
+<nav>
+	<a href="#about">About</a>
+	<a href="#authors">Authors</a>
+	<a href="#download">Download</a>
+	<a href="#versions">Versions</a>
+	<a href="#changelog">Changelog</a>
+</nav>
+<div class="content">
+	<h1 id="about">What is Ndsr?</h1>
+		<p>
+			Ndsr is small desktop application which creates and updates event in Google Calendar service.
+			It is mainly used to count worked hours.
+		<p>
+		</p>
+			It can be configured to work only if appropriete IP is assigned to network interface.
+		</p>
+		<img src="i/s1.png">
+	<h1 id="authors">Authors</h1>
+		<ul>
+			<li>Łukasz Kufel (<a href="https://github.com/qfel13">qfel13</a>)
+			<li>Mikołaj Sosna (<a href="">gitmik</a>)
+			<li>Adam Różewicki (<a href="">admroz</a>)
+		</ul>
+	<h1 id="download">Download</h1>
+	<p>
+		<a href="https://github.com/downloads/qfel13/ndsr/NdsrInstaller-2.0-alpha3.exe">Click here to download current version</a>
+	</p>
+	<h1 id="versions">Versions</h1>
+		<h3>versions which use old google api lib (gdata)</h3>
+			<ul>
+				<li>0.8.3 (zip)
+			</ul>
+		<h3>versions which use new google api lib (google-api-client-lib)</h3>
+			<ul>
+			<li><a href="https://github.com/downloads/qfel13/ndsr/NdsrInstaller-2.0-alpha3.exe">2.0a.29 (windows installer)</a>
+			</ul>
+	<h1 id="changelog">changelog</h1>
+		<ul id="changelog">
+			<li>Added VersionRetriever.java to get version from manifest. Added counter field to Configuration.java Changed AboutFrame.java to be more readable. Added Help and About MenuItems to NdsrTrayIcon.java.
+			<li>Refactoring in GUI part. Added NdsrTrayIcon for tray icon management. Added AboutFrame not finished yet. Moved all panels to ndsr.gui.panel package.
+			<li>NSIS Installer script and icons. New configuration field httpProxyUseForAll and default value for event name = "Work". SettingsFrame is now injected to Ndsr and WelcomeFrame. Added Settings button to OAuthPanel. Refactored code of TabbedSettingsFrame moved some code to ConnectionSettingsPanel.
+			<li>Version 2.0 with OAuth and new Google API client library.
+			<li>New configuration options. Configuration for: - minutes ahead - minutes before first event - inactive time start and end
+			<li>Add logs to crawling through network interfaces.
+			<li>Add run ndsr at system startup (WINDOWS ONLY)
+			<li>Change version to 0.9.1
+			<li>Add build.num to ignored files
+			<li>Empty Configuration initialization. Out of work popup for Marek. Some refactoring. Remove build.num should be local for developer.
+			<li>Allow only one ndsr instance
+			<li>Add version and build number to jar. StatisticsFrame is created once and reused. Added 2 new options in Setting (not completed).
+			<li>NPE bugfix in isIpFromWork. TabbedSettingsFrame.java refactoring. Add icon settings to Configuration. Upgrade slf4j.
+			<li>Bug fixes for NullPointerException. Double click opens statistics window. Default event name if empty in configuration. Logs and Go to Calendar buttons in menu.
+			<li>Almost final StatisticsFrame with texts. Move charts generation to StatisticsFrame.
+			<li>Add exception handling, reauthorization and upgraded jna lib. Cleanup of unused items.
+			<li>Authorization exception fix
+			<li>Linux icons with gimp source files.
+			<li>Add new icon for not at work state and fix init bug.
+			<li>Move libraries from libs to lib. Add more error info on ServiceException
+			<li>cleanup in gitignore
+			<li>convert from netbeans into eclipse project.
+			<li>Add TabbedSettingsFrame.
+			<li>Add debug info for idleTime.
+			<li>Add implementation to LinuxIdleTime.
+			<li>Moved content from Win32IdleTime to WindowsIdleTime. Fix in Stats.java
+			<li>Some cleanup
+			<li>Fix for tray hint on linux.
+			<li>Add some debugs and windows idle time
+			<li>Add icon for linux. gh-1
+			<li>Adding toLower on os name.
+			<li>Adding idle time framework. refs #1
+			<li>Initial version of NDSR
+		</ul>
+</div>
+<footer>Prepared by <a href="https://github.com/qfel13">qfel13</a></footer>
+</body>
+</html>
+
+
+

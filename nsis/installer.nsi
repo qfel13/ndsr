@@ -10,13 +10,12 @@
 ;--------------------------------
 ;General
 
-  !define VERSION "2.0-alpha3"
   ;Name and file
   Name "Ndsr ${VERSION}"
   OutFile "NdsrInstaller-${VERSION}.exe"
   
   ;Default installation folder
-  InstallDir "$PROGRAMFILES\NdsrTest"
+  InstallDir "$PROGRAMFILES\Ndsr"
   
   ;Get installation folder from registry if available
   InstallDirRegKey HKCU "Software\Ndsr" ""
@@ -52,9 +51,14 @@
   !define MUI_STARTMENUPAGE_REGISTRY_KEY "Software\Ndsr" 
   !define MUI_STARTMENUPAGE_REGISTRY_VALUENAME "Start Menu Folder"
   
+  
   !insertmacro MUI_PAGE_STARTMENU Application $StartMenuFolder
   
   !insertmacro MUI_PAGE_INSTFILES
+  
+  ;!define MUI_FINISHPAGE_RUN "$INSTDIR\${PROGEXE}"
+  ;!define MUI_FINISHPAGE_RUN_TEXT "Launch ${PRODUCTNAME}"
+  ;!insertmacro MUI_PAGE_FINISH
   
   !insertmacro MUI_UNPAGE_CONFIRM
   !insertmacro MUI_UNPAGE_INSTFILES

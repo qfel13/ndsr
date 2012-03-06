@@ -5,6 +5,7 @@ import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.Insets;
+import java.awt.Toolkit;
 
 import javax.swing.BoxLayout;
 import javax.swing.JFrame;
@@ -65,6 +66,15 @@ public class StatisticsFrame extends JFrame {
 		refreshStats(stats);
 		
 		pack();
+		
+		Dimension dim = Toolkit.getDefaultToolkit().getScreenSize();
+		
+		int w = getSize().width;
+		int h = getSize().height;
+		int x = (dim.width-w)/2;
+		int y = (dim.height-h)/2;
+		 
+		setLocation(x, y);
 	}
 
 	private void initTextPanel(Container contentPane, Stats stats) {

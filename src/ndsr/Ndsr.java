@@ -25,6 +25,7 @@ import ndsr.gui.tray.NdsrTrayIcon;
 import ndsr.idle.IdleTime;
 import ndsr.idle.LinuxIdleTime;
 import ndsr.idle.WindowsIdleTime;
+import ndsr.utils.PathExtractor;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -247,9 +248,10 @@ public class Ndsr {
 	}
 
 	public void showLogs() {
-		String jar = Main.class.getProtectionDomain().getCodeSource().getLocation().getPath();
-		File dir = new File(jar.substring(0, jar.lastIndexOf("/")).replaceAll("%20", " ").concat("/logs"));
-		LOG.debug("jar = {}, dir = {}", jar, dir);
+		String jarPath = PathExtractor.getNdsrJarPath();
+		String logPath = jarPath.substring(0, jarPath.lastIndexOf("/")).concat("/logs");
+		File dir = new File(logPath);
+		LOG.debug("jarPath = {}, dir = {}", jarPath, dir);
 		if (Desktop.isDesktopSupported()) {
 			Desktop d = Desktop.getDesktop();
 			if (d.isSupported(Action.OPEN)) {

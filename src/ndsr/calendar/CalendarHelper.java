@@ -269,9 +269,12 @@ public class CalendarHelper {
 	public Event updateEvent(Event event) throws IOException {
 		int eventMinutesAhead = configuration.getEventMinutesAhead();
 		LOG.debug("eventMinutesAhead = {}", eventMinutesAhead);
-		java.util.Calendar cal = java.util.Calendar.getInstance(TimeZone.getTimeZone("Europe/Warsaw"));
+		
+		TimeZone timeZone = TimeZone.getDefault();
+		
+		java.util.Calendar cal = java.util.Calendar.getInstance(timeZone);
 		cal.add(java.util.Calendar.MINUTE, eventMinutesAhead);
-		DateTime endTime = new DateTime(cal.getTime(), TimeZone.getTimeZone("Europe/Warsaw"));
+		DateTime endTime = new DateTime(cal.getTime(), timeZone);
 		EventDateTime eventDateTime = new EventDateTime();
 		eventDateTime.setDateTime(endTime);
 		event.setEnd(eventDateTime);
@@ -296,17 +299,20 @@ public class CalendarHelper {
 		Event event = new Event();
 
 		event.setSummary(configuration.getEventName());
-		java.util.Calendar cal = java.util.Calendar.getInstance(TimeZone.getTimeZone("Europe/Warsaw"));
+		
+		TimeZone timeZone = TimeZone.getDefault();
+		
+		java.util.Calendar cal = java.util.Calendar.getInstance(timeZone);
 		if (minutesBeforeFirstEvent != 0) {
 			cal.add(java.util.Calendar.MINUTE, -minutesBeforeFirstEvent);
 		}
-		DateTime start = new DateTime(cal.getTime(), TimeZone.getTimeZone("UTC"));
+		DateTime start = new DateTime(cal.getTime(), timeZone);
 		LOG.debug("start = {}", start);
 		cal.add(java.util.Calendar.MINUTE, 10);
-		DateTime end = new DateTime(cal.getTime(), TimeZone.getTimeZone("UTC"));
+		DateTime end = new DateTime(cal.getTime(), timeZone);
 		LOG.debug("end = {}", end);
-		event.setStart(new EventDateTime().setDateTime(start).setTimeZone("UTC"));
-		event.setEnd(new EventDateTime().setDateTime(end).setTimeZone("UTC"));
+		event.setStart(new EventDateTime().setDateTime(start));
+		event.setEnd(new EventDateTime().setDateTime(end));
 
 		String calendarId = configuration.getCalendarId();
 		LOG.debug("calendarId = {}", calendarId);
@@ -329,7 +335,7 @@ public class CalendarHelper {
 
 		String calendarId = configuration.getCalendarId();
 		LOG.debug("calendarId = {}", calendarId);
-		Events events = calendarService.events().list(calendarId).setTimeMin(timeMin).setTimeMax(timeMax)/* .setQ("praca") */.execute();
+		Events events = calendarService.events().list(calendarId).setTimeMin(timeMin).setTimeMax(timeMax).execute();
 		++counter;
 
 		List<Event> eventList = new ArrayList<Event>();

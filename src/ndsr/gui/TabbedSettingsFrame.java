@@ -13,6 +13,7 @@ package ndsr.gui;
 
 import java.awt.Color;
 import java.awt.Dimension;
+import java.awt.Toolkit;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.BufferedReader;
@@ -39,6 +40,7 @@ import javax.swing.filechooser.FileNameExtensionFilter;
 
 import ndsr.Configuration;
 import ndsr.gui.panels.ConnectionSettingsPanel;
+import ndsr.utils.PathExtractor;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -141,11 +143,8 @@ public class TabbedSettingsFrame extends JFrame {
 			if(System.getProperty("os.name").toLowerCase().contains("windows")) {
 				
 				// get application path
-				String ndsrExecPath = getClass().getProtectionDomain().getCodeSource().getLocation().getPath().replace("%20", " ");
-				if (ndsrExecPath.startsWith("/")) {
-					ndsrExecPath = ndsrExecPath.replaceFirst("/", "");
-				}
-				String ndsrDirPath = (String) ndsrExecPath.subSequence(0,ndsrExecPath.lastIndexOf("/"));
+				String ndsrDirPath = PathExtractor.getNdsrHomeDir();
+				
 				// check if vbs scripts exist
 				File getStartupDirVBS = new File(ndsrDirPath + "/scripts/getWindowsUserStartUpDirectoryPath.vbs");
 				File addLnkVBS = new File(ndsrDirPath + "/scripts/addShortcutToStartUpWindows.vbs");
@@ -459,10 +458,16 @@ public class TabbedSettingsFrame extends JFrame {
 		);
 		getContentPane().setLayout(layout);
 
-//		settingsTabbedPanel.getAccessibleContext().setAccessibleName("Connection");
-//		settingsTabbedPanel.
-
 		pack();
+		
+		Dimension dim = Toolkit.getDefaultToolkit().getScreenSize();
+		
+		int w = getSize().width;
+		int h = getSize().height;
+		int x = (dim.width-w)/2;
+		int y = (dim.height-h)/2;
+		 
+		setLocation(x, y);
 	}
 
 	private void okButtonMouseClicked(MouseEvent event) {
@@ -535,7 +540,8 @@ public class TabbedSettingsFrame extends JFrame {
 				// create startup lnk
 				if (!ndsrLnk.exists()) {
 					// ndsr.exe is hardcoded since we are running the jar not the exe starter so we cannot get exe file name  
-					String[] cmd2 = new String[] {"wscript.exe", ndsrDirPath+"/scripts/addShortcutToStartUpWindows.vbs", ndsrDirPath, "ndsr.exe", ndsrShortcutName};
+					String[] cmd2 = new String[] { "wscript.exe", ndsrDirPath + "/scripts/addShortcutToStartUpWindows.vbs", ndsrDirPath,
+							"ndsr.exe", ndsrShortcutName };
 					log.debug("Executing {}/scripts/addShortcutToStartUpWindows.vbs script", ndsrDirPath);
 					Runtime.getRuntime().exec(cmd2);
 				} else {

@@ -46,13 +46,18 @@ public class Ndsr {
 	private NdsrTrayIcon ndsrTrayIcon;
 	private IdleTime idleTime;
 	private boolean work = true;
-	private static String os = ""; // FIXME: remove this
+	private boolean ignoreIpConstraints = false;
 
 	private Boolean running = false;
 
-	private void init(String version) {
-		os = System.getProperty("os.name").toLowerCase();
+	public Ndsr(Configuration configuration, CalendarHelper calendarHelper, TabbedSettingsFrame settings, String version) {
+		this.configuration = configuration;
+		this.calendarHelper = calendarHelper;
+		this.settingsFrame = settings;
+		init(version);
+	}
 
+	private void init(String version) {
 		ndsrTrayIcon = new NdsrTrayIcon(this, configuration, version);
 		initIdleTime();
 
@@ -61,18 +66,9 @@ public class Ndsr {
 		aboutFrame = new AboutFrame(version);
 	}
 
-	public void run(Configuration configuration, CalendarHelper calendarHelper, TabbedSettingsFrame settings, String version) {
-		this.configuration = configuration;
-		this.calendarHelper = calendarHelper;
-		this.settingsFrame = settings;
-		init(version);
-
-		runMainLoop();
-	}
-
-	private void runMainLoop() {
+	public void run() {
 		String statsStr = null;
-		running  = true;
+		running = true;
 		int lastIdleSec = 0;
 
 		do {
@@ -126,46 +122,12 @@ public class Ndsr {
 			} catch (Throwable t) {
 				LOG.error("Throwable ", t);
 			}
-		} while (running );
+		} while (running);
 	}
 
 	private boolean isAtWork() throws SocketException {
 		return (work && isIpFromWork());
 	}
-
-	/*private boolean isInactiveTime() {
-		try {
-			int inactiveTimeStartHour = configuration.getInactiveTimeStartHour();
-			int inactiveTimeStartMinute = configuration.getInactiveTimeStartMinute();
-			int inactiveTimeEndHour = configuration.getInactiveTimeEndHour();
-			int inactiveTimeEndMinute = configuration.getInactiveTimeEndMinute();
-
-			Calendar now = Calendar.getInstance(TimeZone.getTimeZone("Europe/Warsaw"));
-			Calendar start = Calendar.getInstance(TimeZone.getTimeZone("Europe/Warsaw"));
-			Calendar end = Calendar.getInstance(TimeZone.getTimeZone("Europe/Warsaw"));
-
-			start.set(Calendar.HOUR_OF_DAY, inactiveTimeStartHour);
-			start.set(Calendar.MINUTE, inactiveTimeStartMinute);
-
-			end.set(Calendar.HOUR_OF_DAY, inactiveTimeEndHour);
-			end.set(Calendar.MINUTE, inactiveTimeEndMinute);
-
-			if (end.before(start)) {
-				log.debug("end before start - adding one day");
-				end.add(Calendar.DATE, 1);
-			}
-
-			log.debug("now.after(start) = {}", now.after(start));
-			log.debug("now.before(end) = {}", now.before(end));
-			return (now.after(start) && now.before(end));
-		} catch (IllegalStateException e) {
-			return false;
-		}
-	}*/
-
-	
-
-	
 
 	public void setWork(boolean newWork) {
 		work = newWork;
@@ -174,7 +136,7 @@ public class Ndsr {
 	private boolean isIpFromWork() throws SocketException {
 		String workIpRegExp = configuration.getWorkIpRegExp();
 
-		if (workIpRegExp == null || workIpRegExp.isEmpty()) {
+		if (ignoreIpConstraints || workIpRegExp == null || workIpRegExp.isEmpty()) {
 			return true;
 		}
 
@@ -239,6 +201,8 @@ public class Ndsr {
 	}
 
 	private void initIdleTime() {
+		String os = System.getProperty("os.name").toLowerCase();
+
 		if (os.equals("linux")) {
 			idleTime = new LinuxIdleTime();
 		} else if (os.startsWith("windows")) {
@@ -249,15 +213,11 @@ public class Ndsr {
 		}
 	}
 
-//	public static String getOs() {
-//		return os;
-//	}
-
 	public void showSettings() {
 		LOG.debug("showSettings");
 		settingsFrame.showFrame();
 	}
-	
+
 	public void showOutOfWork() {
 		LOG.debug("showOutOfWork");
 		outOfWorkFrame.showWindow();
@@ -279,7 +239,7 @@ public class Ndsr {
 			}
 		}
 	}
-	
+
 	public void showStatistics() {
 		LOG.debug("showStatistics");
 		statisticsFrame.refreshStats(stats);
@@ -297,8 +257,8 @@ public class Ndsr {
 					if (dir.exists()) {
 						d.open(dir);
 					} else {
-						JOptionPane.showMessageDialog(null, "Logs dir does not exist!\n" + dir.toString(),
-								"Logs dir does not exist!", JOptionPane.ERROR_MESSAGE);
+						JOptionPane.showMessageDialog(null, "Logs dir does not exist!\n" + dir.toString(), "Logs dir does not exist!",
+								JOptionPane.ERROR_MESSAGE);
 						LOG.error("Logs dir does not exist");
 					}
 				} catch (IOException e1) {
@@ -312,4 +272,3 @@ public class Ndsr {
 		aboutFrame.setVisible(true);
 	}
 }
-

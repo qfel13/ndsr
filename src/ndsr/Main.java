@@ -55,7 +55,7 @@ public class Main {
 		
 		configuration = new Configuration(development);
 		calendarHelper = new CalendarHelper(configuration);
-
+		
 		if (systemLookAndFeel) {
 			setDefaulfLookAndFeel();
 		}
@@ -89,8 +89,8 @@ public class Main {
 
 			@Override
 			public void run() {
-				ndsr = new Ndsr();
-				ndsr.run(configuration, calendarHelper, settings, version);
+				ndsr = new Ndsr(configuration, calendarHelper, settings, version);
+				ndsr.run();
 			}
 		}).start();
 	}

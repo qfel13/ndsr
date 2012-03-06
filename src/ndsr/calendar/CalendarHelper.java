@@ -178,6 +178,22 @@ public class CalendarHelper {
 		}
 		return initialized;
 	}
+	
+	public String createNewCalendar(String summary, String timezone) throws IOException {
+		LOG.debug("createEvent");
+		if (calendarService == null) {
+			throw new IllegalStateException("Calendar service is not initialized");
+		}
+		
+		com.google.api.services.calendar.model.Calendar calendar = new com.google.api.services.calendar.model.Calendar();
+		
+		calendar.setSummary(summary);
+//		calendar.setTimeZone(timezone);
+
+		com.google.api.services.calendar.model.Calendar createdCalendar = calendarService.calendars().insert(calendar).execute();
+		
+		return createdCalendar.getId();
+	}
 
 	private java.util.Calendar getTodayBegin() {
 		java.util.Calendar calendar = java.util.Calendar.getInstance();

@@ -8,7 +8,6 @@ import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 
 import javax.swing.JDialog;
-import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 
 import org.slf4j.Logger;
@@ -24,8 +23,6 @@ public class BeforeExitMessage extends JDialog {
 	}
 	
 	public BeforeExitMessage(String title, String message) {
-		setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-
 		final JOptionPane optionPane = new JOptionPane(message, JOptionPane.ERROR_MESSAGE);
 
 		setTitle(title);

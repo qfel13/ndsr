@@ -2,8 +2,13 @@ package ndsr;
 
 import java.io.IOException;
 import java.net.URL;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.Calendar;
+import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.TimeZone;
 
 import ndsr.beans.Stats;
@@ -24,7 +29,7 @@ import com.google.gdata.data.extensions.When;
 import com.google.gdata.util.AuthenticationException;
 import com.google.gdata.util.ServiceException;
 
-public class CalendarHandler {
+public class CalendarHandler {	
 
 	private static final Logger log = LoggerFactory.getLogger(Configuration.class);
 
@@ -289,6 +294,7 @@ public class CalendarHandler {
 			ServiceException {
 		log.debug("feedUrl = {}", feedUrl);
 		CalendarQuery myQuery = new CalendarQuery(feedUrl);
+		myQuery.setMaxResults(1000);
 		myQuery.setMinimumStartTime(new DateTime(minimum.getTime(), TimeZone.getTimeZone("Europe/Warsaw")));
 		myQuery.setMaximumStartTime(new DateTime(maximum.getTime(), TimeZone.getTimeZone("Europe/Warsaw")));
 		CalendarEventFeed resultFeed = myService.query(myQuery, CalendarEventFeed.class);
@@ -317,5 +323,92 @@ public class CalendarHandler {
 		DateTime eventEndTime = event.getTimes().get(0).getEndTime();
 		DateTime latestEndTime = latest.getTimes().get(0).getEndTime();
 		return eventEndTime.getValue() > latestEndTime.getValue();
+	}
+	
+	/**
+	 * Returns absolute number of minutes between two dates
+	 * @param dateOne
+	 * @param dateTwo
+	 * @return
+	 */
+	private long minutesBetweenDates(DateTime dateOne, DateTime dateTwo) {
+		return (dateOne.getValue() - dateTwo.getValue()) / (1000 * 60);
+	}
+	
+	private int getWeekInYear(int year, int month, int day) throws ParseException {
+		SimpleDateFormat sdf;
+		Calendar cal;
+		Date date;
+		int week;
+		String sample = month+"/"+day+"/"+year;
+		sdf = new SimpleDateFormat("MM/dd/yyyy");
+		date = sdf.parse(sample);
+		cal = Calendar.getInstance();
+		cal.setTime(date);
+		return cal.get(Calendar.WEEK_OF_YEAR);
+	}
+	
+	public void getHistoryStats() throws IOException, ServiceException {
+		log.info("getHistoryStats: entered");
+		Map<String, Long> years = new HashMap<String, Long>();
+		Map<String, Long> months = new HashMap<String, Long>();
+		Map<String, Long> weeks = new HashMap<String, Long>();
+		Calendar startDate = getTodayBegin();
+		Calendar endDate = getTodayEnd();
+		String startDateString = configuration.getHistoryStartDate();
+		log.info("getHistoryStats: startDateString:" + startDateString);
+		startDate.set(Integer.valueOf(startDateString.substring(0, 4)), Integer.valueOf(startDateString.substring(5, 7)), Integer.valueOf(startDateString.substring(9, 11)));
+		
+		CalendarEventFeed resultFeed = getFeedByStartDate(startDate, endDate);
+
+		List<CalendarEventEntry> entries = resultFeed.getEntries();
+		log.info("getHistoryStats: got " + entries.size() + " entries.");
+		for (CalendarEventEntry entry : entries) {
+			String title = entry.getTitle().getPlainText();
+			String eventName = configuration.getEventName();
+			if (title != null && eventName != null && title.startsWith(eventName)) {
+				List<When> times = entry.getTimes();
+				if (times.size() == 1) {
+					DateTime startTime = times.get(0).getStartTime();
+					DateTime endTime = times.get(0).getEndTime();
+					String year = endTime.toString().substring(0, 4);
+					String month = endTime.toString().substring(0, 7);
+					String day = endTime.toString().substring(8, 10);
+					String week = null;
+					try {
+						week = year + "." + getWeekInYear(Integer.valueOf(year), Integer.valueOf(month.substring(5, 7)), Integer.valueOf(day));
+					} catch (NumberFormatException e) {
+						log.error(e.getMessage(), e);
+						week = "0000.00";
+					} catch (ParseException e) {
+						log.error(e.getMessage(), e);
+						week = "0000.00";
+					}
+					long minutes = minutesBetweenDates(endTime, startTime);
+					if (years.containsKey(year)) {
+						years.put(year, years.get(year) + minutes);
+					} else {
+						years.put(year, minutes);
+					}
+					if (months.containsKey(month)) {
+						months.put(month, months.get(month) + minutes);
+					} else {
+						months.put(month, minutes);
+					}
+					if (weeks.containsKey(week)) {
+						weeks.put(week, weeks.get(week) + minutes);
+					} else {
+						weeks.put(week, minutes);
+					}
+					log.info("getHistoryStats: event:" + title + ", startTime:" + startTime.toString() + ", endTime:" + endTime.toString() + ", time:" + minutes + " minutes.");
+				} else {
+					log.error("getHistoryStats: unsupported event, title:" + title);
+					// ERROR
+				}
+			}
+		}
+		log.info(years.toString());
+		log.info(months.toString());
+		log.info(weeks.toString());
 	}
 }

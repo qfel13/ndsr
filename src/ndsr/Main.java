@@ -132,6 +132,12 @@ public class Main implements MouseListener {
 		outOfWorkFrame = new OutOfWorkFrame(this);
 
 		calendarHandler = new CalendarHandler(configuration);
+		try {
+			calendarHandler.getHistoryStats();
+		} catch (ServiceException e) {
+			log.error(e.getMessage(), e);
+//			e.printStackTrace();
+		}
 	}
 
 	public void run() throws InterruptedException, FileNotFoundException, IOException {

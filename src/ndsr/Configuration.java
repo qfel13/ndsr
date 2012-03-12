@@ -37,6 +37,7 @@ public class Configuration {
 	private static final String WORK_IP_REG_EXP = "workIpRegExp";
 	private static final String NORMAL_ICON_LOCATION = "normalIconLocation";
 	private static final String INACTIVE_ICON_LOCATION = "inactiveIconLocation";
+	private static final String HISTORY_START_DATE = "history.startDate";
 
 	// DEFAULT VALUES
 	private static final int DEFAULT_IDLE_TIME = 10;
@@ -203,6 +204,14 @@ public class Configuration {
 
 	public void setInactiveIconLocation(String inactiveIconLocation) {
 		properties.setProperty(INACTIVE_ICON_LOCATION, inactiveIconLocation);
+	}
+	
+	public String getHistoryStartDate() {
+		return properties.getProperty(HISTORY_START_DATE, "01/01/2012");
+	}
+	
+	public void setHistoryStartDate(String value) {
+		properties.setProperty(HISTORY_START_DATE, value);
 	}
 	
 	public void readConfiguration(String filename) throws FileNotFoundException, IOException {

@@ -55,6 +55,8 @@ public class Main {
 		
 		configuration = new Configuration(development);
 		calendarHelper = new CalendarHelper(configuration);
+		calendarHelper.getHistoryStats();
+		System.exit(-1);
 		
 		if (systemLookAndFeel) {
 			setDefaulfLookAndFeel();

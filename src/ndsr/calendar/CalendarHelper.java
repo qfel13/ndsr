@@ -3,14 +3,19 @@ package ndsr.calendar;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.SocketTimeoutException;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.TimeZone;
 
 import ndsr.Configuration;
 import ndsr.beans.Stats;
 
+//import org.jfree.util.Log;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -433,5 +438,88 @@ public class CalendarHelper {
 		stats.setWeek(hours, minutes);
 
 		return stats;
+	}
+	
+	private int getWeekInYear(int year, int month, int day) throws ParseException {
+		SimpleDateFormat sdf;
+		java.util.Calendar cal;
+		Date date;
+		int week;
+		String sample = month+"/"+day+"/"+year;
+		sdf = new SimpleDateFormat("MM/dd/yyyy");
+		date = sdf.parse(sample);
+		cal = java.util.Calendar.getInstance();
+		cal.setTime(date);
+		return cal.get(java.util.Calendar.WEEK_OF_YEAR);
+	}
+	
+	public void getHistoryStats() {
+		LOG.debug("getHistoryStats: entered");
+		List<Event> eventList = null;
+		String historyStartDateString = configuration.getHistoryStartDate();
+		SimpleDateFormat sdf;
+		java.util.Calendar historyStartDate = java.util.Calendar.getInstance();
+		sdf = new SimpleDateFormat("MM/dd/yyyy");
+		try {
+			historyStartDate.setTime(sdf.parse(historyStartDateString));
+		} catch (ParseException e1) {
+			LOG.error(e1.getMessage(), e1);
+			return;
+		}
+		Map<String, Long> years = new HashMap<String, Long>();
+		Map<String, Long> months = new HashMap<String, Long>();
+		Map<String, Long> weeks = new HashMap<String, Long>();
+		try {
+			eventList = getEvents(historyStartDate, getTodayEnd());
+			LOG.debug("getHistoryStats: got " + eventList.size() + " events.");
+			for (Event event : eventList) {
+				String summary = event.getSummary();
+				String eventName = configuration.getEventName();
+				long miliseconds = 0L;
+				LOG.info("getHistoryStats: Event title: " + summary + ", name: " + eventName);
+				if (summary != null && eventName != null && summary.startsWith(eventName)) {
+					long eventEnd = getEnd(event);
+					miliseconds = eventEnd - getStart(event);
+					Date date = new Date(event.getEnd().getDateTime().getValue());
+					LOG.info("getHistoryStats: event " + summary + " start:" + event.getStart().getDateTime().getValue() + ", end:" + event.getEnd().getDateTime().getValue() + ", miliseconds:" + miliseconds);
+					String year = date.toLocaleString().substring(0, 4);
+					String month = date.toLocaleString().substring(0, 7);
+					String day = date.toLocaleString().substring(8, 10);
+					LOG.debug("date:"+date.toLocaleString());
+					LOG.debug("year:"+year+",month:"+month+",day:"+day);
+					String week = null;
+					try {
+						week = year + "." + getWeekInYear(Integer.valueOf(year), Integer.valueOf(month.substring(5, 7)), Integer.valueOf(day));
+					} catch (NumberFormatException e) {
+						LOG.error(e.getMessage(), e);
+						week = "0000.00";
+					} catch (ParseException e) {
+						LOG.error(e.getMessage(), e);
+						week = "0000.00";
+					}
+					if (years.containsKey(year)) {
+						years.put(year, years.get(year) + miliseconds);
+					} else {
+						years.put(year, miliseconds);
+					}
+					if (months.containsKey(month)) {
+						months.put(month, months.get(month) + miliseconds);
+					} else {
+						months.put(month, miliseconds);
+					}
+					if (weeks.containsKey(week)) {
+						weeks.put(week, weeks.get(week) + miliseconds);
+					} else {
+						weeks.put(week, miliseconds);
+					}
+				}
+			}
+		} catch (IOException e) {
+			LOG.error(e.getMessage(), e);
+		}
+		LOG.info("years: " + years.toString());
+		LOG.info("months: " + months.toString());
+		LOG.info("weeks: " + weeks.toString());
+		LOG.debug("getHistoryStats: finished.");
 	}
 }

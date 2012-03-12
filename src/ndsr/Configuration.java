@@ -50,6 +50,7 @@ public class Configuration {
 	private static final String WORK_IP_REG_EXP = "workIpRegExp";
 	private static final String NORMAL_ICON_LOCATION = "normalIconLocation";
 	private static final String INACTIVE_ICON_LOCATION = "inactiveIconLocation";
+	private static final String HISTORY_START_DATE = "historyStartDate";
 	
 	//
 	private static final String COUNTER = "counter";
@@ -68,7 +69,7 @@ public class Configuration {
 
 	private static final String[] STANDARD_CONF_FILES = { Configuration.DEFAULT_PROPERTIES_FILENAME };
 	private static final String[] DEVELOPMENT_CONF_FILES = {"C:\\Program Files\\ndsr\\passwd.properties",
-			"/home/adro/ndsr/passwd.properties" };
+			"/home/adro/ndsr/passwd.properties", "c:\\Program Files\\NdsrTest\\passwd.properties" };
 	
 	private final String os = System.getProperty("os.name").toLowerCase();
 	private boolean initilized = false;
@@ -425,6 +426,15 @@ public class Configuration {
 	public long getCounter() {
 		return parseLongOrDefault(properties.getProperty(COUNTER), 0);
 	}
+	
+	public String getHistoryStartDate() {
+		return properties.getProperty(HISTORY_START_DATE, "01/01/2012");
+	}
+	
+	public void setHistoryStartDate(String value) {
+		properties.setProperty(HISTORY_START_DATE, value);
+	}
+	
 
 	public void readConfiguration(String filename) throws FileNotFoundException, IOException {
 		readConfiguration(new File(filename));

@@ -6,6 +6,7 @@ import java.awt.event.MouseEvent;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
+import java.util.TimeZone;
 import java.util.Vector;
 
 import javax.swing.ButtonGroup;
@@ -27,6 +28,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.api.services.calendar.model.CalendarListEntry;
+import java.awt.Font;
+import java.awt.Color;
 
 public class CalendarChoosePanel extends CardChildPanel {
 	private static final long serialVersionUID = 661830924278829542L;
@@ -48,6 +51,7 @@ public class CalendarChoosePanel extends CardChildPanel {
 	private final CalendarHelper calendarHelper;
 	
 	private HashMap<String, String> calendarNameIdMap = new HashMap<String, String>();
+	private JLabel warningLabel = new JLabel();
 	
 	public CalendarChoosePanel(WelcomeFrame w, CalendarHelper c) {
 		welcomeFrame = w;
@@ -58,31 +62,46 @@ public class CalendarChoosePanel extends CardChildPanel {
 		buttonGroup = new ButtonGroup();
 		// radio
 		useExistingRadio = new JRadioButton("Use existing calendar");
-		createNewRadio = new JRadioButton("Create new one (NOT IMPLEMENTED YET. STAY TUNNED)");
-		createNewRadio.setEnabled(false);
+		createNewRadio = new JRadioButton("Create new one");
 		// combo
 		calendarsCombo = new JComboBox();
 		// label
 		existingCalendarNameLabel = new JLabel("Name");
 		newCalendarNameLabel = new JLabel("Name");
-		newCalendarNameLabel.setEnabled(false);
 		newCalendarDescriptionLabel = new JLabel("Description");
-		newCalendarDescriptionLabel.setEnabled(false);
 		// text
 		newCalendarNameText = new JTextField();
-		newCalendarNameText.setEnabled(false);
 		newCalendarDescriptionText = new JTextArea();
-		newCalendarDescriptionText.setEnabled(false);
 		// button
 		nextButton = new JButton("Next");
 		nextButton.addMouseListener(new MouseAdapter() {
 			@Override
 			public void mouseClicked(MouseEvent e) {
-				String name = (String) calendarsCombo.getSelectedItem();
-				String calendarId = calendarNameIdMap.get(name);
-				calendarHelper.setCalendar(calendarId);
-				welcomeFrame.showNextPanel();
+				boolean createNew = createNewRadio.isSelected();
+				LOG.debug("createNew = {}", createNew);
 				
+				if (createNew) {
+					try {
+						String summary = newCalendarNameText.getText();
+						String description = newCalendarDescriptionText.getText();
+						LOG.debug("summary = {}, description = {}", summary, description);
+						if (!summary.isEmpty()) {
+							String calendarId = calendarHelper.createNewCalendar(summary, description);
+							calendarHelper.setCalendar(calendarId);
+							welcomeFrame.showNextPanel();
+						} else {
+							warningLabel.setText("Calendar name should not be empty");
+						}
+					} catch (IOException ex) {
+						warningLabel.setText("Creating new calendar failed. Click next to try again.");
+						LOG.error("Exception while creating new calendar", ex);
+					}
+				} else {
+					String name = (String) calendarsCombo.getSelectedItem();
+					String calendarId = calendarNameIdMap.get(name);
+					calendarHelper.setCalendar(calendarId);
+					welcomeFrame.showNextPanel();
+				}
 			}
 		});
 		backButton = new JButton("Back");
@@ -99,6 +118,9 @@ public class CalendarChoosePanel extends CardChildPanel {
 		
 		useExistingRadio.setSelected(true);
 		
+		warningLabel.setForeground(Color.RED);
+		warningLabel.setFont(new Font("Tahoma", Font.BOLD, 11));
+		
 		GroupLayout groupLayout = new GroupLayout(this);
 		groupLayout.setHorizontalGroup(
 			groupLayout.createParallelGroup(Alignment.LEADING)
@@ -113,7 +135,7 @@ public class CalendarChoosePanel extends CardChildPanel {
 								.addComponent(useExistingRadio)
 								.addContainerGap())
 							.addGroup(groupLayout.createSequentialGroup()
-								.addGroup(groupLayout.createParallelGroup(Alignment.TRAILING)
+								.addGroup(groupLayout.createParallelGroup(Alignment.LEADING)
 									.addGroup(groupLayout.createSequentialGroup()
 										.addGap(21)
 										.addGroup(groupLayout.createParallelGroup(Alignment.LEADING)
@@ -123,16 +145,19 @@ public class CalendarChoosePanel extends CardChildPanel {
 										.addGroup(groupLayout.createParallelGroup(Alignment.LEADING, false)
 											.addComponent(newCalendarNameText)
 											.addComponent(newCalendarDescriptionText, GroupLayout.DEFAULT_SIZE, 271, Short.MAX_VALUE)))
-									.addGroup(Alignment.LEADING, groupLayout.createSequentialGroup()
+									.addGroup(groupLayout.createSequentialGroup()
 										.addComponent(backButton)
 										.addPreferredGap(ComponentPlacement.RELATED, 316, Short.MAX_VALUE)
 										.addComponent(nextButton))
-									.addGroup(Alignment.LEADING, groupLayout.createSequentialGroup()
+									.addGroup(groupLayout.createSequentialGroup()
 										.addGap(21)
 										.addComponent(existingCalendarNameLabel, GroupLayout.PREFERRED_SIZE, 116, GroupLayout.PREFERRED_SIZE)
 										.addGap(18)
 										.addComponent(calendarsCombo, 0, 271, Short.MAX_VALUE)))
-								.addGap(14)))))
+								.addGap(14)))
+						.addGroup(groupLayout.createSequentialGroup()
+							.addComponent(warningLabel, GroupLayout.PREFERRED_SIZE, 430, GroupLayout.PREFERRED_SIZE)
+							.addContainerGap(GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))))
 		);
 		groupLayout.setVerticalGroup(
 			groupLayout.createParallelGroup(Alignment.LEADING)
@@ -153,7 +178,9 @@ public class CalendarChoosePanel extends CardChildPanel {
 					.addGroup(groupLayout.createParallelGroup(Alignment.BASELINE)
 						.addComponent(newCalendarDescriptionText, GroupLayout.PREFERRED_SIZE, 65, GroupLayout.PREFERRED_SIZE)
 						.addComponent(newCalendarDescriptionLabel))
-					.addPreferredGap(ComponentPlacement.RELATED, 52, Short.MAX_VALUE)
+					.addPreferredGap(ComponentPlacement.UNRELATED)
+					.addComponent(warningLabel, GroupLayout.PREFERRED_SIZE, 23, GroupLayout.PREFERRED_SIZE)
+					.addPreferredGap(ComponentPlacement.RELATED, 18, Short.MAX_VALUE)
 					.addGroup(groupLayout.createParallelGroup(Alignment.BASELINE)
 						.addComponent(nextButton)
 						.addComponent(backButton))
@@ -195,6 +222,4 @@ public class CalendarChoosePanel extends CardChildPanel {
 		}
 		
 	}
-	
-	
 }

@@ -182,7 +182,7 @@ public class CalendarHelper {
 		return initialized;
 	}
 	
-	public String createNewCalendar(String summary, String timezone) throws IOException {
+	public String createNewCalendar(String summary, String description) throws IOException {
 		LOG.debug("createEvent");
 		if (calendarService == null) {
 			throw new IllegalStateException("Calendar service is not initialized");
@@ -191,6 +191,7 @@ public class CalendarHelper {
 		com.google.api.services.calendar.model.Calendar calendar = new com.google.api.services.calendar.model.Calendar();
 		
 		calendar.setSummary(summary);
+		calendar.setDescription(description);
 
 		com.google.api.services.calendar.model.Calendar createdCalendar = calendarService.calendars().insert(calendar).execute();
 		

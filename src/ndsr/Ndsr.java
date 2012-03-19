@@ -85,7 +85,7 @@ public class Ndsr {
 							int lastIdleTimeThreshold = configuration.getLastIdleTimeThresholdInSec();
 							LOG.debug("lastIdleSec = {} lastIdleTimeThreshold = {}", lastIdleSec, lastIdleTimeThreshold);
 							if (lastIdleSec > lastIdleTimeThreshold) {
-								LOG.debug("CREATE NEW EVENT: {}", calendarHelper.createNewEvent());
+								LOG.debug("CREATE NEW EVENT: {}", calendarHelper.createEvent());
 							} else {
 								LOG.debug("CREATE OR UPDATE: {}", calendarHelper.createOrUpdate());
 							}

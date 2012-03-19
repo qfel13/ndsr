@@ -2,9 +2,9 @@
 <project name="Ndsr" default="main" basedir=".">
 
 	<taskdef name="nsis" classname="com.danielreese.nsisant.Task">
-	    <classpath location="nsis/nsisant-1.3.jar"/>
+		<classpath location="nsis/nsisant-1.3.jar" />
 	</taskdef>
-	
+
 	<property name="src.dir" value="src" />
 
 	<property name="build.dir" value="build" />
@@ -32,7 +32,7 @@
 	</target>
 
 	<target name="jar" depends="compile,resources">
-		
+
 		<buildnumber file="build.num" />
 		<tstamp>
 			<format property="NOW" pattern="yyyy-MM-dd HH:mm:ss" />
@@ -52,8 +52,8 @@
 				<attribute name="Main-Class" value="${main-class}" />
 				<attribute name="Class-Path" value="${mf.classpath} log4j.properties" />
 				<attribute name="Implementation-Version" value="${version.num}" />
-				<attribute name="Built-Number" value="${build.number}"/>
-				<attribute name="Built-Date" value="${NOW}"/>
+				<attribute name="Built-Number" value="${build.number}" />
+				<attribute name="Built-Date" value="${NOW}" />
 			</manifest>
 		</jar>
 	</target>
@@ -81,16 +81,16 @@
 			<classpath>
 				<path location="${jar.dir}/${ant.project.name}.jar" />
 			</classpath>
-			<arg value="-d"/>
+			<arg value="-d" />
 			<!--<arg value="-w"/>-->
 		</java>
 	</target>
 
 	<target name="installer" depends="jar">
 		<nsis script="nsis/installer.nsi" verbosity="3" path="C:\Program Files\NSIS">
-			<define name="VERSION" value="${version.num}"/>
-		</nsis>	
+			<define name="VERSION" value="${version.num}" />
+		</nsis>
 	</target>
-	
+
 	<target name="main" depends="jar" />
 </project>

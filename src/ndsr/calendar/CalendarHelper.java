@@ -51,6 +51,9 @@ public class CalendarHelper {
 	private boolean initialized = false;
 	private Configuration configuration;
 	
+	private List<Event> weekEventList;
+	private List<Event> todayEventList;
+	
 	private long counter = 0;
 
 	private List<CalendarListEntry> calendarList;
@@ -113,11 +116,6 @@ public class CalendarHelper {
 	}
 
 	public List<Event> getEventList(String calendarId, String timeMin, String timeMax) throws IOException {
-		// 2009-07-06T08:30:00+02:00
-		// String timeMin = "2011-12-20T00:00:00+01:00";
-		// String timeMax = "2011-12-21T00:00:00+01:00";
-		// String calendarId = "m17oihki8uvmjo45495ddvions@group.calendar.google.com";
-
 		if (calendarService == null) {
 			throw new IllegalStateException("Calendar service is not initialized");
 		}
@@ -193,7 +191,6 @@ public class CalendarHelper {
 		com.google.api.services.calendar.model.Calendar calendar = new com.google.api.services.calendar.model.Calendar();
 		
 		calendar.setSummary(summary);
-//		calendar.setTimeZone(timezone);
 
 		com.google.api.services.calendar.model.Calendar createdCalendar = calendarService.calendars().insert(calendar).execute();
 		
@@ -236,6 +233,16 @@ public class CalendarHelper {
 		}
 		return latestEntry;
 	}
+	
+	private boolean eventBeginAfter(Event event, java.util.Calendar time) {
+		com.google.api.client.util.DateTime eventEndTime = event.getEnd().getDateTime();
+		return eventEndTime.getValue() > time.getTimeInMillis();
+	}
+	
+	private boolean eventBeginBefore(Event event, java.util.Calendar time) {
+		com.google.api.client.util.DateTime eventEndTime = event.getEnd().getDateTime();
+		return eventEndTime.getValue() < time.getTimeInMillis();
+	}
 
 	private boolean laterThenLatest(Event event, Event latest) {
 		com.google.api.client.util.DateTime eventEndTime = event.getEnd().getDateTime();
@@ -256,11 +263,22 @@ public class CalendarHelper {
 	public Event getTodayLatestEvent() {
 		return getLatestEvent(getTodayEvents());
 	}
+	
+	public List<Event> getTodayEvents(List<Event> weekEventList) {
+		List<Event> todayEvents = new ArrayList<Event>();
+		for (Event event : weekEventList) {
+			if (eventBeginAfter(event, getTodayBegin()) && eventBeginBefore(event, getTodayEnd())) {
+				todayEvents.add(event);
+			}
+		}
+		return todayEvents;
+	}
 
 	public Event createOrUpdate() throws IOException {
-		List<Event> eventList = getEvents(getTodayBegin(), getTodayEnd());
+		weekEventList = getEvents(getWeekBegin(), getWeekEnd());
+		todayEventList = getTodayEvents(weekEventList);
 
-		Event eventForUpdate = getLatestEvent(eventList);
+		Event eventForUpdate = getLatestEvent(todayEventList);
 
 		if (eventForUpdate != null) {
 			return updateEvent(eventForUpdate);
@@ -291,7 +309,7 @@ public class CalendarHelper {
 		return updated;
 	}
 
-	public Event createNewEvent() throws IOException {
+	public Event createEvent() throws IOException {
 		return createEvent(0);
 	}
 	
@@ -382,12 +400,10 @@ public class CalendarHelper {
 	}
 	
 	private Stats getTodayStats(Stats stats) throws IOException {
-		List<Event> eventList = getEvents(getTodayBegin(), getTodayEnd());
-		
-		LOG.debug("Today event list size = {}", eventList.size());
+		LOG.debug("Today event list size = {}", todayEventList.size());
 		
 		long milis = 0;
-		for (Event event : eventList) {
+		for (Event event : todayEventList) {
 			String title = event.getSummary();
 			String eventName = configuration.getEventName();
 			if (title != null && eventName != null && title.startsWith(eventName)) {
@@ -418,12 +434,10 @@ public class CalendarHelper {
 	}
 	
 	private Stats getWeekStats(Stats stats) throws IOException {
-		List<Event> eventList = getEvents(getWeekBegin(), getWeekEnd());
-		
-		LOG.debug("Week event list size = {}", eventList.size());
+		LOG.debug("Week event list size = {}", weekEventList.size());
 		
 		long milis = 0;
-		for (Event event : eventList) {
+		for (Event event : weekEventList) {
 			String title = event.getSummary();
 			String eventName = configuration.getEventName();
 			if (title != null && eventName != null && title.startsWith(eventName)) {

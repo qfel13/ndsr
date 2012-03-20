@@ -4,6 +4,9 @@ package ndsr.beans;
  * @author lkufel
  */
 public class Stats {
+	private int weekHoursWithoutVacation = 40;
+	private int standardOneDayHours = 8;
+	
 	private long todayHours;
 	private long todayMinutes;
 	private long weekHours;
@@ -19,17 +22,25 @@ public class Stats {
 	private long overtimeWeekHours;
 	private long overtimeWeekMinutes;
 
+	public void setWeekHoursWithoutVacation(int withoutVacation) {
+		weekHoursWithoutVacation = withoutVacation;
+	}
+	
+	public void substractDaysFromWeek(int days) {
+		weekHoursWithoutVacation -= days * 8;
+	}
+
 	public void setToday(long todayHours, long todayMinutes) {
 		this.todayMinutes = todayMinutes;
 		this.todayHours = todayHours;
 
-		if (todayHours < 8 || (todayHours == 8 && todayMinutes == 0)) {
+		if (todayHours < standardOneDayHours || (todayHours == standardOneDayHours && todayMinutes == 0)) {
 			remainingTodayMinutes = todayMinutes == 0 ? 0 : 60 - todayMinutes;
-			remainingTodayHours = todayMinutes > 0 ? 7 - todayHours : 8 - todayHours;
+			remainingTodayHours = (todayMinutes > 0 ? -1 : 0) + standardOneDayHours - todayHours;
 		} else {
 			remainingTodayMinutes = 0;
 			remainingTodayHours = 0;
-			overtimeTodayHours = todayHours - 8;
+			overtimeTodayHours = todayHours - standardOneDayHours;
 			overtimeTodayMinutes = todayMinutes;
 		}
 	}
@@ -37,14 +48,14 @@ public class Stats {
 	public void setWeek(long weekHours, long weekMinutes) {
 		this.weekMinutes = weekMinutes;
 		this.weekHours = weekHours;
-
-		if (weekHours < 40 || (weekHours == 40 && weekMinutes == 0)) {
+		
+		if (weekHours < weekHoursWithoutVacation || (weekHours == weekHoursWithoutVacation && weekMinutes == 0)) {
 			remainingWeekMinutes = weekMinutes == 0 ? 0 : 60 - weekMinutes;
-			remainingWeekHours = weekMinutes > 0 ? 39 - weekHours : 40 - weekHours;
+			remainingWeekHours = (weekMinutes > 0 ? -1 : 0) + weekHoursWithoutVacation - weekHours;
 		} else {
 			remainingWeekMinutes = 0;
 			remainingWeekHours = 0;
-			overtimeWeekHours = weekHours - 40;
+			overtimeWeekHours = weekHours - weekHoursWithoutVacation;
 			overtimeWeekMinutes = weekMinutes;
 		}
 	}

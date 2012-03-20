@@ -235,14 +235,38 @@ public class CalendarHelper {
 		return latestEntry;
 	}
 	
-	private boolean eventBeginAfter(Event event, java.util.Calendar time) {
-		com.google.api.client.util.DateTime eventEndTime = event.getEnd().getDateTime();
-		return eventEndTime.getValue() > time.getTimeInMillis();
+	private long getEventEndValue(Event event) throws ParseException {
+		EventDateTime end = event.getEnd();
+		com.google.api.client.util.DateTime eventEndTime = end.getDateTime();
+		
+		if (eventEndTime == null) {
+			String dateStr = end.getDate();
+			SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
+			Date date = formatter.parse(dateStr);
+			LOG.debug("date = {}", date);
+			return date.getTime();
+		} else {
+			return eventEndTime.getValue();
+		}
 	}
 	
-	private boolean eventBeginBefore(Event event, java.util.Calendar time) {
-		com.google.api.client.util.DateTime eventEndTime = event.getEnd().getDateTime();
-		return eventEndTime.getValue() < time.getTimeInMillis();
+	private boolean eventEndAfter(Event event, java.util.Calendar time) {
+		try {
+			return getEventEndValue(event) > time.getTimeInMillis();
+		} catch (ParseException e) {
+			LOG.error("Error while parsing event end", e);
+			return false;
+		}
+		
+	}
+	
+	private boolean eventEndBefore(Event event, java.util.Calendar time) {
+		try {
+			return getEventEndValue(event) < time.getTimeInMillis();
+		} catch (ParseException e) {
+			LOG.error("Error while parsing event end", e);
+			return false;
+		}
 	}
 
 	private boolean laterThenLatest(Event event, Event latest) {
@@ -268,7 +292,8 @@ public class CalendarHelper {
 	public List<Event> getTodayEvents(List<Event> weekEventList) {
 		List<Event> todayEvents = new ArrayList<Event>();
 		for (Event event : weekEventList) {
-			if (eventBeginAfter(event, getTodayBegin()) && eventBeginBefore(event, getTodayEnd())) {
+			LOG.debug("event = {}", event);
+			if (eventEndAfter(event, getTodayBegin()) && eventEndBefore(event, getTodayEnd())) {
 				todayEvents.add(event);
 			}
 		}

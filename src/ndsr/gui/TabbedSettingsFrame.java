@@ -451,7 +451,9 @@ public class TabbedSettingsFrame extends JFrame {
 			configuration.writeConfiguration();
 			
 			checkStartupLink();
-			ndsrTrayIcon.reloadIcons();
+			if (ndsrTrayIcon != null) {
+				ndsrTrayIcon.reloadIcons();
+			}
 		} catch (FileNotFoundException ex) {
 			log.error("Configuration property file not found", ex);
 		} catch (IOException ex) {

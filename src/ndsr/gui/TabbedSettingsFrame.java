@@ -11,7 +11,6 @@
 
 package ndsr.gui;
 
-import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Toolkit;
 import java.awt.event.MouseAdapter;
@@ -35,11 +34,11 @@ import javax.swing.JPanel;
 import javax.swing.JTabbedPane;
 import javax.swing.JTextField;
 import javax.swing.LayoutStyle.ComponentPlacement;
-import javax.swing.SwingConstants;
 import javax.swing.filechooser.FileNameExtensionFilter;
 
 import ndsr.Configuration;
 import ndsr.gui.panels.ConnectionSettingsPanel;
+import ndsr.gui.tray.NdsrTrayIcon;
 import ndsr.utils.PathExtractor;
 
 import org.slf4j.Logger;
@@ -109,6 +108,8 @@ public class TabbedSettingsFrame extends JFrame {
 	private JTabbedPane settingsTabbedPanel = new JTabbedPane();
 	private static int[] notConnectiontabIndexes = {0, 2, 3};
 
+	private NdsrTrayIcon ndsrTrayIcon = null;
+	
 	/** Creates new form TabbedSettingsFrame */
 	public TabbedSettingsFrame() {
 		initComponents();
@@ -272,101 +273,45 @@ public class TabbedSettingsFrame extends JFrame {
 		);
 		eventsPanel.setLayout(gl_eventsPanel);
 
-		// Icons Layout
-		JLabel lblWarningChangesIn = new JLabel("Warning: changes in this tab requires restart");
-		lblWarningChangesIn.setHorizontalAlignment(SwingConstants.CENTER);
-		lblWarningChangesIn.setForeground(Color.RED);
-
 		GroupLayout gl_iconsPanel = new GroupLayout(iconsPanel);
-		gl_iconsPanel.setHorizontalGroup(gl_iconsPanel.createParallelGroup(Alignment.LEADING).addGroup(
-				gl_iconsPanel
-						.createSequentialGroup()
-						.addContainerGap()
-						.addGroup(
-								gl_iconsPanel
-										.createParallelGroup(Alignment.LEADING)
-										.addGroup(
-												gl_iconsPanel
-														.createSequentialGroup()
-														.addGroup(
-																gl_iconsPanel
-																		.createParallelGroup(Alignment.LEADING, false)
-																		.addComponent(iconInactiveLabel,
-																				Alignment.TRAILING,
-																				GroupLayout.DEFAULT_SIZE,
-																				GroupLayout.DEFAULT_SIZE,
-																				Short.MAX_VALUE)
-																		.addComponent(iconNormalLabel,
-																				Alignment.TRAILING,
-																				GroupLayout.DEFAULT_SIZE, 112,
-																				Short.MAX_VALUE))
-														.addPreferredGap(ComponentPlacement.RELATED)
-														.addGroup(
-																gl_iconsPanel
-																		.createParallelGroup(Alignment.TRAILING)
-																		.addComponent(iconNormalText,
-																				GroupLayout.DEFAULT_SIZE, 233,
-																				Short.MAX_VALUE)
-																		.addComponent(iconInactiveText,
-																				GroupLayout.DEFAULT_SIZE, 233,
-																				Short.MAX_VALUE))
-														.addPreferredGap(ComponentPlacement.RELATED)
-														.addGroup(
-																gl_iconsPanel
-																		.createParallelGroup(Alignment.LEADING)
-																		.addComponent(iconInactiveBrowseButton,
-																				Alignment.TRAILING,
-																				GroupLayout.PREFERRED_SIZE, 25,
-																				GroupLayout.PREFERRED_SIZE)
-																		.addComponent(iconNormalBrowseButton,
-																				Alignment.TRAILING,
-																				GroupLayout.PREFERRED_SIZE, 25,
-																				GroupLayout.PREFERRED_SIZE)))
-										.addComponent(lblWarningChangesIn, GroupLayout.DEFAULT_SIZE, 380,
-												Short.MAX_VALUE)).addContainerGap()));
-		gl_iconsPanel
-				.setVerticalGroup(gl_iconsPanel
-						.createParallelGroup(Alignment.LEADING)
-						.addGroup(
-								gl_iconsPanel
-										.createSequentialGroup()
-										.addGap(5)
-										.addComponent(lblWarningChangesIn, GroupLayout.PREFERRED_SIZE, 20,
-												GroupLayout.PREFERRED_SIZE)
-										.addPreferredGap(ComponentPlacement.RELATED)
-										.addGroup(
-												gl_iconsPanel
-														.createParallelGroup(Alignment.BASELINE)
-														.addComponent(iconNormalText, GroupLayout.PREFERRED_SIZE,
-																GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-														.addComponent(iconNormalBrowseButton)
-														.addComponent(iconNormalLabel))
-										.addGroup(
-												gl_iconsPanel
-														.createParallelGroup(Alignment.LEADING)
-														.addGroup(
-																gl_iconsPanel.createSequentialGroup().addGap(9)
-																		.addComponent(iconInactiveLabel))
-														.addGroup(
-																gl_iconsPanel
-																		.createSequentialGroup()
-																		.addPreferredGap(ComponentPlacement.RELATED)
-																		.addGroup(
-																				gl_iconsPanel
-																						.createParallelGroup(
-																								Alignment.LEADING)
-																						.addGroup(
-																								gl_iconsPanel
-																										.createSequentialGroup()
-																										.addGap(1)
-																										.addComponent(
-																												iconInactiveText,
-																												GroupLayout.PREFERRED_SIZE,
-																												GroupLayout.DEFAULT_SIZE,
-																												GroupLayout.PREFERRED_SIZE))
-																						.addComponent(
-																								iconInactiveBrowseButton))))
-										.addContainerGap(69, Short.MAX_VALUE)));
+		gl_iconsPanel.setHorizontalGroup(
+			gl_iconsPanel.createParallelGroup(Alignment.LEADING)
+				.addGroup(gl_iconsPanel.createSequentialGroup()
+					.addContainerGap()
+					.addGroup(gl_iconsPanel.createParallelGroup(Alignment.LEADING, false)
+						.addComponent(iconInactiveLabel, Alignment.TRAILING, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+						.addComponent(iconNormalLabel, Alignment.TRAILING, GroupLayout.PREFERRED_SIZE, 112, GroupLayout.PREFERRED_SIZE))
+					.addPreferredGap(ComponentPlacement.RELATED)
+					.addGroup(gl_iconsPanel.createParallelGroup(Alignment.TRAILING)
+						.addComponent(iconNormalText, GroupLayout.DEFAULT_SIZE, 331, Short.MAX_VALUE)
+						.addComponent(iconInactiveText, GroupLayout.DEFAULT_SIZE, 331, Short.MAX_VALUE))
+					.addPreferredGap(ComponentPlacement.RELATED)
+					.addGroup(gl_iconsPanel.createParallelGroup(Alignment.LEADING)
+						.addComponent(iconInactiveBrowseButton, Alignment.TRAILING, GroupLayout.PREFERRED_SIZE, 25, GroupLayout.PREFERRED_SIZE)
+						.addComponent(iconNormalBrowseButton, Alignment.TRAILING, GroupLayout.PREFERRED_SIZE, 25, GroupLayout.PREFERRED_SIZE))
+					.addContainerGap())
+		);
+		gl_iconsPanel.setVerticalGroup(
+			gl_iconsPanel.createParallelGroup(Alignment.LEADING)
+				.addGroup(gl_iconsPanel.createSequentialGroup()
+					.addContainerGap()
+					.addGroup(gl_iconsPanel.createParallelGroup(Alignment.BASELINE)
+						.addComponent(iconNormalText, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+						.addComponent(iconNormalBrowseButton)
+						.addComponent(iconNormalLabel))
+					.addGroup(gl_iconsPanel.createParallelGroup(Alignment.LEADING)
+						.addGroup(gl_iconsPanel.createSequentialGroup()
+							.addGap(9)
+							.addComponent(iconInactiveLabel))
+						.addGroup(gl_iconsPanel.createSequentialGroup()
+							.addPreferredGap(ComponentPlacement.RELATED)
+							.addGroup(gl_iconsPanel.createParallelGroup(Alignment.LEADING)
+								.addGroup(gl_iconsPanel.createSequentialGroup()
+									.addGap(1)
+									.addComponent(iconInactiveText, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
+								.addComponent(iconInactiveBrowseButton))))
+					.addContainerGap(169, Short.MAX_VALUE))
+		);
 		iconsPanel.setLayout(gl_iconsPanel);
 
 		iconNormalBrowseButton.addMouseListener(new MouseAdapter() {
@@ -506,6 +451,7 @@ public class TabbedSettingsFrame extends JFrame {
 			configuration.writeConfiguration();
 			
 			checkStartupLink();
+			ndsrTrayIcon.reloadIcons();
 		} catch (FileNotFoundException ex) {
 			log.error("Configuration property file not found", ex);
 		} catch (IOException ex) {
@@ -589,5 +535,9 @@ public class TabbedSettingsFrame extends JFrame {
 		initRunNdsrAtStartUpChkbox();
 		
 		setVisible(true);
+	}
+
+	public void setNdsrTrayIcon(NdsrTrayIcon ndsrTrayIcon) {
+		this.ndsrTrayIcon = ndsrTrayIcon;
 	}
 }

@@ -62,16 +62,13 @@ public class Configuration {
 	private static final int DEFAULT_MINUTES_BEFORE_FIRST_EVENT = 10;
 	private static final int DEFAULT_EVENT_MINUTES_AHEAD = 5;
 	private static final String DEFAULT_EVENT_NAME = "Work";
-	private static final String DEFAULT_NORMAL_WIN_ICON_LOCATION = "icon/no.png";
-	private static final String DEFAULT_INACTIVE_WIN_ICON_LOCATION = "icon/no_gray.png";
-	private static final String DEFAULT_NORMAL_LINUX_ICON_LOCATION = "icon/no_linux.png";
-	private static final String DEFAULT_INACTIVE_LINUX_ICON_LOCATION = "icon/no_gray_linux.png";
+	private static final String DEFAULT_NORMAL_ICON_LOCATION = "";
+	private static final String DEFAULT_INACTIVE_ICON_LOCATION = "";
 
 	private static final String[] STANDARD_CONF_FILES = { Configuration.DEFAULT_PROPERTIES_FILENAME };
 	private static final String[] DEVELOPMENT_CONF_FILES = {"C:\\Program Files\\ndsr\\passwd.properties",
 			"/home/adro/ndsr/passwd.properties", "c:\\Program Files\\NdsrTest\\passwd.properties" };
 	
-	private final String os = System.getProperty("os.name").toLowerCase();
 	private boolean initilized = false;
 	
 	public Configuration(boolean development) {
@@ -387,9 +384,8 @@ public class Configuration {
 
 	public String getNormalIconLocation() {
 		String iconLocation = properties.getProperty(NORMAL_ICON_LOCATION);
-		if (iconLocation == null || iconLocation.isEmpty()) {
-			iconLocation = os.equals("linux") ? DEFAULT_NORMAL_LINUX_ICON_LOCATION
-					: DEFAULT_NORMAL_WIN_ICON_LOCATION;
+		if (iconLocation == null) {
+			iconLocation = DEFAULT_NORMAL_ICON_LOCATION;
 		}
 		return iconLocation;
 	}
@@ -400,9 +396,8 @@ public class Configuration {
 	
 	public String getInactiveIconLocation() {
 		String iconLocation = properties.getProperty(INACTIVE_ICON_LOCATION);
-		if (iconLocation == null || iconLocation.isEmpty()) {
-			iconLocation = os.equals("linux") ? DEFAULT_INACTIVE_LINUX_ICON_LOCATION
-					: DEFAULT_INACTIVE_WIN_ICON_LOCATION;
+		if (iconLocation == null) {
+			iconLocation = DEFAULT_INACTIVE_ICON_LOCATION;
 		}
 		return iconLocation;
 	}

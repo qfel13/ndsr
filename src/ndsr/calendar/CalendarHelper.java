@@ -459,7 +459,6 @@ public class CalendarHelper {
 		SimpleDateFormat sdf;
 		java.util.Calendar cal;
 		Date date;
-		int week;
 		String sample = month+"/"+day+"/"+year;
 		sdf = new SimpleDateFormat("MM/dd/yyyy");
 		date = sdf.parse(sample);

@@ -12,6 +12,7 @@
 	<property name="jar.dir" value="${build.dir}/jar" />
 	<property name="lib.dir" value="lib" />
 	<property name="script.dir" value="scripts" />
+	<property name="resourcesDir" value="resources" />
 
 	<path id="classpath">
 		<fileset dir="${lib.dir}" includes="**/*.jar" />
@@ -55,6 +56,7 @@
 				<attribute name="Built-Number" value="${build.number}" />
 				<attribute name="Built-Date" value="${NOW}" />
 			</manifest>
+			<fileset dir="${resourcesDir}" />
 		</jar>
 	</target>
 

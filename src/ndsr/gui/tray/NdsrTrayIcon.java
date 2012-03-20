@@ -5,13 +5,16 @@ import java.awt.Image;
 import java.awt.MenuItem;
 import java.awt.PopupMenu;
 import java.awt.SystemTray;
-import java.awt.Toolkit;
 import java.awt.TrayIcon;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
+import java.awt.image.BufferedImage;
 import java.io.File;
+import java.io.IOException;
+
+import javax.imageio.ImageIO;
 
 import ndsr.Configuration;
 import ndsr.Ndsr;
@@ -91,23 +94,44 @@ public class NdsrTrayIcon implements MouseListener {
 		}
 	}
 
+	private BufferedImage loadIcon(String path) {
+		BufferedImage image = null;
+		if (!path.isEmpty()) {
+			File iconFile = new File(path);
+			if (iconFile.exists()) {
+				try {
+					image = ImageIO.read(iconFile);
+				} catch (IOException e) {
+					LOG.error("Loading icon from {} failed", path, e);
+				}
+			}
+		}
+		return image;
+	}
+	
 	public void loadIcons() {
 		String iconPath = configuration.getNormalIconLocation();
 		String grayIconPath = configuration.getInactiveIconLocation();
 
 		LOG.debug("iconPath = {}, grayIconPath = {}", iconPath, grayIconPath);
-
-		File iconFile = new File(iconPath);
-		File grayIconFile = new File(grayIconPath);
-		LOG.debug("Checking tray icon file ...");
-		if (iconFile.exists() && grayIconFile.exists()) {
-			LOG.debug("Tray icon file found");
-			image = Toolkit.getDefaultToolkit().getImage(iconPath);
-			grayImage = Toolkit.getDefaultToolkit().getImage(grayIconPath);
-		} else {
-			LOG.error("Tray icon file NOT found. Try to work without tray.");
-			LOG.info("Trying to work without tray.");
-			return;
+		
+		LOG.debug("Loading normal icon ...");
+		image = loadIcon(iconPath);
+		LOG.debug("Loading gray icon ...");
+		grayImage = loadIcon(grayIconPath);
+		
+		try {
+			if (image == null) {
+				LOG.debug("Loading normal icon from jar ...");
+				image = ImageIO.read(NdsrTrayIcon.class.getResourceAsStream("/icons/no.gif"));
+			}
+			if (grayImage == null) {
+				LOG.debug("Loading gray icon from jar ...");
+				grayImage = ImageIO.read(NdsrTrayIcon.class.getResourceAsStream("/icons/no_gray.gif"));
+			}
+		} catch (IOException e) {
+			LOG.error("Loading icons from jar failed", e);
+			//TODO
 		}
 	}
 

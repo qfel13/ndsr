@@ -62,9 +62,23 @@ public class Ndsr {
 		ndsrTrayIcon = new NdsrTrayIcon(this, configuration, version);
 		initIdleTime();
 
+		settingsFrame.setNdsrTrayIcon(ndsrTrayIcon);
 		statisticsFrame = new StatisticsFrame(stats);
 		outOfWorkFrame = new OutOfWorkFrame(this);
 		aboutFrame = new AboutFrame(version);
+	}
+
+	private void initIdleTime() {
+		String os = System.getProperty("os.name").toLowerCase();
+	
+		if (os.equals("linux")) {
+			idleTime = new LinuxIdleTime();
+		} else if (os.startsWith("windows")) {
+			idleTime = new WindowsIdleTime();
+		} else {
+			LOG.error("Unsupported operating system: {}", os);
+			System.exit(1);
+		}
 	}
 
 	public void run() {
@@ -199,19 +213,6 @@ public class Ndsr {
 			}
 		}
 		return false;
-	}
-
-	private void initIdleTime() {
-		String os = System.getProperty("os.name").toLowerCase();
-
-		if (os.equals("linux")) {
-			idleTime = new LinuxIdleTime();
-		} else if (os.startsWith("windows")) {
-			idleTime = new WindowsIdleTime();
-		} else {
-			LOG.error("Unsupported operating system: {}", os);
-			System.exit(1);
-		}
 	}
 
 	public void showSettings() {

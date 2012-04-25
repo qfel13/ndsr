@@ -5,13 +5,20 @@ import com.sun.jna.platform.unix.X11;
 
 public class LinuxIdleTime implements IdleTime {
 
+	private final X11 x11;
+	private final Xss xss;
+	
+	public LinuxIdleTime() {
+		x11 = X11.INSTANCE;
+		xss = Xss.INSTANCE;
+	}
+	
 	@Override
 	public int getIdleTimeInMili() {
 		X11.Window win = null;
 		Xss.XScreenSaverInfo info = null;
 		X11.Display dpy = null;
-		final X11 x11 = X11.INSTANCE;
-		final Xss xss = Xss.INSTANCE;
+		
 
 		int idlemillis = 0;
 		try {

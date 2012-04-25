@@ -22,6 +22,7 @@ import ndsr.gui.OutOfWorkFrame;
 import ndsr.gui.StatisticsFrame;
 import ndsr.gui.TabbedSettingsFrame;
 import ndsr.gui.tray.NdsrTrayIcon;
+import ndsr.idle.ZeroIdleTime;
 import ndsr.idle.IdleTime;
 import ndsr.idle.LinuxIdleTime;
 import ndsr.idle.WindowsIdleTime;
@@ -53,6 +54,8 @@ public class Ndsr {
 
 	private Boolean running = false;
 
+	private boolean idleSupported;
+
 	public Ndsr(Configuration configuration, CalendarHelper calendarHelper, TabbedSettingsFrame settings, String version) {
 		this.configuration = configuration;
 		this.calendarHelper = calendarHelper;
@@ -71,15 +74,24 @@ public class Ndsr {
 	}
 
 	private void initIdleTime() {
+		idleSupported = false;
 		String os = System.getProperty("os.name").toLowerCase();
 	
-		if (os.equals("linux")) {
-			idleTime = new LinuxIdleTime();
-		} else if (os.startsWith("windows")) {
-			idleTime = new WindowsIdleTime();
-		} else {
-			LOG.error("Unsupported operating system: {}", os);
-			System.exit(1);
+		try {
+			if (os.equals("linux")) {
+				idleTime = new LinuxIdleTime();
+				idleSupported = true;
+			} else if (os.startsWith("windows")) {
+				idleTime = new WindowsIdleTime();
+				idleSupported = true;
+			} else {
+				LOG.error("Unsupported operating system: {}", os);
+				idleTime = new ZeroIdleTime();
+				idleSupported = false;
+			}
+		} catch (UnsatisfiedLinkError e) {
+			idleTime = new ZeroIdleTime();
+			idleSupported = false;
 		}
 	}
 
@@ -279,5 +291,9 @@ public class Ndsr {
 
 	public void showAbout() {
 		aboutFrame.setVisible(true);
+	}
+
+	public boolean isIdleSupported() {
+		return idleSupported;
 	}
 }

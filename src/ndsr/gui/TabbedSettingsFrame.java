@@ -68,8 +68,10 @@ public class TabbedSettingsFrame extends JFrame {
 	private JLabel lastIdleTimeThresholdLabel = new JLabel("New event after idle (in minutes)");
 	private JLabel minutesBeforeFirstLabel = new JLabel("Minutes before first event");
 	private JLabel eventMinutesAheadLabel = new JLabel("Current event minutes ahead");
-	private JLabel inactiveTimeStartLabel = new JLabel("Inactive time start");
-	private JLabel inactiveTimeEndLabel = new JLabel("Inactive time end");
+	private JLabel inactiveTimeStartLabel = new JLabel("Inactive time start (format 'hh:mm')");
+	private JLabel inactiveTimeEndLabel = new JLabel("Inactive time end (format 'hh:mm')");
+	private JLabel dailyTimeLabel = new JLabel("Daily work time (format 'hh:mm')");
+	private JLabel weeklyTimeLabel = new JLabel("Weekly work time (format 'hh:mm')");
 	// Fields
 	private JTextField sleepTimeText = new JTextField();
 	private JTextField idleTimeText = new JTextField();
@@ -79,6 +81,8 @@ public class TabbedSettingsFrame extends JFrame {
 	private JTextField eventMinutesAheadText = new JTextField();
 	private JTextField inactiveTimeStartText = new JTextField();
 	private JTextField inactiveTimeEndText = new JTextField();
+	private JTextField dailyTimeText = new JTextField();
+	private JTextField weeklyTimeText = new JTextField();
 
 	// Icons Panel
 	private JPanel iconsPanel = new JPanel(/* "Icons" */);
@@ -200,12 +204,19 @@ public class TabbedSettingsFrame extends JFrame {
 		workIpRegExpText.setText(configuration.getWorkIpRegExp());
 		iconNormalText.setText(configuration.getNormalIconLocation());
 		iconInactiveText.setText(configuration.getInactiveIconLocation());
+		
+		dailyTimeText.setText(configuration.getDailyWorkingTimeString());
+		weeklyTimeText.setText(configuration.getWeeklyWorkingTimeString());
 	}
 
 	private void initComponents() {
 		// JFrame settings
 		this.setTitle("Settings");
-		this.setMinimumSize(new Dimension(400, 225));
+		this.setMinimumSize(new Dimension(400, 390));
+		final int COLUMN_1_WIDTH = 213;
+		final int COLUMN_2_WIDTH = 255;
+		final int TABBED_PANEL_WIDTH  = GroupLayout.DEFAULT_SIZE; // Just wrap around the controls
+		final int TABBED_PANEL_HEIGHT = 305;
 		
 		// Events Layout
 		GroupLayout gl_eventsPanel = new GroupLayout(eventsPanel);
@@ -214,24 +225,28 @@ public class TabbedSettingsFrame extends JFrame {
 				.addGroup(gl_eventsPanel.createSequentialGroup()
 					.addContainerGap()
 					.addGroup(gl_eventsPanel.createParallelGroup(Alignment.TRAILING)
-						.addComponent(inactiveTimeEndLabel, Alignment.LEADING, GroupLayout.DEFAULT_SIZE, 213, Short.MAX_VALUE)
-						.addComponent(inactiveTimeStartLabel, Alignment.LEADING, GroupLayout.DEFAULT_SIZE, 213, Short.MAX_VALUE)
-						.addComponent(eventMinutesAheadLabel, Alignment.LEADING, GroupLayout.DEFAULT_SIZE, 213, Short.MAX_VALUE)
-						.addComponent(minutesBeforeFirstLabel, Alignment.LEADING, GroupLayout.DEFAULT_SIZE, 213, Short.MAX_VALUE)
-						.addComponent(idleTimeLabel, Alignment.LEADING, GroupLayout.DEFAULT_SIZE, 213, Short.MAX_VALUE)
-						.addComponent(eventNameLabel, Alignment.LEADING, GroupLayout.DEFAULT_SIZE, 213, Short.MAX_VALUE)
-						.addComponent(sleepTimeLabel, Alignment.LEADING, GroupLayout.DEFAULT_SIZE, 213, Short.MAX_VALUE)
-						.addComponent(lastIdleTimeThresholdLabel, Alignment.LEADING, GroupLayout.DEFAULT_SIZE, 213, Short.MAX_VALUE))
+						.addComponent(weeklyTimeLabel, Alignment.LEADING, GroupLayout.DEFAULT_SIZE, COLUMN_1_WIDTH, Short.MAX_VALUE)
+						.addComponent(dailyTimeLabel, Alignment.LEADING, GroupLayout.DEFAULT_SIZE, COLUMN_1_WIDTH, Short.MAX_VALUE)
+						.addComponent(inactiveTimeEndLabel, Alignment.LEADING, GroupLayout.DEFAULT_SIZE, COLUMN_1_WIDTH, Short.MAX_VALUE)
+						.addComponent(inactiveTimeStartLabel, Alignment.LEADING, GroupLayout.DEFAULT_SIZE, COLUMN_1_WIDTH, Short.MAX_VALUE)
+						.addComponent(eventMinutesAheadLabel, Alignment.LEADING, GroupLayout.DEFAULT_SIZE, COLUMN_1_WIDTH, Short.MAX_VALUE)
+						.addComponent(minutesBeforeFirstLabel, Alignment.LEADING, GroupLayout.DEFAULT_SIZE, COLUMN_1_WIDTH, Short.MAX_VALUE)
+						.addComponent(idleTimeLabel, Alignment.LEADING, GroupLayout.DEFAULT_SIZE, COLUMN_1_WIDTH, Short.MAX_VALUE)
+						.addComponent(eventNameLabel, Alignment.LEADING, GroupLayout.DEFAULT_SIZE, COLUMN_1_WIDTH, Short.MAX_VALUE)
+						.addComponent(sleepTimeLabel, Alignment.LEADING, GroupLayout.DEFAULT_SIZE, COLUMN_1_WIDTH, Short.MAX_VALUE)
+						.addComponent(lastIdleTimeThresholdLabel, Alignment.LEADING, GroupLayout.DEFAULT_SIZE, COLUMN_1_WIDTH, Short.MAX_VALUE))
 					.addPreferredGap(ComponentPlacement.UNRELATED)
 					.addGroup(gl_eventsPanel.createParallelGroup(Alignment.LEADING)
-						.addComponent(inactiveTimeStartText, Alignment.TRAILING, GroupLayout.DEFAULT_SIZE, 255, Short.MAX_VALUE)
-						.addComponent(eventMinutesAheadText, Alignment.TRAILING, GroupLayout.DEFAULT_SIZE, 255, Short.MAX_VALUE)
-						.addComponent(minutesBeforeFirstText, Alignment.TRAILING, GroupLayout.DEFAULT_SIZE, 255, Short.MAX_VALUE)
-						.addComponent(sleepTimeText, Alignment.TRAILING, GroupLayout.DEFAULT_SIZE, 255, Short.MAX_VALUE)
-						.addComponent(idleTimeText, Alignment.TRAILING, GroupLayout.DEFAULT_SIZE, 255, Short.MAX_VALUE)
-						.addComponent(eventNameText, Alignment.TRAILING, GroupLayout.DEFAULT_SIZE, 255, Short.MAX_VALUE)
-						.addComponent(lastIdleTimeThresholdText, Alignment.TRAILING, GroupLayout.DEFAULT_SIZE, 255, Short.MAX_VALUE)
-						.addComponent(inactiveTimeEndText, Alignment.TRAILING, GroupLayout.DEFAULT_SIZE, 255, Short.MAX_VALUE))
+						.addComponent(weeklyTimeText, GroupLayout.DEFAULT_SIZE, COLUMN_2_WIDTH / 2, Short.MAX_VALUE)
+						.addComponent(dailyTimeText, GroupLayout.DEFAULT_SIZE, COLUMN_2_WIDTH / 2, Short.MAX_VALUE)
+						.addComponent(inactiveTimeStartText, Alignment.TRAILING, GroupLayout.DEFAULT_SIZE, COLUMN_2_WIDTH, Short.MAX_VALUE)
+						.addComponent(eventMinutesAheadText, Alignment.TRAILING, GroupLayout.DEFAULT_SIZE, COLUMN_2_WIDTH, Short.MAX_VALUE)
+						.addComponent(minutesBeforeFirstText, Alignment.TRAILING, GroupLayout.DEFAULT_SIZE, COLUMN_2_WIDTH, Short.MAX_VALUE)
+						.addComponent(sleepTimeText, Alignment.TRAILING, GroupLayout.DEFAULT_SIZE, COLUMN_2_WIDTH, Short.MAX_VALUE)
+						.addComponent(idleTimeText, Alignment.TRAILING, GroupLayout.DEFAULT_SIZE, COLUMN_2_WIDTH, Short.MAX_VALUE)
+						.addComponent(eventNameText, Alignment.TRAILING, GroupLayout.DEFAULT_SIZE, COLUMN_2_WIDTH, Short.MAX_VALUE)
+						.addComponent(lastIdleTimeThresholdText, Alignment.TRAILING, GroupLayout.DEFAULT_SIZE, COLUMN_2_WIDTH, Short.MAX_VALUE)
+						.addComponent(inactiveTimeEndText, Alignment.TRAILING, GroupLayout.DEFAULT_SIZE, COLUMN_2_WIDTH, Short.MAX_VALUE))
 					.addContainerGap())
 		);
 		gl_eventsPanel.setVerticalGroup(
@@ -269,6 +284,14 @@ public class TabbedSettingsFrame extends JFrame {
 					.addGroup(gl_eventsPanel.createParallelGroup(Alignment.BASELINE)
 						.addComponent(inactiveTimeEndLabel)
 						.addComponent(inactiveTimeEndText, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
+					.addPreferredGap(ComponentPlacement.RELATED)
+					.addGroup(gl_eventsPanel.createParallelGroup(Alignment.LEADING)
+						.addComponent(dailyTimeLabel)
+						.addComponent(dailyTimeText, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
+					.addPreferredGap(ComponentPlacement.RELATED)
+					.addGroup(gl_eventsPanel.createParallelGroup(Alignment.LEADING)
+						.addComponent(weeklyTimeLabel)
+						.addComponent(weeklyTimeText, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
 					.addGap(43))
 		);
 		eventsPanel.setLayout(gl_eventsPanel);
@@ -381,7 +404,7 @@ public class TabbedSettingsFrame extends JFrame {
 			layout.createParallelGroup(Alignment.LEADING)
 				.addGroup(layout.createSequentialGroup()
 					.addContainerGap()
-					.addComponent(settingsTabbedPanel, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+					.addComponent(settingsTabbedPanel, GroupLayout.PREFERRED_SIZE, TABBED_PANEL_WIDTH, GroupLayout.PREFERRED_SIZE)
 					.addContainerGap())
 				.addGroup(Alignment.TRAILING, layout.createSequentialGroup()
 					.addContainerGap(395, Short.MAX_VALUE)
@@ -394,7 +417,7 @@ public class TabbedSettingsFrame extends JFrame {
 			layout.createParallelGroup(Alignment.LEADING)
 				.addGroup(layout.createSequentialGroup()
 					.addContainerGap()
-					.addComponent(settingsTabbedPanel, GroupLayout.PREFERRED_SIZE, 260, GroupLayout.PREFERRED_SIZE)
+					.addComponent(settingsTabbedPanel, GroupLayout.PREFERRED_SIZE, TABBED_PANEL_HEIGHT, GroupLayout.PREFERRED_SIZE)
 					.addPreferredGap(ComponentPlacement.RELATED)
 					.addGroup(layout.createParallelGroup(Alignment.BASELINE)
 						.addComponent(okButton, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
@@ -443,6 +466,9 @@ public class TabbedSettingsFrame extends JFrame {
 			} catch (IllegalArgumentException e) {
 				log.debug("zly format czasu", e);
 			}
+			
+			configuration.setDailyWorkingTime(configuration.parseTimeString(dailyTimeText.getText()));
+			configuration.setWeeklyWorkingTime(configuration.parseTimeString(weeklyTimeText.getText()));
 
 			configuration.setWorkIpRegExp(workIpRegExpText.getText());
 			configuration.setNormalIconLocation(iconNormalText.getText());

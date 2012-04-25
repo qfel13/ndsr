@@ -15,7 +15,6 @@ import java.util.TimeZone;
 import ndsr.Configuration;
 import ndsr.beans.Stats;
 
-//import org.jfree.util.Log;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -47,9 +46,9 @@ public class CalendarHelper {
 	private HttpTransport httpTransport = new NetHttpTransport();
 	private JacksonFactory jsonFactory = new JacksonFactory();
 
-	private Calendar calendarService = null;
+	private static Calendar calendarService = null;
 	private boolean initialized = false;
-	private Configuration configuration;
+	private static Configuration configuration;
 	
 	private List<Event> weekEventList;
 	private List<Event> todayEventList;
@@ -59,7 +58,7 @@ public class CalendarHelper {
 	private List<CalendarListEntry> calendarList;
 
 	public CalendarHelper(Configuration configuration) {
-		this.configuration = configuration;
+		CalendarHelper.configuration = configuration;
 
 		if (configuration.isInitialConfiguraionDone()) {
 			String accessToken = configuration.getAccessToken();
@@ -299,10 +298,18 @@ public class CalendarHelper {
 		}
 		return todayEvents;
 	}
+	
+	public void initEventLists() {
+		try {
+			weekEventList = getEvents(getWeekBegin(), getWeekEnd());
+		} catch (IOException e) {
+			weekEventList = new ArrayList<Event>();
+		}
+		todayEventList = getTodayEvents(weekEventList);
+	}
 
 	public Event createOrUpdate() throws IOException {
-		weekEventList = getEvents(getWeekBegin(), getWeekEnd());
-		todayEventList = getTodayEvents(weekEventList);
+		initEventLists();
 
 		Event eventForUpdate = getLatestEvent(todayEventList);
 
@@ -373,7 +380,7 @@ public class CalendarHelper {
 		return createdEvent;
 	}
 
-	private List<Event> getEvents(java.util.Calendar todayBegin, java.util.Calendar todayEnd) throws IOException {
+	public static List<Event> getEvents(java.util.Calendar todayBegin, java.util.Calendar todayEnd) throws IOException {
 		if (calendarService == null) {
 			throw new IllegalStateException("Calendar service is not initialized");
 		}
@@ -385,7 +392,6 @@ public class CalendarHelper {
 		String calendarId = configuration.getCalendarId();
 		LOG.debug("calendarId = {}", calendarId);
 		Events events = calendarService.events().list(calendarId).setTimeMin(timeMin).setTimeMax(timeMax).execute();
-		++counter;
 
 		List<Event> eventList = new ArrayList<Event>();
 
@@ -402,7 +408,6 @@ public class CalendarHelper {
 			String pageToken = events.getNextPageToken();
 			if (pageToken != null && !pageToken.isEmpty()) {
 				events = calendarService.events().list(calendarId).setPageToken(pageToken).execute();
-				++counter;
 			} else {
 				break;
 			}
@@ -411,41 +416,53 @@ public class CalendarHelper {
 	}
 
 	public Stats getStats() throws IOException {
-		Stats s = new Stats();
-		getTodayStats(s);
-		getWeekStats(s);
+		Stats s = new Stats(configuration);
+		s.setToday(getTotalTime(todayEventList));
+		s.setWeek(getTotalTime(weekEventList));
+		s.setWeekDays(getWeekDays(weekEventList), getWeekBegin());
 		return s;
 	}
 	
-	private long getStart(Event event) {
+	private static long getStart(Event event) {
 		return event.getStart().getDateTime().getValue();
 	}
 	
-	private long getEnd(Event event) {
+	private static long getEnd(Event event) {
 		return event.getEnd().getDateTime().getValue();
 	}
 	
-	private Stats getTodayStats(Stats stats) throws IOException {
-		LOG.debug("Today event list size = {}", todayEventList.size());
+	public static long[] getWeekDays(List<Event> events) throws IOException {
+		LOG.debug("Events list size = {}", events.size());
+		long[] days = new long[7];
+		
+		for (Event event : events) {
+			String title = event.getSummary();
+			String eventName = configuration.getEventName();
+			java.util.Calendar cal = java.util.Calendar.getInstance();
+			if (title != null && eventName != null && title.startsWith(eventName)) {
+				cal.setTimeInMillis(getEnd(event));
+				days[(cal.get(java.util.Calendar.DAY_OF_WEEK) - 2) % 7] += getEnd(event) - getStart(event);
+			}
+		}
+
+		return days;
+	}
+	
+	private long getTotalTime(List<Event> events) throws IOException {
+		LOG.debug("Events list size = {}", events.size());
 		
 		long milis = 0;
-		for (Event event : todayEventList) {
+		for (Event event : events) {
 			String title = event.getSummary();
 			String eventName = configuration.getEventName();
 			if (title != null && eventName != null && title.startsWith(eventName)) {
 				milis += getEnd(event) - getStart(event);
 			}
 		}
-		long sec = milis / 1000;
-		long min = sec / 60;
-		long hours = min / 60;
-		long minutes = min % 60;
 
-		stats.setToday(hours, minutes);
-
-		return stats;
+		return milis;
 	}
-
+	
 	private java.util.Calendar getWeekBegin() {
 		java.util.Calendar cal = getTodayBegin();
 		int dayOfWeek = cal.get(java.util.Calendar.DAY_OF_WEEK);
@@ -457,27 +474,6 @@ public class CalendarHelper {
 		java.util.Calendar cal = getWeekBegin();
 		cal.add(java.util.Calendar.DATE, 7);
 		return cal;
-	}
-	
-	private Stats getWeekStats(Stats stats) throws IOException {
-		LOG.debug("Week event list size = {}", weekEventList.size());
-		
-		long milis = 0;
-		for (Event event : weekEventList) {
-			String title = event.getSummary();
-			String eventName = configuration.getEventName();
-			if (title != null && eventName != null && title.startsWith(eventName)) {
-				milis += getEnd(event) - getStart(event);
-			}
-		}
-		long sec = milis / 1000;
-		long min = sec / 60;
-		long hours = min / 60;
-		long minutes = min % 60;
-
-		stats.setWeek(hours, minutes);
-
-		return stats;
 	}
 	
 	private int getWeekInYear(int year, int month, int day) throws ParseException {

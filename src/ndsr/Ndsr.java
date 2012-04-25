@@ -30,6 +30,8 @@ import ndsr.utils.PathExtractor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.api.services.calendar.model.Event;
+
 /**
  * @author lkufel
  */
@@ -63,7 +65,7 @@ public class Ndsr {
 		initIdleTime();
 
 		settingsFrame.setNdsrTrayIcon(ndsrTrayIcon);
-		statisticsFrame = new StatisticsFrame(stats);
+		statisticsFrame = new StatisticsFrame(stats, configuration);
 		outOfWorkFrame = new OutOfWorkFrame(this);
 		aboutFrame = new AboutFrame(version);
 	}
@@ -126,6 +128,10 @@ public class Ndsr {
 							ndsrTrayIcon.setToolTip("Not at work");
 						}
 						ndsrTrayIcon.useGrayIcon();
+						if (stats == null) {
+							calendarHelper.initEventLists();
+							stats = calendarHelper.getStats();
+						}
 					}
 				} else {
 					LOG.debug("IDLE: System is idle for more then {} min", idleTimeInSec / 60);

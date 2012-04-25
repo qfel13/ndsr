@@ -51,6 +51,9 @@ public class Configuration {
 	private static final String NORMAL_ICON_LOCATION = "normalIconLocation";
 	private static final String INACTIVE_ICON_LOCATION = "inactiveIconLocation";
 	private static final String HISTORY_START_DATE = "historyStartDate";
+	// Working time
+	private static final String DAILY_WORKING_TIME = "dailyWorkingTime";
+	private static final String WEEKLY_WORKING_TIME = "weeklyWorkingTime";
 	
 	//
 	private static final String COUNTER = "counter";
@@ -208,7 +211,18 @@ public class Configuration {
 		properties.setProperty(EVENT_MINUTES_AHEAD, "" + parseIntOrDefault(eventMinutesAhead, DEFAULT_EVENT_MINUTES_AHEAD));
 	}
 	
-	private int getHour(String time) {
+	public long parseTimeString(String time) {
+		try {
+			int hour = getHour(time, true);
+			int min = getMinute(time);
+			return (hour * 3600000) + (min * 60000); 
+		} catch (Exception e) {
+			LOG.error("Cannot parse time string ='" + time + "'. Exception is: ", e);
+		}
+		return 0;
+	}
+	
+	private int getHour(String time, boolean allowMoreThenDay) {
 		int colonIndex = time.indexOf(":");
 		if (colonIndex == -1) {
 			throw new IllegalArgumentException("Time should contain colon");
@@ -217,7 +231,7 @@ public class Configuration {
 		try {
 			int hour = Integer.valueOf(hourStr, 10);
 			
-			if (hour < 0 || hour > 23) {
+			if (hour < 0 || (!allowMoreThenDay && hour > 23)) {
 				throw new IllegalArgumentException("Hour should be between 0 and 23");
 			}
 			
@@ -256,7 +270,7 @@ public class Configuration {
 	
 	public void setInactiveTimeStart(String inactiveTimeStart) {
 		if (!inactiveTimeStart.isEmpty()) {
-			int inactiveTimeStartHour = getHour(inactiveTimeStart);
+			int inactiveTimeStartHour = getHour(inactiveTimeStart, false);
 			int inactiveTimeStartMinute = getMinute(inactiveTimeStart);
 			
 			LOG.debug("inactiveTimeStartHour = {}", inactiveTimeStartHour);
@@ -296,7 +310,7 @@ public class Configuration {
 	
 	public void setInactiveTimeEnd(String inactiveTimeEnd) {
 		if (!inactiveTimeEnd.isEmpty()) {
-			int inactiveTimeEndHour = getHour(inactiveTimeEnd);
+			int inactiveTimeEndHour = getHour(inactiveTimeEnd, false);
 			int inactiveTimeEndMinute = getMinute(inactiveTimeEnd);
 			
 			LOG.debug("inactiveTimeEndHour = {}", inactiveTimeEndHour);
@@ -430,6 +444,31 @@ public class Configuration {
 		properties.setProperty(HISTORY_START_DATE, value);
 	}
 	
+	public long getDailyWorkingTime() {
+		return parseLongOrDefault(properties.getProperty(DAILY_WORKING_TIME), 28800000); // default 8 hours
+	}
+	
+	public String getDailyWorkingTimeString() {
+		long time = getDailyWorkingTime();
+		return String.format("%02d:%02d", (time / 3600000), (time / 60000) % 60);
+	}
+	
+	public void setDailyWorkingTime(long value) {
+		properties.setProperty(DAILY_WORKING_TIME, String.valueOf(value));
+	}
+	
+	public long getWeeklyWorkingTime() {
+		return parseLongOrDefault(properties.getProperty(WEEKLY_WORKING_TIME), 144000000); // default 40 hours
+	}
+	
+	public String getWeeklyWorkingTimeString() {
+		long time = getWeeklyWorkingTime();
+		return String.format("%02d:%02d", (time / 3600000), (time / 60000) % 60);
+	}
+	
+	public void setWeeklyWorkingTime(long value) {
+		properties.setProperty(WEEKLY_WORKING_TIME, String.valueOf(value));
+	}
 
 	public void readConfiguration(String filename) throws FileNotFoundException, IOException {
 		readConfiguration(new File(filename));

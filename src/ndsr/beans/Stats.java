@@ -1,160 +1,155 @@
 package ndsr.beans;
 
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+
+import ndsr.Configuration;
+
+
 /**
  * @author lkufel
  */
 public class Stats {
-	private int weekHoursWithoutVacation = 40;
-	private int standardOneDayHours = 8;
+	SimpleDateFormat weekIdFormat = new SimpleDateFormat("ddMMyy");
 	
-	private long todayHours;
-	private long todayMinutes;
-	private long weekHours;
-	private long weekMinutes;
-
-	private long remainingTodayHours;
-	private long remainingTodayMinutes;
-	private long remainingWeekHours;
-	private long remainingWeekMinutes;
-
-	private long overtimeTodayHours;
-	private long overtimeTodayMinutes;
-	private long overtimeWeekHours;
-	private long overtimeWeekMinutes;
-
-	public void setWeekHoursWithoutVacation(int withoutVacation) {
-		weekHoursWithoutVacation = withoutVacation;
-	}
+	// in miliseconds
+	public final long oneDayTime;
+	public final long oneWeekTime;
 	
-	public void substractDaysFromWeek(int days) {
-		weekHoursWithoutVacation -= days * 8;
+	private Calendar weekBegin;
+	private Calendar weekEnd;
+	private long[] weekDays;
+	private String weekId;
+	
+	private long today;
+	private long week;
+
+	public Stats(Configuration configuration) {
+		super();
+		oneDayTime = configuration.getDailyWorkingTime();
+		oneWeekTime = configuration.getWeeklyWorkingTime();
 	}
 
-	public void setToday(long todayHours, long todayMinutes) {
-		this.todayMinutes = todayMinutes;
-		this.todayHours = todayHours;
+	public void setToday(long milis) {
+		today = milis;
+	}
+	
+	public long getToday() {
+		return today;
+	}
+	
+	public long getRemainingToday() {
+		long remain = oneDayTime - today;
+		return remain < 0 ? 0 : remain;
+	}
+	
+	public long getOvertimeToday() {
+		long remain = today - oneDayTime;
+		return remain < 0 ? 0 : remain;
+	}
 
-		if (todayHours < standardOneDayHours || (todayHours == standardOneDayHours && todayMinutes == 0)) {
-			remainingTodayMinutes = todayMinutes == 0 ? 0 : 60 - todayMinutes;
-			remainingTodayHours = (todayMinutes > 0 ? -1 : 0) + standardOneDayHours - todayHours;
-		} else {
-			remainingTodayMinutes = 0;
-			remainingTodayHours = 0;
-			overtimeTodayHours = todayHours - standardOneDayHours;
-			overtimeTodayMinutes = todayMinutes;
+	public static long getHours(long time) {
+		return time / 3600000;
+	}
+
+	public static long getMinutes(long time) {
+		return (time / 60000) % 60;
+	}
+
+	public void setWeek(long milis) {
+		this.week = milis;
+	}
+
+	public long getWeek() {
+		return week;
+	}
+	
+	public long getRemainingWeek() {
+		long remain = oneWeekTime - week;
+		return remain < 0 ? 0 : remain;
+	}
+	
+	public long getOvertimeWeek() {
+		long remain = week - oneWeekTime;
+		return remain < 0 ? 0 : remain;
+	}
+
+	public long[] getWeekDays() {
+		return weekDays;
+	}
+
+	public void setWeekDays(long[] weekDays, Calendar weekBegin) {
+		this.weekDays = weekDays;
+		this.weekBegin = weekBegin;
+		this.weekId = weekIdFormat.format(weekBegin.getTime());
+		this.weekEnd = (Calendar)weekBegin.clone();
+		this.weekEnd.add(Calendar.DAY_OF_MONTH, 7);
+		this.weekEnd.add(Calendar.SECOND, -1);
+		if (this.week == 0) {
+			for (int q=0; q<weekDays.length; q++) {
+				this.week += weekDays[q];
+			}
 		}
 	}
 
-	public void setWeek(long weekHours, long weekMinutes) {
-		this.weekMinutes = weekMinutes;
-		this.weekHours = weekHours;
-		
-		if (weekHours < weekHoursWithoutVacation || (weekHours == weekHoursWithoutVacation && weekMinutes == 0)) {
-			remainingWeekMinutes = weekMinutes == 0 ? 0 : 60 - weekMinutes;
-			remainingWeekHours = (weekMinutes > 0 ? -1 : 0) + weekHoursWithoutVacation - weekHours;
-		} else {
-			remainingWeekMinutes = 0;
-			remainingWeekHours = 0;
-			overtimeWeekHours = weekHours - weekHoursWithoutVacation;
-			overtimeWeekMinutes = weekMinutes;
+	public String getWeekId() {
+		return weekId;
+	}
+
+	public Calendar getWeekBegin() {
+		return weekBegin;
+	}
+
+	public Calendar getWeekEnd() {
+		return weekEnd;
+	}
+	
+	public static String getFormatedTime(long time, StatType type, long limit) {
+		long h = 0; 
+		long m = 0;
+		switch (type) {
+		case Normal:
+			h = time / 3600000;
+			m = (time / 60000) % 60;
+			break;
+		case Remaining:
+			h = (limit - time < 0 ? 0 : limit - time) / 3600000;
+			m = ((limit - time < 0 ? 0 : limit - time) / 60000) % 60;
+			break;
+		case Overtime:
+			h = (time - limit < 0 ? 0 : time - limit) / 3600000;
+			m = ((time - limit < 0 ? 0 : time - limit) / 60000) % 60;
 		}
-	}
 
-	public long getRemainingTodayHours() {
-		return remainingTodayHours;
-	}
-
-	public long getRemainingTodayMinutes() {
-		return remainingTodayMinutes;
-	}
-
-	public long getRemainingWeekHours() {
-		return remainingWeekHours;
-	}
-
-	public long getRemainingWeekMinutes() {
-		return remainingWeekMinutes;
-	}
-
-	public long getTodayHours() {
-		return todayHours;
-	}
-
-	public long getTodayMinutes() {
-		return todayMinutes;
-	}
-
-	public long getWeekHours() {
-		return weekHours;
-	}
-
-	public long getWeekMinutes() {
-		return weekMinutes;
-	}
-
-	public long getOvertimeTodayHours() {
-		return overtimeTodayHours;
-	}
-
-	public long getOvertimeTodayMinutes() {
-		return overtimeTodayMinutes;
-	}
-
-	public long getOvertimeWeekHours() {
-		return overtimeWeekHours;
-	}
-
-	public long getOvertimeWeekMinutes() {
-		return overtimeWeekMinutes;
+		return String.format("%02d:%02d", h, m);
 	}
 
 	public String toWeekString() {
-		StringBuilder s = new StringBuilder();
-
-		s.append("Week\n");
-		s.append(getTwoDigits(weekHours)).append(":").append(getTwoDigits(weekMinutes)).append(" - worked\n");
-		s.append(getTwoDigits(remainingWeekHours)).append(":").append(getTwoDigits(remainingWeekMinutes)).append(" - remaining\n");
-		s.append(getTwoDigits(overtimeWeekHours)).append(":").append(getTwoDigits(overtimeWeekMinutes)).append(" - overtime");
-
-		return s.toString();
+		return String.format("Week\n %02d:%02d- worked\n %02d:%02d - remaining\n %02d:%02d - overtime\n", 
+				getHours(week), getMinutes(week),
+				getHours(getRemainingWeek()), getMinutes(getRemainingWeek()),
+				getHours(getOvertimeWeek()), getMinutes(getOvertimeWeek()));
 	}
 
 	public String toTodayString() {
-		StringBuilder s = new StringBuilder();
-
-		s.append("Today\n");
-		s.append(getTwoDigits(todayHours)).append(":").append(getTwoDigits(todayMinutes)).append(" - worked\n");
-		s.append(getTwoDigits(remainingTodayHours)).append(":").append(getTwoDigits(remainingTodayMinutes)).append(" - remaining\n");
-		s.append(getTwoDigits(overtimeTodayHours)).append(":").append(getTwoDigits(overtimeTodayMinutes)).append(" - overtime\n");
-
-		return s.toString();
+		return String.format("Today\n %02d:%02d- worked\n %02d:%02d - remaining\n %02d:%02d - overtime\n", 
+				getHours(today), getMinutes(today),
+				getHours(getRemainingToday()), getMinutes(getRemainingToday()),
+				getHours(getOvertimeToday()), getMinutes(getOvertimeToday()));
 	}
 
 	@Override
 	public String toString() {
-		StringBuilder s = new StringBuilder();
-		// if (Main.getOs().equals("linux")) {
-		// s.append("Today[");
-		// s.append(getTwoDigits(todayHours)).append(":").append(getTwoDigits(todayMinutes)).append(" <> ");
-		// s.append(getTwoDigits(remainingTodayHours)).append(":").append(getTwoDigits(remainingTodayMinutes))
-		// .append("] Week[");
-		// s.append(getTwoDigits(weekHours)).append(":").append(getTwoDigits(weekMinutes)).append(" <> ");
-		// s.append(getTwoDigits(remainingWeekHours)).append(":").append(getTwoDigits(remainingWeekMinutes))
-		// .append("]");
-		// } else {
-		s.append("Today\n");
-		s.append(getTwoDigits(todayHours)).append(":").append(getTwoDigits(todayMinutes)).append(" - worked\n");
-		s.append(getTwoDigits(remainingTodayHours)).append(":").append(getTwoDigits(remainingTodayMinutes)).append(" - remaining\n");
-		s.append(getTwoDigits(overtimeTodayHours)).append(":").append(getTwoDigits(overtimeTodayMinutes)).append(" - overtime\n");
-		s.append("Week\n");
-		s.append(getTwoDigits(weekHours)).append(":").append(getTwoDigits(weekMinutes)).append(" - worked\n");
-		s.append(getTwoDigits(remainingWeekHours)).append(":").append(getTwoDigits(remainingWeekMinutes)).append(" - remaining\n");
-		s.append(getTwoDigits(overtimeWeekHours)).append(":").append(getTwoDigits(overtimeWeekMinutes)).append(" - overtime");
-		// }
-		return s.toString();
+		return toTodayString() + toWeekString();
 	}
-
-	private String getTwoDigits(long number) {
-		return number < 10 ? "0" + number : "" + number;
-	}
+	
+	///////////////////////////////////////////////////////////////////////////////////////
+	// Helper classes
+	///////////////////////////////////////////////////////////////////////////////////////
+	
+	public enum StatType {
+		Normal,
+		Remaining,
+		Overtime;
+	};
 }

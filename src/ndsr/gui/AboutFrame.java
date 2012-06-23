@@ -81,7 +81,7 @@ public class AboutFrame extends JFrame {
 			groupLayout.createParallelGroup(Alignment.TRAILING)
 				.addGroup(groupLayout.createSequentialGroup()
 					.addContainerGap()
-					.addComponent(contributorsPanel, GroupLayout.PREFERRED_SIZE, 87, GroupLayout.PREFERRED_SIZE)
+					.addComponent(contributorsPanel, GroupLayout.PREFERRED_SIZE, 105, GroupLayout.PREFERRED_SIZE)
 					.addPreferredGap(ComponentPlacement.RELATED)
 //					.addComponent(donatePanel, GroupLayout.DEFAULT_SIZE, 88, Short.MAX_VALUE)
 					.addPreferredGap(ComponentPlacement.RELATED)
@@ -89,14 +89,18 @@ public class AboutFrame extends JFrame {
 					.addContainerGap())
 		);
 		
-		JLabel lblNewLabel = new JLabel("Łukasz Kufel (qfel13)");
+		JLabel lblNewLabel = new JLabel("Ĺ�ukasz Kufel (qfel13)");
 		lblNewLabel.setFont(new Font("Tahoma", Font.BOLD, 11));
 		
-		JLabel label = new JLabel("Adam Różewicki (admroz)");
+		JLabel label = new JLabel("Adam RĂłĹĽewicki (admroz)");
 		label.setFont(new Font("Tahoma", Font.BOLD, 11));
 		
-		JLabel label_1 = new JLabel("Mikołaj Sosna (gitmik)");
+		JLabel label_1 = new JLabel("MikoĹ‚aj Sosna (gitmik)");
 		label_1.setFont(new Font("Tahoma", Font.BOLD, 11));
+		
+		JLabel remi = new JLabel("Remi Ledzinski (remisoft)");
+		remi.setFont(new Font("Tahoma", Font.BOLD, 11));
+		
 		GroupLayout gl_panel = new GroupLayout(contributorsPanel);
 		gl_panel.setHorizontalGroup(
 			gl_panel.createParallelGroup(Alignment.LEADING)
@@ -111,7 +115,11 @@ public class AboutFrame extends JFrame {
 								.addGroup(gl_panel.createSequentialGroup()
 									.addGap(10)
 									.addComponent(label_1))
+								.addGroup(gl_panel.createSequentialGroup()
+									.addGap(10)
+									.addComponent(remi))
 								.addComponent(label))
+								
 							.addGap(131))))
 		);
 		gl_panel.setVerticalGroup(
@@ -122,6 +130,8 @@ public class AboutFrame extends JFrame {
 					.addComponent(label)
 					.addPreferredGap(ComponentPlacement.RELATED)
 					.addComponent(label_1)
+					.addPreferredGap(ComponentPlacement.RELATED)
+					.addComponent(remi)
 					.addContainerGap(12, Short.MAX_VALUE))
 		);
 		contributorsPanel.setLayout(gl_panel);

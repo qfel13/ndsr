@@ -53,7 +53,7 @@ public class Main {
 
 		version = VersionRetriever.getVersion();
 		
-		configuration = new Configuration(development);
+		configuration = Configuration.init(development);
 		calendarHelper = new CalendarHelper(configuration);
 		
 		if (systemLookAndFeel) {

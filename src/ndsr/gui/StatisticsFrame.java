@@ -4,15 +4,19 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Container;
+import java.awt.Cursor;
 import java.awt.Dimension;
+import java.awt.Font;
 import java.awt.Toolkit;
-import java.io.IOException;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.List;
+import java.util.Date;
 import java.util.Vector;
 
+import javax.swing.BorderFactory;
+import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JFrame;
@@ -25,9 +29,9 @@ import javax.swing.table.DefaultTableModel;
 
 import ndsr.Configuration;
 import ndsr.beans.Stats;
-import ndsr.beans.Stats.StatType;
-import ndsr.calendar.CalendarHelper;
+import ndsr.enums.StatType;
 
+import org.jbundle.thin.base.screen.jcalendarbutton.JCalendarButton;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.ChartPanel;
 import org.jfree.chart.JFreeChart;
@@ -38,34 +42,34 @@ import org.jfree.data.category.DefaultCategoryDataset;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.api.services.calendar.model.Event;
-
 /**
  * @author lkufel
  */
 public class StatisticsFrame extends JFrame {
 	private static final Logger LOG = LoggerFactory.getLogger(StatisticsFrame.class);
 	private static final long serialVersionUID = -379577152202282273L;
-
-	private JPanel topPanel;
+	private static final int WINDOW_WIDTH = 600;
+	private static final int WINDOW_HEIGHT = 300;
+	private static final int CHART_WIDTH = 300;
+	private static final int CHART_HEIGHT = 170;
+	
 	private JPanel chartsPanel;
+	private JPanel optionsPanel;
 	private ChartPanel dayChartPanel;
 	private ChartPanel weekChartPanel;
 	private JTable table;
 	private JButton navPrevious = new JButton("<<");
 	private JButton navNext = new JButton(">>");
 	private JLabel navTitle = new JLabel("");
-	private Stats stats;
-	private Stats currentWeekStats;
-	private Configuration configuration;
-	
+	private JLabel timeBankBalance;
 	
 	DefaultTableModel tableDataModel;
+	private JLabel lastResetTime;
+	private JCalendarButton calButton;
 
 	/** Creates new form ChartFrame */
-	public StatisticsFrame(Stats stats, Configuration configuration) {
-		this.configuration = configuration;
-		initComponents(stats);
+	public StatisticsFrame() {
+		initComponents();
 	}
 
 	private void changePlot(JFreeChart chart) {
@@ -78,18 +82,25 @@ public class StatisticsFrame extends JFrame {
 		renderer.setSeriesPaint(2, new Color(238, 0, 0));
 	}
 
-	private void initComponents(Stats stats) {
+	private void initComponents() {
 		setTitle("Statistics");
-		setMinimumSize(new Dimension(700, 320));
+		setMinimumSize(new Dimension(WINDOW_WIDTH, WINDOW_HEIGHT));
 		setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
 
 		Container contentPane = getContentPane();
-		contentPane.setLayout(new BoxLayout(contentPane, BoxLayout.Y_AXIS));
+		contentPane.setLayout(new BoxLayout(contentPane, BoxLayout.X_AXIS));
 
-		initTable(contentPane, stats);
-		initChartsPanel(contentPane, stats);
+		JPanel statsPanel = new JPanel();
+		statsPanel.setLayout(new BoxLayout(statsPanel, BoxLayout.Y_AXIS));
+		contentPane.add(statsPanel);
+		optionsPanel = new JPanel();
+		optionsPanel.setLayout(new BoxLayout(optionsPanel, BoxLayout.Y_AXIS));
+		
+		initTable(statsPanel);
+		initChartsPanel(statsPanel);
+		initOptionsPanel();
 
-		refreshStats(stats);
+		refresh();
 		
 		pack();
 		
@@ -102,9 +113,7 @@ public class StatisticsFrame extends JFrame {
 		setLocation(x, y);
 	}
 	
-	private void initTable(Container contentPane, Stats stats) {
-		topPanel = new JPanel();
-		topPanel.setLayout(new BoxLayout(topPanel, BoxLayout.Y_AXIS));
+	private void initTable(Container contentPane) {
 		
 		// Navigation bar
 		JPanel subPanel = new JPanel();
@@ -112,69 +121,44 @@ public class StatisticsFrame extends JFrame {
 		subPanel.add(navPrevious, BorderLayout.WEST);
 		subPanel.add(navTitle, BorderLayout.CENTER);
 		subPanel.add(navNext, BorderLayout.EAST);
-		topPanel.add(subPanel, BorderLayout.CENTER);
+		contentPane.add(subPanel, BorderLayout.CENTER);
 		
 		// Table with data
 		tableDataModel = new DefaultTableModel();
 		table = new JTable(tableDataModel);
 		table.setDefaultRenderer(Object.class, new StatisticsTableRenderer());
-		topPanel.add(table.getTableHeader(), BorderLayout.PAGE_START);
-		topPanel.add(table, BorderLayout.CENTER);
+		contentPane.add(table.getTableHeader(), BorderLayout.PAGE_START);
+		contentPane.add(table, BorderLayout.CENTER);
 		table.setShowHorizontalLines(false);
 		table.setEnabled(false);
-		contentPane.add(topPanel);
 		
 		// Initialize the buttons
 		navPrevious.addMouseListener(new java.awt.event.MouseAdapter() {
 			public void mouseClicked(java.awt.event.MouseEvent evt) {
 				LOG.debug("Previous clicked");
-				Calendar start = StatisticsFrame.this.stats.getWeekBegin();
-				Calendar end = (Calendar)start.clone();
-				start.add(Calendar.DAY_OF_MONTH, -7);
-				Stats stats = new Stats(configuration);
-				try {
-					List<Event> eventList = CalendarHelper.getEvents(start, end);
-					stats.setWeekDays(CalendarHelper.getWeekDays(eventList), start);
-				} catch (IOException e) {
-					LOG.error("Got IOException");
-				}
-				refreshStats(stats);
+				Stats.getWeek().setPrevWeek();
+				refresh();
 			}
 		});
 		
 		navNext.addMouseListener(new java.awt.event.MouseAdapter() {
 			public void mouseClicked(java.awt.event.MouseEvent evt) {
 				LOG.debug("Next clicked");
-				Calendar start = (Calendar)StatisticsFrame.this.stats.getWeekBegin().clone();
-				start.add(Calendar.DAY_OF_MONTH, 7);
-				Calendar end = (Calendar)start.clone();
-				end.add(Calendar.DAY_OF_MONTH, 7);
-				Stats stats = new Stats(configuration);
-				List<Event> eventList;
-				try {
-					eventList = CalendarHelper.getEvents(start, end);
-					stats.setWeekDays(CalendarHelper.getWeekDays(eventList), start);
-				} catch (IOException e) {
-					LOG.error("Got IOException");
-					eventList = new ArrayList<Event>();
-				}
-				refreshStats(stats);
+				Stats.getWeek().setNextWeek();
+				refresh();
 			}
 		});
 	}
 
-	private Container initChartsPanel(Container contentPane, Stats stats) {
+	private Container initChartsPanel(Container contentPane) {
 		// CHARTS
 		chartsPanel = new JPanel();
 		chartsPanel.setLayout(new BoxLayout(chartsPanel, BoxLayout.X_AXIS));
 
 		JFreeChart dayChart = prepareDayChart();
-		JFreeChart weekChart = prepareWeekChart(stats);
+		JFreeChart weekChart = prepareWeekChart();
 
-		changePlot(dayChart);
-		changePlot(weekChart);
-
-		Dimension chartDimension = new Dimension(340, 210);
+		Dimension chartDimension = new Dimension(CHART_WIDTH, CHART_HEIGHT);
 		dayChartPanel = new ChartPanel(dayChart);
 		dayChartPanel.setPreferredSize(chartDimension);
 		weekChartPanel = new ChartPanel(weekChart);
@@ -182,28 +166,97 @@ public class StatisticsFrame extends JFrame {
 
 		chartsPanel.add(dayChartPanel);
 		chartsPanel.add(weekChartPanel);
+		chartsPanel.add(optionsPanel);
 		// ADD CHARTS
 		contentPane.add(chartsPanel);
 		return contentPane;
+	}
+	
+	private JPanel getCenterBox(Container cont) {
+		JPanel centerBox = new JPanel();
+		centerBox.setLayout(new BoxLayout(centerBox, BoxLayout.X_AXIS));
+		centerBox.setBackground(Color.WHITE);
+		
+		centerBox.add(Box.createHorizontalGlue());
+		centerBox.add(cont);
+		centerBox.add(Box.createHorizontalGlue());
+		return centerBox;
+	}
+	
+	private void initOptionsPanel() {
+		JPanel timeBankPanel = new JPanel();
+		timeBankPanel.setLayout(new BoxLayout(timeBankPanel, BoxLayout.Y_AXIS));
+		timeBankPanel.setBorder(BorderFactory.createTitledBorder("Time bank"));
+		timeBankPanel.setBackground(Color.WHITE);
+		
+		timeBankBalance = new JLabel("+10:40");
+		timeBankBalance.setFont(new Font("Serif", Font.BOLD, 20));
+		
+		timeBankPanel.add(Box.createVerticalGlue());
+		timeBankPanel.add(getCenterBox(timeBankBalance));
+		timeBankPanel.add(Box.createVerticalGlue());
+		lastResetTime = new JLabel();
+		JPanel resetTimeBox = new JPanel();
+		resetTimeBox.setLayout(new BoxLayout(resetTimeBox, BoxLayout.X_AXIS));
+		resetTimeBox.setBackground(Color.WHITE);
+		resetTimeBox.add(lastResetTime, BorderLayout.WEST);
+		calButton = new JCalendarButton();
+		calButton.addPropertyChangeListener(new PropertyChangeListener() {
+			@Override
+			public void propertyChange(PropertyChangeEvent arg0) {
+				if (arg0.getNewValue() instanceof Date) {
+					Stats.getTimeBank().newResetTime((Date)arg0.getNewValue());
+					refresh();
+				}
+			}
+		});
+		resetTimeBox.add(calButton);
+		timeBankPanel.add(resetTimeBox);
+		
+		JPanel buttonsPanel = new JPanel();
+		buttonsPanel.setLayout(new BoxLayout(buttonsPanel, BoxLayout.Y_AXIS));
+		buttonsPanel.setBackground(Color.WHITE);
+
+		// Initialize the buttons
+		final JButton refreshB = new JButton("Refresh");
+		refreshB.addMouseListener(new java.awt.event.MouseAdapter() {
+			public void mouseClicked(java.awt.event.MouseEvent evt) {
+				refreshB.setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
+				Stats.getToday().refresh();
+				Stats.getWeek().refresh();
+				Stats.getTimeBank().refresh();
+				refresh();
+				refreshB.setCursor(Cursor.getDefaultCursor());
+			}
+		});
+		
+		buttonsPanel.add(getCenterBox(refreshB));
+		
+		optionsPanel.setLayout(new BoxLayout(optionsPanel, BoxLayout.Y_AXIS));
+		optionsPanel.setBackground(Color.WHITE);
+		optionsPanel.add(timeBankPanel);
+		optionsPanel.add(Box.createVerticalGlue());
+		
+		optionsPanel.add(buttonsPanel);
 	}
 
 	private JFreeChart prepareDayChart() {
 		DefaultCategoryDataset data = new DefaultCategoryDataset();
 
-		if (currentWeekStats != null) {
-			double todayHours = (double)currentWeekStats.getToday() / 3600000;
-			double remainingTodayHours = (double)currentWeekStats.getRemainingToday() / 3600000;
-			double overtimeTodayHours = (double)currentWeekStats.getOvertimeToday() / 3600000;
-			if (overtimeTodayHours > 0 ) {
-				todayHours = (double)currentWeekStats.oneDayTime / 3600000;
-			}
-			
-			data.addValue(todayHours, "Worked Hours", "Today");
-			data.addValue(remainingTodayHours, "Remaining Hours", "Today");
-			data.addValue(overtimeTodayHours, "Overtime Hours", "Today");
+		double todayHours = (double)Stats.getToday().getTime() / 3600000;
+		double remainingTodayHours = (double)Stats.getToday().getRemaining() / 3600000;
+		double overtimeTodayHours = (double)Stats.getToday().getOvertime() / 3600000;
+		if (overtimeTodayHours > 0 ) {
+			todayHours = (double)Configuration.getInstance().getDailyWorkingTime() / 3600000;
 		}
 
-		JFreeChart dayChart = ChartFactory.createStackedBarChart3D("Today", null, "Hours", data,
+		data.addValue(todayHours, "Worked", "Today");
+		data.addValue(remainingTodayHours, "Remaining", "Today");
+		if (overtimeTodayHours > 0) {
+			data.addValue(overtimeTodayHours, "Overtime", "Today");
+		}
+
+		JFreeChart dayChart = ChartFactory.createStackedBarChart3D("Today", null, null	, data,
 				PlotOrientation.HORIZONTAL, true, true, false);
 
 		changePlot(dayChart);
@@ -211,41 +264,57 @@ public class StatisticsFrame extends JFrame {
 		return dayChart;
 	}
 
-	private JFreeChart prepareWeekChart(Stats stats) {
+	private JFreeChart prepareWeekChart() {
 		DefaultCategoryDataset weekData = new DefaultCategoryDataset();
 
-		if (stats != null) {
-			double weekHours = (double)stats.getWeek() / 3600000;
-			double remainingWeekHours = (double)stats.getRemainingWeek() / 3600000;
-			double overtimeWeekHours = (double)stats.getOvertimeWeek() / 3600000;
-			if (overtimeWeekHours > 0 ) {
-				weekHours = (double)stats.oneWeekTime / 3600000;
-			}
-			
-			weekData.addValue(weekHours, "Worked Hours", "Week");
-			weekData.addValue(remainingWeekHours, "Remaining Hours", "Week");
-			weekData.addValue(overtimeWeekHours, "Overtime Hours", "Week");
+		double weekHours = (double)Stats.getWeek().getTime() / 3600000;
+		double remainingWeekHours = (double)Stats.getWeek().getRemaining() / 3600000;
+		double overtimeWeekHours = (double)Stats.getWeek().getOvertime() / 3600000;
+		double vacationWeekHours = (double)Stats.getWeek().getVacation() / 3600000;
+		
+		if (Stats.getWeek().getOvertime() > 0 ) {
+			weekHours = (double)Configuration.getInstance().getWeeklyWorkingTime() / 3600000;
+			weekHours -= vacationWeekHours;
 		}
-		JFreeChart weekChart = ChartFactory.createStackedBarChart3D("Week", null, "Hours", weekData,
+
+		if  (vacationWeekHours > 0 ) { 
+			weekData.addValue(vacationWeekHours, "Vacation", "Week");
+		}
+		if (weekHours > 0) {
+			weekData.addValue(weekHours, "Worked", "Week");
+		}
+		if  (remainingWeekHours > 0 ) {
+			weekData.addValue(remainingWeekHours, "Remaining", "Week");
+		}
+		if  (overtimeWeekHours > 0 ) {
+			weekData.addValue(overtimeWeekHours, "Overtime", "Week");
+		} 
+
+		JFreeChart weekChart = ChartFactory.createStackedBarChart3D("Week", null, null, weekData,
 				PlotOrientation.HORIZONTAL, true, true, false);
 
-		changePlot(weekChart);
+		CategoryPlot dayCategoryPlot = (CategoryPlot) weekChart.getPlot();
 
+		dayCategoryPlot.setNoDataMessage("Not initialized yet.");
+		CategoryItemRenderer renderer = dayCategoryPlot.getRenderer();
+		int i = 0;
+		if  (vacationWeekHours > 0 ) { 
+			renderer.setSeriesPaint(i++, new Color(135, 206, 250));
+		}
+		if (weekHours > 0) {
+			renderer.setSeriesPaint(i++, new Color(48, 128, 20));
+		}
+		if  (remainingWeekHours > 0 ) {
+			renderer.setSeriesPaint(i++, new Color(255, 215, 0));
+		}
+		if  (overtimeWeekHours > 0 ) {
+			renderer.setSeriesPaint(i++, new Color(238, 0, 0));
+		} 
+		
 		return weekChart;
 	}
 
-	public void refreshStats(Stats newStats) {
-		if (newStats == null) {
-			LOG.debug("Stats are null");
-			return;
-		}
-		
-		if (newStats.getToday() > 0) {
-			this.currentWeekStats = newStats;
-			this.stats = newStats;
-		} 
-		stats = newStats;
-		
+	public void refresh() {
 		Vector<String> cols = new Vector<String>();
 		cols.add("");
 		Vector<Vector<String>> data = new Vector<Vector<String>>();
@@ -257,25 +326,29 @@ public class StatisticsFrame extends JFrame {
 		data.get(1).add("Remaining");
 		data.get(2).add("Overtime");
 		int days = 7;
-		if (stats.getWeekDays()[5] == 0 && stats.getWeekDays()[6] == 0) {
+		if (!Stats.getWeek().workedDuringWeek()) {
 			// don't show empty Saturday and Sunday
 			days = 5;
 		}
-		Calendar cal = (Calendar)stats.getWeekBegin().clone();
-		if (stats.getWeekDays() != null) {
-			for (int q=0; q<days; q++) {
-				cols.add(DayOfWeek.values()[q].toString() + " (" +  cal.get(Calendar.DAY_OF_MONTH) + "/" + cal.get(Calendar.MONTH) + ")");
-				data.get(0).add(Stats.getFormatedTime(stats.getWeekDays()[q], StatType.Normal, stats.oneDayTime));
-				data.get(1).add(Stats.getFormatedTime(stats.getWeekDays()[q], StatType.Remaining, stats.oneDayTime));
-				data.get(2).add(Stats.getFormatedTime(stats.getWeekDays()[q], StatType.Overtime, stats.oneDayTime));
-				cal.add(Calendar.DAY_OF_MONTH, 1);
+		Calendar cal = (Calendar)Stats.getWeek().getWeekBegin().clone();
+		for (int q=0; q<days; q++) {
+			cols.add(DayOfWeek.values()[q].toString() + " (" +  cal.get(Calendar.DAY_OF_MONTH) + "/" + (cal.get(Calendar.MONTH) + 1) + ")");
+			if (Stats.getWeek().getDay(q).isFreeDay() && Stats.getWeek().getDay(q).getTime() == 0) {
+				data.get(0).add(Stats.getWeek().getDay(q).getTitle());
+				data.get(1).add("");
+				data.get(2).add("");
+			} else {
+				data.get(0).add(Stats.getWeek().getDay(q).toString(StatType.WORK));
+				data.get(1).add(Stats.getWeek().getDay(q).toString(StatType.REMAIN));
+				data.get(2).add(Stats.getWeek().getDay(q).toString(StatType.OVERTIME));
 			}
+			cal.add(Calendar.DATE, 1);
 		}
 		// Last column - week summary
 		cols.add("Week");
-		data.get(0).add(Stats.getFormatedTime(stats.getWeek(), StatType.Normal, stats.oneWeekTime));
-		data.get(1).add(Stats.getFormatedTime(stats.getWeek(), StatType.Remaining, stats.oneWeekTime));
-		data.get(2).add(Stats.getFormatedTime(stats.getWeek(), StatType.Overtime, stats.oneWeekTime));
+		data.get(0).add(Stats.getWeek().toString(StatType.WORK));
+		data.get(1).add(Stats.getWeek().toString(StatType.REMAIN));
+		data.get(2).add(Stats.getWeek().toString(StatType.OVERTIME));
 		tableDataModel.setDataVector(data, cols);
 
 		// Center header of table
@@ -283,10 +356,24 @@ public class StatisticsFrame extends JFrame {
 
 		// Create the week title 
 		SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy HH:mm");
-		navTitle.setText("     " + sdf.format(stats.getWeekBegin().getTime()) + " - " + sdf.format(stats.getWeekEnd().getTime()) + "     ");
+		navTitle.setText("     " + sdf.format(Stats.getWeek().getWeekBegin().getTime()) + " - " + sdf.format(Stats.getWeek().getWeekEnd().getTime()) + "     ");
 
 		dayChartPanel.setChart(prepareDayChart());
-		weekChartPanel.setChart(prepareWeekChart(stats));
+		weekChartPanel.setChart(prepareWeekChart());
+		
+		// TimeBank
+		long balance = Stats.getTimeBank().getBalance();
+		timeBankBalance.setText(Stats.getFormatedTime(balance));
+		if (balance > 0) {
+			timeBankBalance.setForeground(new Color(48, 128, 20));
+		} else if (balance < 0) {
+			timeBankBalance.setForeground(Color.RED);
+		} else {
+			timeBankBalance.setForeground(Color.BLACK);
+		}
+		
+		lastResetTime.setText("Last reset: " + new SimpleDateFormat("dd-MM-yyyy").format(Stats.getTimeBank().getTimeBankResetTime().getTime()));
+		calButton.setTargetDate(Stats.getTimeBank().getTimeBankResetTime().getTime());
 	}
 	
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -307,13 +394,17 @@ public class StatisticsFrame extends JFrame {
 	        	setHorizontalAlignment(JLabel.CENTER);
 	        }
 	        setBackground(Color.WHITE);
-	        Calendar cal = Calendar.getInstance();
-	        Calendar weekBegin = stats.getWeekBegin();
-	        Calendar weekEnd = (Calendar)stats.getWeekBegin().clone();
-	        weekEnd.add(Calendar.DAY_OF_MONTH, 7);
-	        if (weekBegin.before(cal) && weekEnd.after(cal)) {
-	        	if ((cal.get(java.util.Calendar.DAY_OF_WEEK) - 2) % 7 == column - 1) {
+	        if (column > 0 && column < table.getColumnCount() - 1) {
+	        	if (Stats.getWeek().getDay(column - 1).isVacation()) {
 	        		setBackground(new Color(135, 206, 250));
+	        	}
+	        	if (Stats.getWeek().getDay(column - 1).isOtherHoliday()) {
+	        		setBackground(new Color(135, 206, 250));
+	        	}
+	        }
+	        if (Stats.getWeek().isCurrent()) {
+	        	if ((Calendar.getInstance().get(java.util.Calendar.DAY_OF_WEEK) + 5) % 7 == column - 1) {
+	        		setBackground(Color.ORANGE);
 	        	}
 	        }
 	        if (column == table.getColumnCount() - 1) { 

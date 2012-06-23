@@ -1,99 +1,39 @@
 package ndsr.beans;
 
-import java.text.SimpleDateFormat;
 import java.util.Calendar;
 
 import ndsr.Configuration;
+import ndsr.enums.StatType;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 
 /**
  * @author lkufel
  */
 public class Stats {
-	SimpleDateFormat weekIdFormat = new SimpleDateFormat("ddMMyy");
+	private static final Logger LOG = LoggerFactory.getLogger(Stats.class);
+	private static Stats instance; 
 	
 	// in miliseconds
-	public final long oneDayTime;
-	public final long oneWeekTime;
+	private static Day today = new Day(Calendar.getInstance());
+	private static Week week = new Week(Calendar.getInstance());
+	private static TimeBank timeBank = new TimeBank();
 	
 	private Calendar weekBegin;
 	private Calendar weekEnd;
-	private long[] weekDays;
-	private String weekId;
 	
-	private long today;
-	private long week;
-
+	public static Stats get() {
+		if (instance == null) {
+			instance = new Stats(null);
+		}
+		return instance;
+	}
+	
 	public Stats(Configuration configuration) {
 		super();
-		oneDayTime = configuration.getDailyWorkingTime();
-		oneWeekTime = configuration.getWeeklyWorkingTime();
-	}
-
-	public void setToday(long milis) {
-		today = milis;
-	}
-	
-	public long getToday() {
-		return today;
-	}
-	
-	public long getRemainingToday() {
-		long remain = oneDayTime - today;
-		return remain < 0 ? 0 : remain;
-	}
-	
-	public long getOvertimeToday() {
-		long remain = today - oneDayTime;
-		return remain < 0 ? 0 : remain;
-	}
-
-	public static long getHours(long time) {
-		return time / 3600000;
-	}
-
-	public static long getMinutes(long time) {
-		return (time / 60000) % 60;
-	}
-
-	public void setWeek(long milis) {
-		this.week = milis;
-	}
-
-	public long getWeek() {
-		return week;
-	}
-	
-	public long getRemainingWeek() {
-		long remain = oneWeekTime - week;
-		return remain < 0 ? 0 : remain;
-	}
-	
-	public long getOvertimeWeek() {
-		long remain = week - oneWeekTime;
-		return remain < 0 ? 0 : remain;
-	}
-
-	public long[] getWeekDays() {
-		return weekDays;
-	}
-
-	public void setWeekDays(long[] weekDays, Calendar weekBegin) {
-		this.weekDays = weekDays;
-		this.weekBegin = weekBegin;
-		this.weekId = weekIdFormat.format(weekBegin.getTime());
-		this.weekEnd = (Calendar)weekBegin.clone();
-		this.weekEnd.add(Calendar.DAY_OF_MONTH, 7);
-		this.weekEnd.add(Calendar.SECOND, -1);
-		if (this.week == 0) {
-			for (int q=0; q<weekDays.length; q++) {
-				this.week += weekDays[q];
-			}
-		}
-	}
-
-	public String getWeekId() {
-		return weekId;
+		instance = this;
 	}
 
 	public Calendar getWeekBegin() {
@@ -104,52 +44,64 @@ public class Stats {
 		return weekEnd;
 	}
 	
-	public static String getFormatedTime(long time, StatType type, long limit) {
+	public static Week getWeek() {
+		return week;
+	}
+	
+	public static void setWeek(Week _week) {
+		week = _week;
+	}
+
+	public static Day getToday() {
+		return today;
+	}
+	
+	public static void checkToday() {
+		if (!getToday().isToday()) {
+			LOG.info("Date change detected.");
+			setToday(new Day());
+			getToday().init();			
+			getTimeBank().refresh();
+		}
+	}
+	
+	public static void setToday(Day day) {
+		today = day;
+	}
+
+	public static TimeBank getTimeBank() {
+		return timeBank;
+	}
+
+	public static void setTimeBank(TimeBank timeBank) {
+		Stats.timeBank = timeBank;
+	}
+
+	public static String getFormatedTime(long time) {
 		long h = 0; 
 		long m = 0;
-		switch (type) {
-		case Normal:
-			h = time / 3600000;
-			m = (time / 60000) % 60;
-			break;
-		case Remaining:
-			h = (limit - time < 0 ? 0 : limit - time) / 3600000;
-			m = ((limit - time < 0 ? 0 : limit - time) / 60000) % 60;
-			break;
-		case Overtime:
-			h = (time - limit < 0 ? 0 : time - limit) / 3600000;
-			m = ((time - limit < 0 ? 0 : time - limit) / 60000) % 60;
+
+		h = time / 3600000;
+		m = (time / 60000) % 60;
+		
+		if (time < 0 && h == 0) {
+			return String.format("-%02d:%02d", h, Math.abs(m));
 		}
-
-		return String.format("%02d:%02d", h, m);
+		return String.format("%02d:%02d", h, Math.abs(m));
 	}
 
-	public String toWeekString() {
-		return String.format("Week\n %02d:%02d- worked\n %02d:%02d - remaining\n %02d:%02d - overtime\n", 
-				getHours(week), getMinutes(week),
-				getHours(getRemainingWeek()), getMinutes(getRemainingWeek()),
-				getHours(getOvertimeWeek()), getMinutes(getOvertimeWeek()));
+	public static String toWeekString() {
+		return String.format("Week\n %s- worked\n %s - remaining\n %s - overtime\n",
+				week.toString(StatType.WORK), week.toString(StatType.REMAIN), week.toString(StatType.OVERTIME));
 	}
 
-	public String toTodayString() {
-		return String.format("Today\n %02d:%02d- worked\n %02d:%02d - remaining\n %02d:%02d - overtime\n", 
-				getHours(today), getMinutes(today),
-				getHours(getRemainingToday()), getMinutes(getRemainingToday()),
-				getHours(getOvertimeToday()), getMinutes(getOvertimeToday()));
+	public static String toTodayString() {
+		return String.format("Today\n %s- worked\n %s - remaining\n %s - overtime\n",
+				today.toString(StatType.WORK), today.toString(StatType.REMAIN), today.toString(StatType.OVERTIME));
 	}
 
-	@Override
-	public String toString() {
+	public static String getString() {
 		return toTodayString() + toWeekString();
 	}
-	
-	///////////////////////////////////////////////////////////////////////////////////////
-	// Helper classes
-	///////////////////////////////////////////////////////////////////////////////////////
-	
-	public enum StatType {
-		Normal,
-		Remaining,
-		Overtime;
-	};
+
 }

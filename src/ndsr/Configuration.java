@@ -33,6 +33,8 @@ public class Configuration {
 	private static final String SLEEP_TIME = "sleepTime";
 	private static final String IDLE_TIME = "idleTime";
 	private static final String EVENT_NAME = "eventName";
+	private static final String VACATION_EVENT_PREFIX = "vacationEventName";
+	private static final String PUB_HOLI_EVENT_PREFIX = "publicHolidayEventName";
 	private static final String LAST_IDLE_TIME_THRESHOLD = "lastIdleTimeThreshold";
 	private static final String MINUTES_BEFORE_FIRST_EVENT = "minutesBeforeFirst";
 	private static final String EVENT_MINUTES_AHEAD = "eventMinutesAhead";
@@ -65,6 +67,8 @@ public class Configuration {
 	private static final int DEFAULT_MINUTES_BEFORE_FIRST_EVENT = 10;
 	private static final int DEFAULT_EVENT_MINUTES_AHEAD = 5;
 	private static final String DEFAULT_EVENT_NAME = "Work";
+	private static final String DEFAULT_VACATION_EVENT_PRAFIX = "Vacation";
+	private static final String DEFAULT_PUB_HOLI_EVENT_PREFIX = "Public holiday";
 	private static final String DEFAULT_NORMAL_ICON_LOCATION = "";
 	private static final String DEFAULT_INACTIVE_ICON_LOCATION = "";
 
@@ -73,8 +77,20 @@ public class Configuration {
 			"/home/adro/ndsr/passwd.properties", "c:\\Program Files\\NdsrTest\\passwd.properties" };
 	
 	private boolean initilized = false;
+	private static Configuration instance = null;
 	
-	public Configuration(boolean development) {
+	public static Configuration init(boolean development) {
+		if (instance == null) {
+			instance = new Configuration(development);
+		}
+		return instance;
+	}
+	
+	public static Configuration getInstance() {
+		return instance;
+	}
+	
+	private Configuration(boolean development) {
 		properties = new Properties();
 		
 		if (development) {
@@ -170,15 +186,27 @@ public class Configuration {
 	}
 
 	public String getEventName() {
-		String eventName = properties.getProperty(EVENT_NAME);
-		if (eventName == null || eventName.isEmpty()) {
-			eventName = DEFAULT_EVENT_NAME;
-		}
-		return eventName;
+		return properties.getProperty(EVENT_NAME, DEFAULT_EVENT_NAME);
 	}
 
 	public void setEventName(String eventName) {
 		properties.setProperty(EVENT_NAME, eventName);
+	}
+	
+	public String getVacationEventPrefix() {
+		return properties.getProperty(VACATION_EVENT_PREFIX, DEFAULT_VACATION_EVENT_PRAFIX);
+	}
+
+	public void setVacationEventPrefix(String eventName) {
+		properties.setProperty(VACATION_EVENT_PREFIX, eventName);
+	}
+	
+	public String getPubHolEventPrefix() {
+		return properties.getProperty(PUB_HOLI_EVENT_PREFIX, DEFAULT_PUB_HOLI_EVENT_PREFIX);
+	}
+
+	public void setPubHolEventPrefix(String eventName) {
+		properties.setProperty(PUB_HOLI_EVENT_PREFIX, eventName);
 	}
 
 	public int getLastIdleTimeThresholdInSec() {

@@ -15,6 +15,7 @@ import java.util.List;
 
 import javax.swing.JOptionPane;
 
+import ndsr.beans.Day;
 import ndsr.beans.Stats;
 import ndsr.calendar.CalendarHelper;
 import ndsr.gui.AboutFrame;
@@ -30,22 +31,18 @@ import ndsr.utils.PathExtractor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.api.services.calendar.model.Event;
-
 /**
  * @author lkufel
  */
 public class Ndsr {
-
 	private static final Logger LOG = LoggerFactory.getLogger(Ndsr.class);
 
-	private Stats stats;
 	private TabbedSettingsFrame settingsFrame;
 	private StatisticsFrame statisticsFrame;
 	private OutOfWorkFrame outOfWorkFrame;
 	private CalendarHelper calendarHelper;
 	private AboutFrame aboutFrame;
-	private Configuration configuration;
+	public static Configuration configuration;
 	private NdsrTrayIcon ndsrTrayIcon;
 	private IdleTime idleTime;
 	private boolean work = true;
@@ -53,8 +50,8 @@ public class Ndsr {
 
 	private Boolean running = false;
 
-	public Ndsr(Configuration configuration, CalendarHelper calendarHelper, TabbedSettingsFrame settings, String version) {
-		this.configuration = configuration;
+	public Ndsr(Configuration _configuration, CalendarHelper calendarHelper, TabbedSettingsFrame settings, String version) {
+		configuration = _configuration;
 		this.calendarHelper = calendarHelper;
 		this.settingsFrame = settings;
 		init(version);
@@ -65,7 +62,7 @@ public class Ndsr {
 		initIdleTime();
 
 		settingsFrame.setNdsrTrayIcon(ndsrTrayIcon);
-		statisticsFrame = new StatisticsFrame(stats, configuration);
+		statisticsFrame = new StatisticsFrame();
 		outOfWorkFrame = new OutOfWorkFrame(this);
 		aboutFrame = new AboutFrame(version);
 	}
@@ -88,6 +85,10 @@ public class Ndsr {
 		running = true;
 		int lastIdleSec = 0;
 
+		Stats.setToday(new Day());
+		Stats.getTimeBank().refresh();	
+		Stats.getToday().refresh();
+		
 		do {
 			try {
 				int idleTimeInSec = configuration.getIdleTimeInSec();
@@ -105,11 +106,9 @@ public class Ndsr {
 							} else {
 								LOG.debug("CREATE OR UPDATE: {}", calendarHelper.createOrUpdate());
 							}
-
-							stats = calendarHelper.getStats();
-							if (stats != null) {
-								statsStr = stats.toString();
-							}
+							Stats.checkToday();
+							Stats.getToday().refresh();
+							statsStr = Stats.getString();
 						} catch (IOException ex) {
 							statsStr = "io exception";
 							LOG.error(statsStr, ex);
@@ -128,10 +127,6 @@ public class Ndsr {
 							ndsrTrayIcon.setToolTip("Not at work");
 						}
 						ndsrTrayIcon.useGrayIcon();
-						if (stats == null) {
-							calendarHelper.initEventLists();
-							stats = calendarHelper.getStats();
-						}
 					}
 				} else {
 					LOG.debug("IDLE: System is idle for more then {} min", idleTimeInSec / 60);
@@ -250,7 +245,9 @@ public class Ndsr {
 
 	public void showStatistics() {
 		LOG.debug("showStatistics");
-		statisticsFrame.refreshStats(stats);
+		Stats.checkToday();
+		Stats.getWeek().refresh();
+		statisticsFrame.refresh();
 		statisticsFrame.setVisible(true);
 	}
 

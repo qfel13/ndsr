@@ -64,7 +64,9 @@ public class TabbedSettingsFrame extends JFrame {
 	// Labels
 	private JLabel sleepTimeLabel = new JLabel("Sleep time (in minutes)");
 	private JLabel idleTimeLabel = new JLabel("Idle time (in minutes)");
-	private JLabel eventNameLabel = new JLabel("Calendar event name");
+	private JLabel eventNameLabel = new JLabel("Working event name");
+	private JLabel vacationNameLabel = new JLabel("Vacation event prefix");
+	private JLabel pubHolNameLabel = new JLabel("Public holiday event prefix");
 	private JLabel lastIdleTimeThresholdLabel = new JLabel("New event after idle (in minutes)");
 	private JLabel minutesBeforeFirstLabel = new JLabel("Minutes before first event");
 	private JLabel eventMinutesAheadLabel = new JLabel("Current event minutes ahead");
@@ -76,6 +78,8 @@ public class TabbedSettingsFrame extends JFrame {
 	private JTextField sleepTimeText = new JTextField();
 	private JTextField idleTimeText = new JTextField();
 	private JTextField eventNameText = new JTextField();
+	private JTextField vacationNameText = new JTextField();
+	private JTextField pubHolNameText = new JTextField();
 	private JTextField lastIdleTimeThresholdText = new JTextField();
 	private JTextField minutesBeforeFirstText = new JTextField();
 	private JTextField eventMinutesAheadText = new JTextField();
@@ -194,6 +198,8 @@ public class TabbedSettingsFrame extends JFrame {
 		sleepTimeText.setText("" + configuration.getSleepTime());
 		idleTimeText.setText("" + configuration.getIdleTime());
 		eventNameText.setText(configuration.getEventName());
+		vacationNameText.setText(configuration.getVacationEventPrefix());
+		pubHolNameText.setText(configuration.getPubHolEventPrefix());
 		lastIdleTimeThresholdText.setText("" + configuration.getLastIdleTimeThreshold());
 		minutesBeforeFirstText.setText("" + configuration.getMinutesBeforeFirstEvent());
 		eventMinutesAheadText.setText("" + configuration.getEventMinutesAhead());
@@ -212,11 +218,11 @@ public class TabbedSettingsFrame extends JFrame {
 	private void initComponents() {
 		// JFrame settings
 		this.setTitle("Settings");
-		this.setMinimumSize(new Dimension(400, 390));
+		this.setMinimumSize(new Dimension(400, 450));
 		final int COLUMN_1_WIDTH = 213;
 		final int COLUMN_2_WIDTH = 255;
 		final int TABBED_PANEL_WIDTH  = GroupLayout.DEFAULT_SIZE; // Just wrap around the controls
-		final int TABBED_PANEL_HEIGHT = 305;
+		final int TABBED_PANEL_HEIGHT = 350;
 		
 		// Events Layout
 		GroupLayout gl_eventsPanel = new GroupLayout(eventsPanel);
@@ -233,6 +239,8 @@ public class TabbedSettingsFrame extends JFrame {
 						.addComponent(minutesBeforeFirstLabel, Alignment.LEADING, GroupLayout.DEFAULT_SIZE, COLUMN_1_WIDTH, Short.MAX_VALUE)
 						.addComponent(idleTimeLabel, Alignment.LEADING, GroupLayout.DEFAULT_SIZE, COLUMN_1_WIDTH, Short.MAX_VALUE)
 						.addComponent(eventNameLabel, Alignment.LEADING, GroupLayout.DEFAULT_SIZE, COLUMN_1_WIDTH, Short.MAX_VALUE)
+						.addComponent(vacationNameLabel, Alignment.LEADING, GroupLayout.DEFAULT_SIZE, COLUMN_1_WIDTH, Short.MAX_VALUE)
+						.addComponent(pubHolNameLabel, Alignment.LEADING, GroupLayout.DEFAULT_SIZE, COLUMN_1_WIDTH, Short.MAX_VALUE)
 						.addComponent(sleepTimeLabel, Alignment.LEADING, GroupLayout.DEFAULT_SIZE, COLUMN_1_WIDTH, Short.MAX_VALUE)
 						.addComponent(lastIdleTimeThresholdLabel, Alignment.LEADING, GroupLayout.DEFAULT_SIZE, COLUMN_1_WIDTH, Short.MAX_VALUE))
 					.addPreferredGap(ComponentPlacement.UNRELATED)
@@ -245,6 +253,8 @@ public class TabbedSettingsFrame extends JFrame {
 						.addComponent(sleepTimeText, Alignment.TRAILING, GroupLayout.DEFAULT_SIZE, COLUMN_2_WIDTH, Short.MAX_VALUE)
 						.addComponent(idleTimeText, Alignment.TRAILING, GroupLayout.DEFAULT_SIZE, COLUMN_2_WIDTH, Short.MAX_VALUE)
 						.addComponent(eventNameText, Alignment.TRAILING, GroupLayout.DEFAULT_SIZE, COLUMN_2_WIDTH, Short.MAX_VALUE)
+						.addComponent(vacationNameText, Alignment.TRAILING, GroupLayout.DEFAULT_SIZE, COLUMN_2_WIDTH, Short.MAX_VALUE)
+						.addComponent(pubHolNameText, Alignment.TRAILING, GroupLayout.DEFAULT_SIZE, COLUMN_2_WIDTH, Short.MAX_VALUE)
 						.addComponent(lastIdleTimeThresholdText, Alignment.TRAILING, GroupLayout.DEFAULT_SIZE, COLUMN_2_WIDTH, Short.MAX_VALUE)
 						.addComponent(inactiveTimeEndText, Alignment.TRAILING, GroupLayout.DEFAULT_SIZE, COLUMN_2_WIDTH, Short.MAX_VALUE))
 					.addContainerGap())
@@ -264,6 +274,14 @@ public class TabbedSettingsFrame extends JFrame {
 					.addGroup(gl_eventsPanel.createParallelGroup(Alignment.TRAILING)
 						.addComponent(eventNameLabel)
 						.addComponent(eventNameText, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
+					.addPreferredGap(ComponentPlacement.RELATED)
+					.addGroup(gl_eventsPanel.createParallelGroup(Alignment.TRAILING)
+						.addComponent(vacationNameLabel)
+						.addComponent(vacationNameText, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
+					.addPreferredGap(ComponentPlacement.RELATED)
+					.addGroup(gl_eventsPanel.createParallelGroup(Alignment.TRAILING)
+						.addComponent(pubHolNameLabel)
+						.addComponent(pubHolNameText, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
 					.addPreferredGap(ComponentPlacement.RELATED)
 					.addGroup(gl_eventsPanel.createParallelGroup(Alignment.BASELINE)
 						.addComponent(lastIdleTimeThresholdText, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
@@ -457,6 +475,8 @@ public class TabbedSettingsFrame extends JFrame {
 			configuration.setSleepTime(sleepTimeText.getText());
 			configuration.setIdleTime(idleTimeText.getText());
 			configuration.setEventName(eventNameText.getText());
+			configuration.setVacationEventPrefix(vacationNameText.getText());
+			configuration.setPubHolEventPrefix(pubHolNameText.getText());
 			configuration.setLastIdleTimeThreshold(lastIdleTimeThresholdText.getText());
 			configuration.setMinutesBeforeFirstEvent(minutesBeforeFirstText.getText());
 			configuration.setEventMinutesAhead(eventMinutesAheadText.getText());

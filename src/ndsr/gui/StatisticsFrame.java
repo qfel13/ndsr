@@ -222,6 +222,7 @@ public class StatisticsFrame extends JFrame {
 		refreshB.addMouseListener(new java.awt.event.MouseAdapter() {
 			public void mouseClicked(java.awt.event.MouseEvent evt) {
 				refreshB.setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
+				Stats.checkToday();
 				Stats.getToday().refresh();
 				Stats.getWeek().refresh();
 				Stats.getTimeBank().refresh();
@@ -363,6 +364,8 @@ public class StatisticsFrame extends JFrame {
 		
 		// TimeBank
 		long balance = Stats.getTimeBank().getBalance();
+		// reset seconds
+		balance = (balance / 60000) * 60000;
 		timeBankBalance.setText(Stats.getFormatedTime(balance));
 		if (balance > 0) {
 			timeBankBalance.setForeground(new Color(48, 128, 20));

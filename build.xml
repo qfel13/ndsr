@@ -19,7 +19,7 @@
 	</path>
 
 	<property name="main-class" value="ndsr.Main" />
-	<property name="version.num" value="2.1.a1" />
+	<property name="version.num" value="2.1.a3" />
 
 	<description>Ndsr - Nie Daj Sie Ru..ac</description>
 

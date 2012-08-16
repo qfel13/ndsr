@@ -12,6 +12,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Enumeration;
 import java.util.List;
+import java.util.regex.PatternSyntaxException;
 
 import javax.swing.JOptionPane;
 
@@ -96,36 +97,43 @@ public class Ndsr {
 				if (idleSec < idleTimeInSec) {
 					LOG.debug("NOT IDLE. idleSec = {}, idleTimeInSec = {}", idleSec, idleTimeInSec);
 
-					if (isAtWork()) {
-						LOG.debug("At Work");
-						try {
-							int lastIdleTimeThreshold = configuration.getLastIdleTimeThresholdInSec();
-							LOG.debug("lastIdleSec = {} lastIdleTimeThreshold = {}", lastIdleSec, lastIdleTimeThreshold);
-							if (lastIdleSec > lastIdleTimeThreshold) {
-								LOG.debug("CREATE NEW EVENT: {}", calendarHelper.createEvent());
-							} else {
-								LOG.debug("CREATE OR UPDATE: {}", calendarHelper.createOrUpdate());
+					try {
+						if (isAtWork()) {
+							LOG.debug("At Work");
+							try {
+								int lastIdleTimeThreshold = configuration.getLastIdleTimeThresholdInSec();
+								LOG.debug("lastIdleSec = {} lastIdleTimeThreshold = {}", lastIdleSec, lastIdleTimeThreshold);
+								if (lastIdleSec > lastIdleTimeThreshold) {
+									LOG.debug("CREATE NEW EVENT: {}", calendarHelper.createEvent());
+								} else {
+									LOG.debug("CREATE OR UPDATE: {}", calendarHelper.createOrUpdate());
+								}
+								Stats.checkToday();
+								Stats.getToday().refresh();
+								statsStr = Stats.getString();
+							} catch (IOException ex) {
+								statsStr = "io exception";
+								LOG.error(statsStr, ex);
+							} catch (Exception ex) {
+								statsStr = "exception";
+								LOG.error(statsStr, ex);
 							}
-							Stats.checkToday();
-							Stats.getToday().refresh();
-							statsStr = Stats.getString();
-						} catch (IOException ex) {
-							statsStr = "io exception";
-							LOG.error(statsStr, ex);
-						} catch (Exception ex) {
-							statsStr = "exception";
-							LOG.error(statsStr, ex);
-						}
 
-						if (statsStr != null) {
-							ndsrTrayIcon.setToolTip(statsStr);
+							if (statsStr != null) {
+								ndsrTrayIcon.setToolTip(statsStr);
+							}
+							ndsrTrayIcon.useNormalIcon();
+						} else {
+							LOG.debug("Not at work");
+							if (statsStr == null) {
+								ndsrTrayIcon.setToolTip("Not at work");
+							}
+							ndsrTrayIcon.useGrayIcon();
 						}
-						ndsrTrayIcon.useNormalIcon();
-					} else {
-						LOG.debug("Not at work");
-						if (statsStr == null) {
-							ndsrTrayIcon.setToolTip("Not at work");
-						}
+					} catch (PatternSyntaxException ex) {
+						String error = "Wrong work IP pattern: " + configuration.getWorkIpRegExp();
+						LOG.error(error);
+						ndsrTrayIcon.setToolTip(error);
 						ndsrTrayIcon.useGrayIcon();
 					}
 				} else {

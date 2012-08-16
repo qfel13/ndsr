@@ -67,7 +67,8 @@ public class Week {
 	
 	public long getVacation() {
 		long week = 0;
-		for(int i = 0; i < 7; i++) {
+		// Weekend is not counted as vacation
+		for(int i = 0; i < 5; i++) {
 			if (days[i].isFreeDay()) {
 				week += Configuration.getInstance().getDailyWorkingTime();
 			}
@@ -121,6 +122,10 @@ public class Week {
 				start.setTimeInMillis(CalendarHelper.getStart(event));
 				end.setTimeInMillis(CalendarHelper.getEnd(event));
 				while (start.getTimeInMillis() < end.getTimeInMillis()) {
+					if (start.before(weekBegin)) {
+						start.add(Calendar.DATE, 1);
+						continue;
+					}
 					LOG.debug("start={}, end={}", start.getTime(), end.getTime());
 					if (isVacationEvent) {
 						getDayByTime(start.getTimeInMillis()).setVacation(event.getSummary());

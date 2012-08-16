@@ -357,7 +357,8 @@ public class StatisticsFrame extends JFrame {
 
 		// Create the week title 
 		SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy HH:mm");
-		navTitle.setText("     " + sdf.format(Stats.getWeek().getWeekBegin().getTime()) + " - " + sdf.format(Stats.getWeek().getWeekEnd().getTime()) + "     ");
+		navTitle.setText("     " + sdf.format(Stats.getWeek().getWeekBegin().getTime()) + " - " + 
+				sdf.format(new Date(Stats.getWeek().getWeekEnd().getTime().getTime() - 1000)) + "     "); // so it will be printed 1 second before midnight
 
 		dayChartPanel.setChart(prepareDayChart());
 		weekChartPanel.setChart(prepareWeekChart());

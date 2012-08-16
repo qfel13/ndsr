@@ -38,11 +38,17 @@ public class Day {
 	}
 	
 	public long getRemaining() {
+		if (isFreeDay()) {
+			return 0;
+		}
 		long remain = Configuration.getInstance().getDailyWorkingTime() - workingTime;
 		return remain < 0 ? 0 : remain;
 	}
 	
 	public long getOvertime() {
+		if (isFreeDay()) {
+			return 0;
+		}
 		long remain = workingTime - Configuration.getInstance().getDailyWorkingTime();
 		return remain < 0 ? 0 : remain;
 	}

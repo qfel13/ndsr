@@ -375,6 +375,34 @@ public class CalendarHelper {
 		timeBank.setTimeBankResetTime(end);
 	}
 	
+	// From stackoverflow
+	// http://stackoverflow.com/questions/4600034/calculate-number-of-weekdays-between-two-dates-in-java
+	static long workingDays(long start, long end){
+	    //Ignore argument check
+
+		java.util.Calendar c1 = java.util.Calendar.getInstance();
+	    c1.setTimeInMillis(start);
+	    int w1 = c1.get(java.util.Calendar.DAY_OF_WEEK);
+	    c1.add(java.util.Calendar.DAY_OF_WEEK, -w1 + 1);
+
+	    java.util.Calendar c2 = java.util.Calendar.getInstance();
+	    c2.setTimeInMillis(end);
+	    int w2 = c2.get(java.util.Calendar.DAY_OF_WEEK);
+	    c2.add(java.util.Calendar.DAY_OF_WEEK, -w2 + 1);
+
+	    //end Saturday to start Saturday 
+	    long days = (c2.getTimeInMillis()-c1.getTimeInMillis())/(1000*60*60*24);
+	    long daysWithoutSunday = days-(days*2/7);
+
+	    if (w1 == java.util.Calendar.SUNDAY) {
+	        w1 = java.util.Calendar.MONDAY;
+	    }
+	    if (w2 == java.util.Calendar.SUNDAY) {
+	        w2 = java.util.Calendar.MONDAY;
+	    }
+	    return daysWithoutSunday-w1+w2;
+	}
+	
 	public static long getTimeBank(java.util.Calendar timeBankResetTime) {
 		Week week = new Week(java.util.Calendar.getInstance());
 		LOG.debug("Reset time: " + timeBankResetTime.getTime().toString());
@@ -392,7 +420,7 @@ public class CalendarHelper {
 			} else if (event.getSummary().startsWith(vacationEvent) || event.getSummary().startsWith(otherHoliday)) {
 				long start = Math.max(getStart(event),timeBankResetTime.getTimeInMillis());
 				long end = Math.min(getEnd(event), week.getWeekBegin().getTimeInMillis());
-				totalWorkedTime += ((end - start) / (24 * 3600000)) * Configuration.getInstance().getDailyWorkingTime();
+				totalWorkedTime += workingDays(start, end) * Configuration.getInstance().getDailyWorkingTime();
 			}
 		}
 		long days = ((week.getWeekBegin().getTimeInMillis() - timeBankResetTime.getTimeInMillis()) / (24 * 3600000));

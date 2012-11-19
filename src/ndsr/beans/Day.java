@@ -3,11 +3,11 @@ package ndsr.beans;
 import java.util.Calendar;
 import java.util.List;
 
-import com.google.api.services.calendar.model.Event;
-
 import ndsr.Configuration;
 import ndsr.calendar.CalendarHelper;
 import ndsr.enums.StatType;
+
+import com.google.api.services.calendar.model.Event;
 
 public class Day {
 	private final Calendar cal;
@@ -47,7 +47,7 @@ public class Day {
 	
 	public long getOvertime() {
 		if (isFreeDay()) {
-			return 0;
+			return workingTime;
 		}
 		long remain = workingTime - Configuration.getInstance().getDailyWorkingTime();
 		return remain < 0 ? 0 : remain;
@@ -95,6 +95,8 @@ public class Day {
 	
 	public void init() {
 		workingTime = 0;
+		vacation = false;
+		otherHoliday = false;
 		List<Event> events = CalendarHelper.getEventsNoThrow(getBegin(), getEnd());
 		String workingEvent = Configuration.getInstance().getEventName();
 		String vacationEvent = Configuration.getInstance().getVacationEventPrefix();
@@ -105,7 +107,11 @@ public class Day {
 				// ignore events with no title
 				continue;
 			}
-
+			if (CalendarHelper.getEnd(event) <= getBegin().getTimeInMillis()) {
+				// ignore events that end on midnight
+				continue;
+			}
+			
 			if (event.getSummary().startsWith(workingEvent)) {
 				addTime(CalendarHelper.getEventTime(event));
 			} else if (event.getSummary().startsWith(vacationEvent)) {

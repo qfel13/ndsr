@@ -307,10 +307,10 @@ public class CalendarHelper {
 		try {
 			java.util.Calendar b = (java.util.Calendar)begin.clone();
 			List<Event> eventList = null;
-			// If it is more the year - get each year and sum them
-			if (end.getTimeInMillis() - b.getTimeInMillis() > 365l * 24l * 3600l * 1000l) {
+			// If it is more the month - get each month and sum them
+			while (end.getTimeInMillis() - b.getTimeInMillis() > 31l * 24l * 3600l * 1000l) {
 				java.util.Calendar b2 = (java.util.Calendar)b.clone();
-				b.add(java.util.Calendar.YEAR, 1);
+				b.add(java.util.Calendar.MONTH, 1);
 				if (eventList == null) {
 					eventList = new ArrayList<Event>();
 				}

@@ -40,13 +40,17 @@ public class TimeBank {
 		int tabIndex = (Calendar.getInstance().get(java.util.Calendar.DAY_OF_WEEK) + 5) % 7;
 		long timeBankBalance = timeBankBalanceWithoutCurrent;
 		for (int q=0; q<tabIndex; q++) {
-			if (q == 5) {
+			if (q == 5 || week.getDay(q).isFreeDay()) {
 				// Saturday doesn't count as working day - only add working time
 				// Sundays are skipped here. Sunday is added below as getToday()
-				timeBankBalance += week.getDay(q).getTime();
+				if (week.getDay(q).getBegin().after(timeBankResetTime)) {
+					timeBankBalance += week.getDay(q).getTime();
+				}
 				continue;
 			}
-			timeBankBalance += week.getDay(q).getTime() - Configuration.getInstance().getDailyWorkingTime(); 
+			if (week.getDay(q).getBegin().after(timeBankResetTime)) {
+				timeBankBalance += week.getDay(q).getTime() - Configuration.getInstance().getDailyWorkingTime(); 
+			}
 		}
 		if (tabIndex >= 5) {
 			// Saturday and Sunday

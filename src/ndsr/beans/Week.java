@@ -35,6 +35,7 @@ public class Week {
 	    	days[i] = new Day(tmp);
 	    	tmp.add(Calendar.DATE, 1);
 	    }
+	    init();
 	}
 	
 	public Calendar getWeekBegin() {

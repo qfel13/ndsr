@@ -53,6 +53,11 @@ public class StatisticsFrame extends JFrame {
 	private static final int CHART_WIDTH = 300;
 	private static final int CHART_HEIGHT = 170;
 	
+	private static final Color PLOT_COLOR_VACATION = new Color(135, 206, 250);
+	private static final Color PLOT_COLOR_WORKING = new Color(48, 128, 20);
+	private static final Color PLOT_COLOR_REMAIN = new Color(255, 215, 0);
+	private static final Color PLOT_COLOR_OVERTIME = new Color(238, 0, 0);
+	
 	private JPanel chartsPanel;
 	private JPanel optionsPanel;
 	private ChartPanel dayChartPanel;
@@ -70,16 +75,6 @@ public class StatisticsFrame extends JFrame {
 	/** Creates new form ChartFrame */
 	public StatisticsFrame() {
 		initComponents();
-	}
-
-	private void changePlot(JFreeChart chart) {
-		CategoryPlot dayCategoryPlot = (CategoryPlot) chart.getPlot();
-
-		dayCategoryPlot.setNoDataMessage("Not initialized yet.");
-		CategoryItemRenderer renderer = dayCategoryPlot.getRenderer();
-		renderer.setSeriesPaint(0, new Color(48, 128, 20));
-		renderer.setSeriesPaint(1, new Color(255, 215, 0));
-		renderer.setSeriesPaint(2, new Color(238, 0, 0));
 	}
 
 	private void initComponents() {
@@ -247,12 +242,20 @@ public class StatisticsFrame extends JFrame {
 		double todayHours = (double)Stats.getToday().getTime() / 3600000;
 		double remainingTodayHours = (double)Stats.getToday().getRemaining() / 3600000;
 		double overtimeTodayHours = (double)Stats.getToday().getOvertime() / 3600000;
-		if (overtimeTodayHours > 0 ) {
+		
+		
+		if (Stats.getToday().isFreeDay() && overtimeTodayHours == 0) {
+			data.addValue((double)Configuration.getInstance().getDailyWorkingTime() / 3600000, "Free", "Today");
+		} 
+		
+		if (!Stats.getToday().isFreeDay() && overtimeTodayHours > 0 ) {
 			todayHours = (double)Configuration.getInstance().getDailyWorkingTime() / 3600000;
 		}
-
-		data.addValue(todayHours, "Worked", "Today");
-		data.addValue(remainingTodayHours, "Remaining", "Today");
+		
+		if (!Stats.getToday().isFreeDay()) {
+			data.addValue(todayHours, "Worked", "Today");
+			data.addValue(remainingTodayHours, "Remaining", "Today");
+		}
 		if (overtimeTodayHours > 0) {
 			data.addValue(overtimeTodayHours, "Overtime", "Today");
 		}
@@ -260,7 +263,21 @@ public class StatisticsFrame extends JFrame {
 		JFreeChart dayChart = ChartFactory.createStackedBarChart3D("Today", null, null	, data,
 				PlotOrientation.HORIZONTAL, true, true, false);
 
-		changePlot(dayChart);
+		CategoryPlot dayCategoryPlot = (CategoryPlot) dayChart.getPlot();
+
+		dayCategoryPlot.setNoDataMessage("Not initialized yet.");
+		CategoryItemRenderer renderer = dayCategoryPlot.getRenderer();
+		int i = 0;
+		if  (Stats.getToday().isFreeDay() && overtimeTodayHours == 0) { 
+			renderer.setSeriesPaint(i++, PLOT_COLOR_VACATION);
+		} else if (Stats.getToday().isFreeDay() && overtimeTodayHours > 0) {
+			// overtime only
+		} else {
+			renderer.setSeriesPaint(i++, PLOT_COLOR_WORKING);
+			renderer.setSeriesPaint(i++, PLOT_COLOR_REMAIN);
+		}
+		
+		renderer.setSeriesPaint(i++, PLOT_COLOR_OVERTIME);
 
 		return dayChart;
 	}
@@ -300,16 +317,16 @@ public class StatisticsFrame extends JFrame {
 		CategoryItemRenderer renderer = dayCategoryPlot.getRenderer();
 		int i = 0;
 		if  (vacationWeekHours > 0 ) { 
-			renderer.setSeriesPaint(i++, new Color(135, 206, 250));
+			renderer.setSeriesPaint(i++, PLOT_COLOR_VACATION);
 		}
 		if (weekHours > 0) {
-			renderer.setSeriesPaint(i++, new Color(48, 128, 20));
+			renderer.setSeriesPaint(i++, PLOT_COLOR_WORKING);
 		}
 		if  (remainingWeekHours > 0 ) {
-			renderer.setSeriesPaint(i++, new Color(255, 215, 0));
+			renderer.setSeriesPaint(i++, PLOT_COLOR_REMAIN);
 		}
 		if  (overtimeWeekHours > 0 ) {
-			renderer.setSeriesPaint(i++, new Color(238, 0, 0));
+			renderer.setSeriesPaint(i++, PLOT_COLOR_OVERTIME);
 		} 
 		
 		return weekChart;
@@ -336,8 +353,14 @@ public class StatisticsFrame extends JFrame {
 			cols.add(DayOfWeek.values()[q].toString() + " (" +  cal.get(Calendar.DAY_OF_MONTH) + "/" + (cal.get(Calendar.MONTH) + 1) + ")");
 			if (Stats.getWeek().getDay(q).isFreeDay() && Stats.getWeek().getDay(q).getTime() == 0) {
 				data.get(0).add(Stats.getWeek().getDay(q).getTitle());
-				data.get(1).add("");
-				data.get(2).add("");
+				if (Stats.getWeek().getDay(q).getOvertime() > 0) {
+					// only if working in free day
+					data.get(1).add(Stats.getWeek().getDay(q).toString(StatType.REMAIN));
+					data.get(2).add(Stats.getWeek().getDay(q).toString(StatType.OVERTIME));
+				} else {
+					data.get(1).add("");
+					data.get(2).add("");
+				}
 			} else {
 				data.get(0).add(Stats.getWeek().getDay(q).toString(StatType.WORK));
 				data.get(1).add(Stats.getWeek().getDay(q).toString(StatType.REMAIN));

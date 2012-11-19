@@ -62,6 +62,8 @@ public class Stats {
 			setToday(new Day());
 			getToday().init();			
 			getTimeBank().refresh();
+		} else {
+			getToday().refresh();
 		}
 	}
 	
